@@ -1,6 +1,6 @@
 ---
 title: License activation
-description: How to get and apply a free license key for Whiteout Survival Autopilot.
+description: How to get and apply a free license key for Autopilot.
 sidebar:
   order: 5
   label: License
