@@ -1,6 +1,6 @@
 ---
 title: Prerequisites
-description: Required tools and BlueStacks setup before running the Whiteout Survival Autopilot stack.
+description: Required tools and BlueStacks setup before running the Autopilot stack.
 sidebar:
   order: 1
 ---
