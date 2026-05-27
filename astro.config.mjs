@@ -93,6 +93,10 @@ export default defineConfig({
         {
           label: 'Operations',
           items: [
+            { label: 'Devices (ADB)', slug: 'ops/devices' },
+            { label: 'Queue & scheduling', slug: 'ops/queue' },
+            { label: 'Click approvals', slug: 'ops/approvals' },
+            { label: 'Gift codes', slug: 'ops/gift-codes' },
             { label: 'Troubleshooting', slug: 'ops/troubleshooting' },
           ],
         },

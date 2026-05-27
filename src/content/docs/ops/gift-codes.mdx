@@ -1,0 +1,41 @@
+---
+title: Gift codes
+description: Scrape the latest promotional gift codes and auto-redeem them across every configured account. Shows a per-account success/failure matrix at a glance.
+sidebar:
+  order: 4
+  label: Gift codes
+---
+
+import { Image } from 'astro:assets';
+import giftCodesScreenshot from '../../../assets/gift_codes.png';
+
+One of the most popular features. The bot maintains a registry of Century Game promo codes (`db/giftCodes.yaml`), scrapes new ones from public sources, and redeems them against every configured account on a schedule. The dashboard page is your single view of "which codes succeeded for which accounts."
+
+<Image src={giftCodesScreenshot} alt="Gift codes dashboard" />
+
+## What it does
+
+- **Scrapes new codes** — the `Scrape now` button hits the public code sources, dedupes against the registry, and queues anything new.
+- **Redeems across all accounts** — `Redeem now` (or the cron schedule) walks every account configured in `db/state/wos.db` and submits each pending code. The matrix view shows the result per account, per code.
+- **Tracks the lifecycle** — once a code is `ALREADY_RECEIVED` for an account, it never gets retried for that account. `SUCCESS` rows turn green and are dropped from the next pass.
+- **Per-account columns** — each configured player ID gets its own column. Status values:
+  - **`SUCCESS`** — code redeemed, rewards in inbox
+  - **`ALREADY_RECEIVED`** — this account already had it (no retry)
+  - **`FAILED`** — API rejected (expired, region-locked, hit a per-account limit, etc.)
+  - **`PENDING`** — queued but not yet attempted
+- **API errors surfaced** — the `API ERR` column shows the upstream code (`20000`, `40005`, …) so you can tell "the code is bad" from "this one account is rate-limited."
+
+## Counters at the top
+
+- **Active** — codes that haven't expired and could still pay out for someone.
+- **Needs run** — active codes that have at least one account in `PENDING` state.
+- **Pending slots** — total `account × code` pairs waiting to be tried (this is what the next run will burn through).
+- **Expired** — codes the API has confirmed dead, kept around for history but skipped on redeem.
+
+## Why it's a workhorse
+
+Manual gift code redemption is the single biggest time sink for a Whiteout Survival multi-account player — every time the Century Game team or a content creator drops a new code, you'd otherwise have to switch accounts and re-type it N times. The bot does the whole sweep in one pass and logs which accounts came up empty so you can spot a stuck account quickly.
+
+## Where it runs
+
+The redeem loop is scenario `gift_codes/scenarios/by_cron/redeem_gift_codes.yaml`. The default cron pulls and redeems every few hours; you can also kick a one-off run from the dashboard's `Redeem now` button or from the queue.

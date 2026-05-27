@@ -1,0 +1,44 @@
+---
+title: Queue & scheduling
+description: Pending, running, and recent task outcomes across the fleet. Per-instance filters, running task introspection, and a Google-Calendar-style timeline view for scheduling.
+sidebar:
+  order: 2
+  label: Queue & scheduling
+---
+
+import { Image } from 'astro:assets';
+import queueScreenshot from '../../../assets/queue.png';
+
+The **Queue page** is the central view of what the bot is doing right now and what's pending. Everything goes through Redis (queue + history + state), so this view is restart-safe and reflects reality across all worker processes — including a worker that just crashed and restarted.
+
+<Image src={queueScreenshot} alt="Queue page with timeline scheduling" />
+
+## What you get
+
+- **Per-instance filter** — pick one BlueStacks instance (`bs1`, `127.0.0.1:5555`, …) or view the whole fleet. The page subscribes to live Redis updates, no manual refresh.
+- **At-a-glance counters** — `Pending`, `Overdue`, `Running`, `Recent OK`, `Recent failed`. The first place to look when something feels off.
+- **Currently running task panel** — what's executing on which instance, with priority, current step, elapsed time, and the player ID it's acting on. One click opens the DSL runner with the same state for live introspection.
+- **Pending table** — sorted per instance in execution order: due tasks first, then scheduled tasks by time. Each row shows status (Overdue / Pending / Scheduled), the scenario name, the region it's targeting, priority, and quick actions (DSL runner, copy debug payload).
+
+## Two views: Table and Timeline
+
+The **Table** view is a list — best for "what's stuck right now."
+
+The **Timeline** view is a Google-Calendar-style grid of upcoming scenarios across your instances. Each block is one scheduled task; rows are instances; columns are time. You can:
+
+- See at a glance when each daily/weekly scenario is going to fire next.
+- Spot scheduling conflicts (two heavy scenarios stacked on one minute → throttle one).
+- Drag a task to reschedule it to a later slot — the change writes straight to Redis and the scheduler picks it up.
+
+This makes the cron schedule a UI-editable object, not a YAML file you have to redeploy.
+
+## Cross-references
+
+The Queue page is wired to every other operator surface — the top-right action row jumps to:
+
+- **Labeling** — open the labeling editor for the regions the running task is matching against
+- **Player** — open the active player's profile
+- **Approvals** — review pending tap approvals
+- **Overlay** — see what the overlay engine is detecting right now
+
+Use it as the "everything's wrong, where do I start" entry point.
