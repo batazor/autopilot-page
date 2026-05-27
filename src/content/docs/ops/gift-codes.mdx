@@ -16,7 +16,7 @@ One of the most popular features. The bot maintains a registry of Century Game p
 ## What it does
 
 - **Scrapes new codes** — the `Scrape now` button hits the public code sources, dedupes against the registry, and queues anything new.
-- **Redeems across all accounts** — `Redeem now` (or the cron schedule) walks every account configured in `db/state/wos.db` and submits each pending code. The matrix view shows the result per account, per code.
+- **Redeems across all accounts** — `Redeem now` (or the cron schedule) walks every account configured in `db/state/state.db` and submits each pending code. The matrix view shows the result per account, per code.
 - **Tracks the lifecycle** — once a code is `ALREADY_RECEIVED` for an account, it never gets retried for that account. `SUCCESS` rows turn green and are dropped from the next pass.
 - **Per-account columns** — each configured player ID gets its own column. Status values:
   - **`SUCCESS`** — code redeemed, rewards in inbox
@@ -35,6 +35,23 @@ One of the most popular features. The bot maintains a registry of Century Game p
 ## Why it's a workhorse
 
 Manual gift code redemption is the single biggest time sink for a Whiteout Survival multi-account player — every time the Century Game team or a content creator drops a new code, you'd otherwise have to switch accounts and re-type it N times. The bot does the whole sweep in one pass and logs which accounts came up empty so you can spot a stuck account quickly.
+
+## External accounts (Pro)
+
+<div class="not-content my-6 rounded-2xl border border-[var(--sl-color-accent)] bg-gradient-to-br from-[var(--sl-color-accent-low)] to-transparent p-6">
+  <div class="mb-3 flex items-center gap-3">
+    <span class="rounded-full bg-[var(--sl-color-accent)] px-3 py-1 text-xs font-bold uppercase tracking-widest text-white">Pro</span>
+    <h3 class="m-0 text-xl font-bold text-[var(--sl-color-text-accent)]">Redeem for any user ID, not just your own accounts</h3>
+  </div>
+  <p class="mb-3 text-[var(--sl-color-gray-2)]">
+    Beyond the accounts the bot owns, the redeem loop can target any list of player IDs (FIDs) you paste in — alliance members, partner farms, secondary accounts on other servers, friends who don't run the bot themselves. Same matrix view, same per-code/per-account status, same retries.
+  </p>
+  <p class="m-0 text-sm text-[var(--sl-color-gray-3)]">
+    Bulk-paste accepts <code>fid</code> or <code>fid label</code>, one per line. Scope is per game — WOS and Kingshot have independent lists. License feature flag: <code>gift_codes.external_accounts</code>.
+  </p>
+</div>
+
+The **External accounts** panel on the Gift codes page is where you manage this list. Each external ID gets its own column in the matrix alongside your own accounts. Rows added before a Pro license expires stay visible as read-only history but are skipped on redeem until the feature is licensed again.
 
 ## Where it runs
 

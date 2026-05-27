@@ -43,6 +43,25 @@ Whiteout Survival has full scenario coverage today: daily loops, weekly events, 
   </div>
 </div>
 
+{/* Pro feature spotlight — gift codes for any user ID. */}
+<aside class="not-content my-8 rounded-2xl border border-[var(--sl-color-accent)] bg-gradient-to-br from-[var(--sl-color-accent-low)] to-transparent p-6">
+  <div class="mb-3 flex flex-wrap items-center gap-3">
+    <span class="rounded-full bg-[var(--sl-color-accent)] px-3 py-1 text-xs font-bold uppercase tracking-widest text-white">Pro</span>
+    <h3 class="m-0 text-xl font-bold text-[var(--sl-color-text-accent)]">Gift codes for any Whiteout Survival user ID</h3>
+  </div>
+  <p class="mb-3 text-[var(--sl-color-gray-2)]">
+    Bot-owned accounts get gift codes automatically. <strong>External accounts</strong> extend the same redeem loop to arbitrary player IDs (FIDs) you paste in — alliance members, partner farms, accounts on other states, friends who don't run the bot themselves. The matrix view tracks each one alongside your own.
+  </p>
+  <ul class="mb-3 list-disc pl-5 text-sm text-[var(--sl-color-gray-2)]">
+    <li>Bulk paste: <code>fid</code> or <code>fid label</code>, one per line.</li>
+    <li>Works for accounts on any state — no emulator or login required.</li>
+    <li>Redeem a fresh code for the whole alliance in one pass.</li>
+  </ul>
+  <p class="m-0 text-xs text-[var(--sl-color-gray-3)]">
+    License feature flag: <code>gift_codes.external_accounts</code>. See <a href="/autopilot-page/ops/gift-codes/#external-accounts-pro">Gift codes → External accounts</a>.
+  </p>
+</aside>
+
 {/* Live filter — hides table rows / cards by substring match.
     Right-side affordances: "/" kbd hint when empty, "Showing N of M" when typing. */}
 <div class="not-content my-4">
