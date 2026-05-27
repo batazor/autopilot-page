@@ -7,9 +7,9 @@ export default defineConfig({
   base: '/autopilot-page',
   integrations: [
     starlight({
-      title: 'Whiteout Survival Autopilot',
+      title: 'Autopilot',
       description:
-        'Multi-account Whiteout Survival bot — one worker per BlueStacks instance, queue/state in Redis, screen text via local Tesseract OCR.',
+        'Free, game-agnostic Android autopilot — one worker per emulator instance, queue/state in Redis, screen text via local Tesseract OCR. Whiteout Survival fully covered; Kingshot on the roadmap.',
       logo: {
         src: './src/assets/logo.png',
         replacesTitle: false,

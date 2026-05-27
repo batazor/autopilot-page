@@ -1,6 +1,6 @@
 ---
 title: Emulator setup
-description: Required BlueStacks settings for the Whiteout Survival Autopilot.
+description: Required BlueStacks settings for Autopilot.
 ---
 
 The bot interfaces with your Android emulator via ADB. Officially supported: **BlueStacks 5+**.
