@@ -11,7 +11,7 @@
 #   * area.json, references/, db/buildings, db/gear, db/items, db/assets are
 #     baked into the image — nothing to mount, nothing to seed.
 #   * The dashboard prompts for a license file on first load. Grab the current
-#     ``licence.json`` from the ``#install`` channel on Discord, upload it
+#     ``licence.jwt`` from the ``#install`` channel on Discord, upload it
 #     in the UI, then ``docker compose ... restart bot`` once.
 #
 # Pinning a version (recommended for stability):
