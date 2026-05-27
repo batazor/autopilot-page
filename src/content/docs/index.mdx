@@ -1,0 +1,49 @@
+---
+title: Autopilot
+description: Free, game-agnostic Android autopilot — currently shipping full scenarios for Whiteout Survival, with Kingshot on the roadmap.
+template: splash
+hero:
+  tagline: A free, scenario-driven Android autopilot. Whiteout Survival is fully covered today; Kingshot and other games are on the way.
+  image:
+    file: ../../assets/logo.png
+  actions:
+    - text: Install in 2 minutes
+      link: /autopilot-page/install/prerequisites/
+      icon: right-arrow
+      variant: primary
+    - text: Whiteout Survival features
+      link: /autopilot-page/features/
+      icon: list-format
+      variant: secondary
+    - text: Discord
+      link: https://discord.gg/62twnzKG9
+      icon: external
+      variant: minimal
+---
+
+import { Card, CardGrid, LinkCard } from '@astrojs/starlight/components';
+
+## Whiteout Survival — what's automated
+
+<CardGrid stagger>
+  <Card title="Combat & events" icon="rocket">
+    Squad Fight, Trials, Snowstorm, Arena, event-block scanning on the main city.
+  </Card>
+  <Card title="City management" icon="setting">
+    Building upgrades, furnace Max Power, worker assignment, VIP and daily shop.
+  </Card>
+  <Card title="Heroes" icon="star">
+    Free recruitments, hero upgrades, red-dot draining, unit-data sync.
+  </Card>
+  <Card title="Daily + quality of life" icon="open-book">
+    Mail gifts, gift codes, ad claims, backpack scheduling, popup dismissers.
+  </Card>
+</CardGrid>
+
+## Other games
+
+<LinkCard
+  title="Kingshot — contributors wanted"
+  description="The engine isn't tied to Whiteout Survival. Kingshot support is on the roadmap but not started — if you want to help author scenarios, ping us on Discord."
+  href="/autopilot-page/games/kingshot/"
+/>

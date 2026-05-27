@@ -1,0 +1,84 @@
+/* Map the WhiteOut dashboard palette (web/app/styles/tokens.css) onto Starlight
+   tokens, so docs and the operator UI share a visual identity. Light/dark are
+   handled by Starlight's built-in toggle; dark is the default. */
+
+:root {
+  --sl-color-accent-low: #0c4a6e;
+  --sl-color-accent: #0ea5e9;
+  --sl-color-accent-high: #bae6fd;
+
+  --sl-color-white: #ffffff;
+  --sl-color-gray-1: #f3f6fa;
+  --sl-color-gray-2: #c8d4e4;
+  --sl-color-gray-3: #9eb0c8;
+  --sl-color-gray-4: #5c7290;
+  --sl-color-gray-5: #4d617a;
+  --sl-color-gray-6: #38465c;
+  --sl-color-gray-7: #2f3b4f;
+  --sl-color-black: #1c2433;
+
+  --sl-color-bg: #1c2433;
+  --sl-color-bg-nav: #171e2c;
+  --sl-color-bg-sidebar: #171e2c;
+  --sl-color-bg-inline-code: #222d3f;
+  --sl-color-bg-accent: #0ea5e9;
+
+  --sl-color-text: #f3f6fa;
+  --sl-color-text-accent: #7dd3fc;
+  --sl-color-text-invert: #1c2433;
+
+  --sl-color-hairline-light: #3f5269;
+  --sl-color-hairline: #4d617a;
+  --sl-color-hairline-shade: #2f3b4f;
+
+  --sl-font: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --sl-font-system-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+    monospace;
+}
+
+:root[data-theme="light"] {
+  --sl-color-accent-low: #e0f2fe;
+  --sl-color-accent: #0284c7;
+  --sl-color-accent-high: #0c4a6e;
+
+  --sl-color-white: #0f172a;
+  --sl-color-gray-1: #0f172a;
+  --sl-color-gray-2: #334155;
+  --sl-color-gray-3: #64748b;
+  --sl-color-gray-4: #94a3b8;
+  --sl-color-gray-5: #cbd5e1;
+  --sl-color-gray-6: #e2e8f0;
+  --sl-color-gray-7: #f1f5f9;
+  --sl-color-black: #ffffff;
+
+  --sl-color-bg: #f1f5f9;
+  --sl-color-bg-nav: #ffffff;
+  --sl-color-bg-sidebar: #ffffff;
+  --sl-color-bg-inline-code: #f8fafc;
+  --sl-color-bg-accent: #0284c7;
+
+  --sl-color-text: #0f172a;
+  --sl-color-text-accent: #0369a1;
+  --sl-color-text-invert: #ffffff;
+
+  --sl-color-hairline-light: #e2e8f0;
+  --sl-color-hairline: #cbd5e1;
+  --sl-color-hairline-shade: #f1f5f9;
+}
+
+/* Body background gradient inspired by the dashboard's --wos-body-grad-* tokens.
+   Subtle on dark, almost invisible on light — matches the operator UI tone. */
+:root {
+  --wos-body-grad-top: #222c3d;
+  --wos-body-grad-glow: rgba(56, 132, 220, 0.14);
+}
+:root[data-theme="light"] {
+  --wos-body-grad-top: #f8fafc;
+  --wos-body-grad-glow: rgba(14, 165, 233, 0.1);
+}
+
+body {
+  background:
+    radial-gradient(circle at 50% -10%, var(--wos-body-grad-glow), transparent 55%),
+    linear-gradient(180deg, var(--wos-body-grad-top), var(--sl-color-bg) 35%);
+}
