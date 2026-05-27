@@ -13,6 +13,7 @@ hero:
       icon: right-arrow
       variant: primary
 template: doc
+tableOfContents: false
 ---
 
 import { Card, CardGrid } from '@astrojs/starlight/components';
@@ -199,6 +200,8 @@ Whiteout Survival has full scenario coverage today: daily loops, weekly events, 
 | `rewards/exit_rewards_popup` | Confirm / claim / close rewards popup |
 | `who_i_am` | "Where am I?" / identity-recovery prompt |
 
+</div>
+
 <h2 id="engine" class="scn-h scn-accent-violet">Engine capabilities <span class="scn-count">8</span></h2>
 
 Game-agnostic infrastructure used by every scenario above.
@@ -229,8 +232,6 @@ Game-agnostic infrastructure used by every scenario above.
     Interval-driven scenarios publish immediately on boot, then throttle by interval.
   </Card>
 </CardGrid>
-
-</div>
 
 {/* Page enhancements (inline, no bundling): filter + count + highlight,
     scroll-spy on chips, clipboard on code pills, heading hash-links, "/" hotkey,
@@ -354,7 +355,7 @@ Game-agnostic infrastructure used by every scenario above.
       if (empty) empty.hidden = visibleTotal > 0 || !q;
       if (count && kbd) {
         if (q) {
-          count.textContent = 'Showing ' + visibleTotal + ' of ' + totalItems;
+          count.textContent = 'Showing ' + visibleTotal + ' of ' + totalItems + ' items';
           count.hidden = false;
           kbd.hidden = true;
         } else {
