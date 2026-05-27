@@ -1,0 +1,88 @@
+---
+title: Prerequisites
+description: Required tools and BlueStacks setup before running the Autopilot stack. Per-platform requirements for macOS, Linux, and Windows.
+sidebar:
+  order: 1
+---
+
+import { Tabs, TabItem, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+:::tip
+Pre-built images on GitHub Container Registry — no Python / uv install needed.
+:::
+
+## Pick your platform
+
+The exact prerequisites depend on what you're running. Pick the platform you'll install on, then jump to the install steps when you're ready.
+
+<CardGrid>
+  <LinkCard
+    title="macOS"
+    description="Docker Desktop with the Host networking beta toggle enabled."
+    href="/autopilot-page/install/macos/"
+  />
+  <LinkCard
+    title="Linux"
+    description="Docker Engine + Compose v2 — native host networking, no extra toggles."
+    href="/autopilot-page/install/linux/"
+  />
+  <LinkCard
+    title="Windows"
+    description="Docker Desktop + WSL2, Platform Tools on PATH, BlueStacks ADB enabled."
+    href="/autopilot-page/install/windows/"
+  />
+</CardGrid>
+
+## Required software
+
+<Tabs syncKey="os">
+  <TabItem label="macOS">
+    | Requirement | Version | Notes |
+    |:------------|:--------|:------|
+    | [Docker Desktop](https://docs.docker.com/desktop/install/mac-install/) | latest | Toggle **Settings → Resources → Network → Enable host networking** (beta). Without this, the bot container can't talk to the host's `adb`. |
+    | [BlueStacks](https://www.bluestacks.com/) | `5` or newer | Apple-silicon and Intel both supported. |
+    | [Android Platform Tools](https://developer.android.com/tools/releases/platform-tools) (`adb`) | latest | `brew install --cask android-platform-tools` is fine. |
+  </TabItem>
+
+  <TabItem label="Linux">
+    | Requirement | Version | Notes |
+    |:------------|:--------|:------|
+    | [Docker Engine](https://docs.docker.com/engine/install/) + Compose v2 | latest | `network_mode: host` works out of the box, no extra toggles. |
+    | [BlueStacks](https://www.bluestacks.com/) | `5` or newer | Or any 720 × 1280 / 320 DPI Android emulator with ADB. |
+    | [Android Platform Tools](https://developer.android.com/tools/releases/platform-tools) (`adb`) | latest | Distro package (`apt install android-tools-adb` / `pacman -S android-tools`) is fine. |
+  </TabItem>
+
+  <TabItem label="Windows">
+    | Requirement | Version | Notes |
+    |:------------|:--------|:------|
+    | [Docker Desktop](https://docs.docker.com/desktop/install/windows-install/) | latest | Requires WSL2. Toggle **Settings → Resources → Network → Enable host networking** (beta). |
+    | [BlueStacks](https://www.bluestacks.com/) | `5` or newer | **Settings → Advanced → Android Debug Bridge → Enabled.** |
+    | [Android Platform Tools](https://developer.android.com/tools/releases/platform-tools) (`adb`) | latest | Unzip to e.g. `%LOCALAPPDATA%\Android\Sdk\platform-tools\`, then add to `PATH` (*System Properties → Environment Variables*). Some AVs flag `adb.exe` — whitelist the folder. |
+  </TabItem>
+</Tabs>
+
+:::caution[Emulator config]
+The emulator must run **720 × 1280, 320 DPI, English game language**. See [Emulator setup](/autopilot-page/config/emulator/) for the full settings list.
+:::
+
+## Get the compose file
+
+The autopilot bot is distributed as Docker images. You only need [`docker-compose.prod.yml`](/autopilot-page/docker-compose.prod.yml) to run it:
+
+```sh
+curl -fsSL https://batazor.github.io/autopilot-page/docker-compose.prod.yml -o docker-compose.prod.yml
+```
+
+Or save it manually from the link above.
+
+## Next: install on your platform
+
+<CardGrid>
+  <LinkCard title="Install on macOS" href="/autopilot-page/install/macos/" />
+  <LinkCard title="Install on Linux" href="/autopilot-page/install/linux/" />
+  <LinkCard title="Install on Windows" href="/autopilot-page/install/windows/" />
+</CardGrid>
+
+:::tip[License]
+The bot is free, but you'll need a license file on first start. The dashboard asks for it via an upload prompt — get the current `licence.jwt` from the `#install` channel on [Discord](https://discord.gg/62twnzKG9). See [License activation](/autopilot-page/install/license/) for the full flow.
+:::
