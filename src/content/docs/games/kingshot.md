@@ -3,6 +3,14 @@ title: Kingshot
 description: Kingshot support is on the roadmap — we'll start the implementation as soon as volunteers show up.
 sidebar:
   order: 2
+hero:
+  image:
+    file: ../../../assets/kingshot.png
+  actions:
+    - text: Join the effort on Discord
+      link: https://discord.gg/62twnzKG9
+      icon: external
+      variant: primary
 ---
 
 The autopilot engine is game-agnostic — scenarios, overlay rules, and the DSL aren't tied to any specific game. Adding Kingshot is essentially authoring its scenario set under `modules/`; no engine changes required.
