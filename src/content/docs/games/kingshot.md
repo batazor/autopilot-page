@@ -11,6 +11,10 @@ hero:
       link: https://discord.gg/62twnzKG9
       icon: external
       variant: primary
+    - text: Authoring guide
+      link: /autopilot-page/authoring/flow/
+      icon: open-book
+      variant: secondary
 ---
 
 The autopilot engine is game-agnostic — scenarios, overlay rules, and the DSL aren't tied to any specific game. Adding Kingshot is essentially authoring its scenario set under `modules/`; no engine changes required.
@@ -25,11 +29,12 @@ The autopilot engine is game-agnostic — scenarios, overlay rules, and the DSL 
 
 Drop into the **`#install`** channel on [Discord](https://discord.gg/62twnzKG9) and ping us. You don't need prior contribution experience — if you can describe Kingshot's daily loop in plain English, you can describe it in the DSL.
 
-We'll help with:
+We have public docs for the full authoring flow already:
 
-- Labeling editor walkthrough — how to capture screens and define regions
-- DSL primer — `match`, `click`, `while_match`, `cond`, `push_scenario`
-- Module layout — how to add a new game alongside Whiteout Survival
-- Reviewing your first scenario
+- [Authoring flow](/autopilot-page/authoring/flow/) — capture → label → write DSL → test
+- [Labeling regions](/autopilot-page/authoring/labeling/) — using the editor
+- [DSL primer](/autopilot-page/authoring/dsl/) — `match`, `click`, `while_match`, `cond`, `push_scenario` with a worked example
+
+We'll pair on the labeling pass and review your first scenarios.
 
 The [Whiteout Survival coverage](/autopilot-page/games/whiteout-survival/) is a good template for what "fully covered" looks like — that's roughly what we'd aim for with Kingshot, ideally driven by someone who actually plays the game.
