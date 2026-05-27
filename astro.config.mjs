@@ -1,10 +1,14 @@
 // @ts-check
 import { defineConfig } from 'astro/config';
 import starlight from '@astrojs/starlight';
+import tailwindcss from '@tailwindcss/vite';
 
 export default defineConfig({
   site: 'https://batazor.github.io',
   base: '/autopilot-page',
+  vite: {
+    plugins: [tailwindcss()],
+  },
   integrations: [
     starlight({
       title: 'Autopilot',
@@ -15,7 +19,7 @@ export default defineConfig({
         replacesTitle: false,
       },
       favicon: '/favicon.png',
-      customCss: ['./src/styles/wos.css'],
+      customCss: ['./src/styles/tailwind.css', './src/styles/wos.css'],
       head: [
         // OG / Twitter card image — what Discord, Slack, Telegram show when
         // somebody pastes the docs URL. Served from /public so the absolute URL

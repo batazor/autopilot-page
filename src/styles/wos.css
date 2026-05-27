@@ -82,3 +82,227 @@ body {
     radial-gradient(circle at 50% -10%, var(--wos-body-grad-glow), transparent 55%),
     linear-gradient(180deg, var(--wos-body-grad-top), var(--sl-color-bg) 35%);
 }
+
+/* ---------------------------------------------------------------------------
+   Scenario tables (used on /games/whiteout-survival)
+
+   The page is a stack of "scenario | what it does" tables grouped by domain.
+   The default Starlight table is functional but visually dense — this gives
+   each section an accent bar, turns rows into a soft card, and renders the
+   scenario column as code-pills so the names read as identifiers.
+   --------------------------------------------------------------------------- */
+
+.scenario-tables h2,
+.scenario-tables h2.scn-h {
+  position: relative;
+  padding-left: 0.85rem;
+  border-left: 3px solid var(--sl-color-accent);
+  margin-top: 2.5rem;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  scroll-margin-top: calc(var(--sl-nav-height, 4rem) + 4.5rem);
+}
+
+/* Count chip next to each section heading — "Daily loops · 6". */
+.scenario-tables .scn-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.75rem;
+  height: 1.5rem;
+  padding: 0 0.55rem;
+  border-radius: 999px;
+  background: var(--sl-color-bg-inline-code);
+  border: 1px solid var(--sl-color-hairline-shade);
+  color: var(--sl-color-text-accent);
+  font-size: 0.75rem;
+  font-weight: 600;
+  font-family: var(--sl-font-system-mono);
+  line-height: 1;
+}
+
+/* Per-section accent on the heading left bar — sky / emerald / amber / violet
+   / pink / cyan / rose. Adds rhythm without recoloring the whole table. */
+.scenario-tables h2.scn-accent-sky     { border-left-color: #0ea5e9; }
+.scenario-tables h2.scn-accent-emerald { border-left-color: #10b981; }
+.scenario-tables h2.scn-accent-amber   { border-left-color: #f59e0b; }
+.scenario-tables h2.scn-accent-violet  { border-left-color: #8b5cf6; }
+.scenario-tables h2.scn-accent-pink    { border-left-color: #ec4899; }
+.scenario-tables h2.scn-accent-cyan    { border-left-color: #06b6d4; }
+.scenario-tables h2.scn-accent-rose    { border-left-color: #f43f5e; }
+
+/* Active chip in the sticky jump-nav (set by scroll-spy in the page script). */
+#scenario-jump a.scn-chip-active {
+  border-color: var(--sl-color-accent);
+  background: var(--sl-color-accent-low);
+  color: var(--sl-color-text);
+}
+
+/* Hide horizontal-scroll bar on the mobile jump-nav (chips already snap). */
+#scenario-jump { scrollbar-width: none; }
+#scenario-jump::-webkit-scrollbar { display: none; }
+
+/* Smooth scroll for in-page anchors (chips, h2 hash links). */
+html { scroll-behavior: smooth; }
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+}
+
+/* Hover-lift on Starlight Card components (Ads/Alliance/Backpack/Engine). */
+.scenario-tables .card {
+  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+}
+.scenario-tables .card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.18);
+  border-color: var(--sl-color-accent);
+}
+
+/* Filter substring highlight — wrapped by the page script. */
+.scenario-tables mark.scn-mark {
+  background: var(--sl-color-accent-low);
+  color: var(--sl-color-text);
+  padding: 0 0.15em;
+  border-radius: 3px;
+}
+
+/* Click-to-copy affordance on scenario-name code pills. */
+.scenario-tables td:first-child code {
+  cursor: copy;
+}
+.scenario-tables td:first-child code:hover {
+  border-color: var(--sl-color-accent);
+}
+
+/* Hash-link revealed on h2 hover. */
+.scenario-tables h2 .scn-anchor {
+  opacity: 0;
+  margin-left: 0.25rem;
+  color: var(--sl-color-gray-3);
+  font-weight: 500;
+  text-decoration: none;
+  transition: opacity 0.15s ease, color 0.15s ease;
+}
+.scenario-tables h2:hover .scn-anchor,
+.scenario-tables h2:focus-within .scn-anchor,
+.scenario-tables h2 .scn-anchor:focus-visible {
+  opacity: 1;
+}
+.scenario-tables h2 .scn-anchor:hover {
+  color: var(--sl-color-accent);
+}
+
+/* Reading-progress bar pinned to the very top of the viewport. */
+.scn-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 2px;
+  width: 0;
+  background: var(--sl-color-accent);
+  z-index: 100;
+  transition: width 0.1s ease;
+  pointer-events: none;
+}
+
+/* Toast surfaced after copy actions. */
+.scn-toast {
+  position: fixed;
+  bottom: 1.5rem;
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: var(--sl-color-bg-nav);
+  border: 1px solid var(--sl-color-accent);
+  color: var(--sl-color-text);
+  padding: 0.5rem 1rem;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+  opacity: 0;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  z-index: 200;
+  pointer-events: none;
+}
+.scn-toast.is-shown {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+.scenario-tables table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  border: 1px solid var(--sl-color-hairline-shade);
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--sl-color-bg-nav);
+  margin-block: 1rem 1.5rem;
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.04);
+}
+
+.scenario-tables table thead th {
+  background: var(--sl-color-bg-inline-code);
+  font-weight: 600;
+  font-size: 0.75rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--sl-color-text-accent);
+  padding: 0.6rem 1rem;
+  border-bottom: 1px solid var(--sl-color-hairline-shade);
+  text-align: left;
+}
+
+.scenario-tables table tbody tr {
+  transition: background 0.12s ease;
+}
+
+.scenario-tables table tbody tr:nth-child(even) td {
+  background: rgba(125, 211, 252, 0.025);
+}
+
+.scenario-tables table tbody tr:hover td {
+  background: var(--sl-color-accent-low);
+}
+
+.scenario-tables table td {
+  padding: 0.6rem 1rem;
+  border-bottom: 1px solid var(--sl-color-hairline-shade);
+  vertical-align: top;
+  line-height: 1.5;
+}
+
+.scenario-tables table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.scenario-tables table td:first-child {
+  width: 42%;
+  white-space: normal;
+}
+
+/* Render scenario identifiers as inline pills so they stand out from prose. */
+.scenario-tables table td:first-child code {
+  background: var(--sl-color-bg-inline-code);
+  border: 1px solid var(--sl-color-hairline-shade);
+  color: var(--sl-color-text-accent);
+  padding: 0.1rem 0.45rem;
+  border-radius: 6px;
+  font-size: 0.82em;
+  white-space: nowrap;
+}
+
+:root[data-theme="light"] .scenario-tables table tbody tr:nth-child(even) td {
+  background: rgba(2, 132, 199, 0.04);
+}
+
+@media (max-width: 50rem) {
+  .scenario-tables table td:first-child {
+    width: 50%;
+  }
+  .scenario-tables table td,
+  .scenario-tables table thead th {
+    padding: 0.5rem 0.65rem;
+  }
+}

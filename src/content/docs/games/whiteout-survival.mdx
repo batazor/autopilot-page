@@ -15,9 +15,74 @@ hero:
 template: doc
 ---
 
+import { Card, CardGrid } from '@astrojs/starlight/components';
+
+{/* Reading-progress bar (driven by the inline script at the bottom). */}
+<div id="scn-progress" class="scn-progress" aria-hidden="true"></div>
+
 Whiteout Survival has full scenario coverage today: daily loops, weekly events, shop, deals, heroes, combat, popups. The lists below mirror the actual scenario files under `modules/` — what you see here is what runs.
 
-## Daily loops
+{/* Stats strip — landing-style highlight band. */}
+<div class="not-content my-8 grid grid-cols-2 gap-3 sm:grid-cols-4">
+  <div class="rounded-xl border border-[var(--sl-color-hairline-shade)] bg-[var(--sl-color-bg-nav)] p-4 text-center">
+    <div class="text-2xl font-bold text-[var(--sl-color-text-accent)]">80+</div>
+    <div class="mt-1 text-xs uppercase tracking-wider text-[var(--sl-color-gray-3)]">Scenarios</div>
+  </div>
+  <div class="rounded-xl border border-[var(--sl-color-hairline-shade)] bg-[var(--sl-color-bg-nav)] p-4 text-center">
+    <div class="text-2xl font-bold text-[var(--sl-color-text-accent)]">10</div>
+    <div class="mt-1 text-xs uppercase tracking-wider text-[var(--sl-color-gray-3)]">Domains</div>
+  </div>
+  <div class="rounded-xl border border-[var(--sl-color-hairline-shade)] bg-[var(--sl-color-bg-nav)] p-4 text-center">
+    <div class="text-2xl font-bold text-[var(--sl-color-text-accent)]">MIT</div>
+    <div class="mt-1 text-xs uppercase tracking-wider text-[var(--sl-color-gray-3)]">License</div>
+  </div>
+  <div class="rounded-xl border border-[var(--sl-color-hairline-shade)] bg-[var(--sl-color-bg-nav)] p-4 text-center">
+    <div class="text-2xl font-bold text-[var(--sl-color-text-accent)]">Multi</div>
+    <div class="mt-1 text-xs uppercase tracking-wider text-[var(--sl-color-gray-3)]">Accounts</div>
+  </div>
+</div>
+
+{/* Live filter — hides table rows / cards by substring match.
+    Right-side affordances: "/" kbd hint when empty, "Showing N of M" when typing. */}
+<div class="not-content my-4">
+  <label for="scenario-filter" class="sr-only">Filter scenarios</label>
+  <div class="relative">
+    <input
+      id="scenario-filter"
+      type="search"
+      placeholder="Filter scenarios — try 'hero', 'shop', 'event'… (press / to focus)"
+      autocomplete="off"
+      class="w-full rounded-lg border border-[var(--sl-color-hairline-shade)] bg-[var(--sl-color-bg-nav)] px-4 py-2 pr-28 text-base text-[var(--sl-color-text)] placeholder:text-[var(--sl-color-gray-4)] focus:border-[var(--sl-color-accent)] focus:outline-none focus:ring-2 focus:ring-[var(--sl-color-accent-low)]"
+    />
+    <kbd id="scenario-filter-kbd" class="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 rounded border border-[var(--sl-color-hairline-shade)] bg-[var(--sl-color-bg-inline-code)] px-1.5 py-0.5 font-mono text-xs text-[var(--sl-color-gray-3)]">/</kbd>
+    <span id="scenario-filter-count" hidden class="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs tabular-nums text-[var(--sl-color-gray-3)]"></span>
+  </div>
+  <p id="scenario-filter-empty" hidden class="mt-2 text-sm text-[var(--sl-color-gray-3)]">No scenarios match.</p>
+</div>
+
+{/* Sticky jump-nav. Lives below Starlight's top bar via --sl-nav-height.
+    On narrow screens chips fall into a single horizontally-scrollable strip. */}
+<nav
+  id="scenario-jump"
+  aria-label="Jump to scenario category"
+  class="not-content sticky top-[var(--sl-nav-height,4rem)] z-10 -mx-3 my-4 flex flex-wrap gap-2 border-y border-[var(--sl-color-hairline-shade)] bg-[var(--sl-color-bg)]/85 px-3 py-2 backdrop-blur max-md:flex-nowrap max-md:overflow-x-auto [&_a]:shrink-0 [&_a]:whitespace-nowrap [&_a]:rounded-full [&_a]:border [&_a]:border-[var(--sl-color-hairline-shade)] [&_a]:bg-[var(--sl-color-bg-inline-code)] [&_a]:px-3 [&_a]:py-1 [&_a]:text-sm [&_a]:text-[var(--sl-color-text-accent)] [&_a]:no-underline [&_a]:transition [&_a:hover]:border-[var(--sl-color-accent)] [&_a:hover]:bg-[var(--sl-color-accent-low)]"
+>
+  <a href="#daily-loops" data-jump="daily-loops">Daily loops</a>
+  <a href="#combat-events" data-jump="combat-events">Combat & events</a>
+  <a href="#city" data-jump="city">City</a>
+  <a href="#heroes" data-jump="heroes">Heroes</a>
+  <a href="#shop" data-jump="shop">Shop</a>
+  <a href="#deals" data-jump="deals">Deals</a>
+  <a href="#ads" data-jump="ads">Ads</a>
+  <a href="#alliance" data-jump="alliance">Alliance</a>
+  <a href="#backpack" data-jump="backpack">Backpack</a>
+  <a href="#popups" data-jump="popups">Popups</a>
+  <a href="#engine" data-jump="engine">Engine</a>
+</nav>
+
+<div class="scenario-tables">
+
+<h2 id="daily-loops" class="scn-h scn-accent-sky">Daily loops <span class="scn-count">6</span></h2>
 
 | Scenario | What it does |
 |:---------|:-------------|
@@ -28,7 +93,7 @@ Whiteout Survival has full scenario coverage today: daily loops, weekly events, 
 | `claim_exploration_rewards` | Claim exploration chests (~4h) |
 | `free_recrutments_today` | Daily claim of free advanced/normal recruits (~5h) |
 
-## Combat & events
+<h2 id="combat-events" class="scn-h scn-accent-emerald">Combat & events <span class="scn-count">16</span></h2>
 
 | Scenario | What it does |
 |:---------|:-------------|
@@ -49,7 +114,7 @@ Whiteout Survival has full scenario coverage today: daily loops, weekly events, 
 | `deals.vault_of_enigma` | Vault of Enigma |
 | `event.first_purchase` | First Purchase event |
 
-## City management
+<h2 id="city" class="scn-h scn-accent-amber">City management <span class="scn-count">5</span></h2>
 
 | Scenario | What it does |
 |:---------|:-------------|
@@ -59,7 +124,7 @@ Whiteout Survival has full scenario coverage today: daily loops, weekly events, 
 | `survivors/welcome_new_survivors` + `survivors_intro` | Welcome flow for new survivors |
 | `main_city/check_main_city` | Periodic main-city overview + event-block tile scan (4 slots) |
 
-## Heroes
+<h2 id="heroes" class="scn-h scn-accent-violet">Heroes <span class="scn-count">8</span></h2>
 
 | Scenario | What it does |
 |:---------|:-------------|
@@ -72,7 +137,7 @@ Whiteout Survival has full scenario coverage today: daily loops, weekly events, 
 | `sync_hero_unit` | Sync hero unit data into local state |
 | `pets/pets.pet_skill` | Pet skill upgrades |
 
-## Shop · Daily and weekly
+<h2 id="shop" class="scn-h scn-accent-pink">Shop · Daily and weekly <span class="scn-count">10</span></h2>
 
 | Scenario | What it does |
 |:---------|:-------------|
@@ -87,7 +152,7 @@ Whiteout Survival has full scenario coverage today: daily loops, weekly events, 
 | `shop.regular_pack` | Regular packs |
 | `shop.tab.advance` | Advance tab navigation |
 
-## Deals · Limited-time
+<h2 id="deals" class="scn-h scn-accent-cyan">Deals · Limited-time <span class="scn-count">11</span></h2>
 
 | Scenario | What it does |
 |:---------|:-------------|
@@ -103,27 +168,27 @@ Whiteout Survival has full scenario coverage today: daily loops, weekly events, 
 | `deals.sign_in` | Sign-in deal |
 | `deals.tundra_trading_station` | Tundra Trading Station |
 
-## Ads · Auto-claim
+<h2 id="ads" class="scn-h scn-accent-rose">Ads · Auto-claim <span class="scn-count">3</span></h2>
 
-| Scenario | What it does |
-|:---------|:-------------|
-| `ads_rookie_value_pack` | Rookie Value Pack |
-| `ads_natalia` | Natalia |
-| `tap_ads_legend_transcend_pack` | Legend Transcend Pack |
+<CardGrid>
+  <Card title="ads_rookie_value_pack">Rookie Value Pack</Card>
+  <Card title="ads_natalia">Natalia</Card>
+  <Card title="tap_ads_legend_transcend_pack">Legend Transcend Pack</Card>
+</CardGrid>
 
-## Alliance
+<h2 id="alliance" class="scn-h scn-accent-sky">Alliance <span class="scn-count">1</span></h2>
 
-| Scenario | What it does |
-|:---------|:-------------|
-| `alliance/invite.new` | Alliance invite handling |
+<CardGrid>
+  <Card title="alliance/invite.new">Alliance invite handling</Card>
+</CardGrid>
 
-## Backpack
+<h2 id="backpack" class="scn-h scn-accent-emerald">Backpack <span class="scn-count">1</span></h2>
 
-| Scenario | What it does |
-|:---------|:-------------|
-| `backpack` + `backpack.tab.{tab}` | Use resources, speedups, gear, bonuses on a schedule (all tabs) |
+<CardGrid>
+  <Card title="backpack + backpack.tab.{tab}">Use resources, speedups, gear, bonuses on a schedule (all tabs)</Card>
+</CardGrid>
 
-## Popups & onboarding
+<h2 id="popups" class="scn-h scn-accent-amber">Popups & onboarding <span class="scn-count">6</span></h2>
 
 | Scenario | What it does |
 |:---------|:-------------|
@@ -134,15 +199,270 @@ Whiteout Survival has full scenario coverage today: daily loops, weekly events, 
 | `rewards/exit_rewards_popup` | Confirm / claim / close rewards popup |
 | `who_i_am` | "Where am I?" / identity-recovery prompt |
 
-## Engine capabilities
+<h2 id="engine" class="scn-h scn-accent-violet">Engine capabilities <span class="scn-count">8</span></h2>
 
-Game-agnostic infrastructure used by every scenario above:
+Game-agnostic infrastructure used by every scenario above.
 
-- **Multi-instance** — one worker per BlueStacks instance; accounts run in parallel, isolated by ADB serial.
-- **YAML DSL** — declarative scenarios: `match`, `click`, `while_match`, `ocr`, `cond`, `push_scenario`.
-- **Approval gate** — every tap can be approved in the UI before it fires, with preview snapshot.
-- **Redis queue** — pending + history + state in Redis, restart-safe, visible from the Web UI.
-- **Overlay engine** — template + OCR + red-dot + tab-active + white-border detectors with per-rule gates.
-- **Web UI** — Next.js dashboard + Konva labeling (prod Docker on `:3000`).
-- **Tesseract OCR** — screen text via local `eng.traineddata` Tesseract inside the bot process.
-- **Cron scheduler** — interval-driven scenarios publish immediately on boot, then throttle by interval.
+<CardGrid>
+  <Card title="Multi-instance">
+    One worker per BlueStacks instance; accounts run in parallel, isolated by ADB serial.
+  </Card>
+  <Card title="YAML DSL">
+    Declarative scenarios: `match`, `click`, `while_match`, `ocr`, `cond`, `push_scenario`.
+  </Card>
+  <Card title="Approval gate">
+    Every tap can be approved in the UI before it fires, with a preview snapshot.
+  </Card>
+  <Card title="Redis queue">
+    Pending + history + state in Redis. Restart-safe, visible from the Web UI.
+  </Card>
+  <Card title="Overlay engine">
+    Template + OCR + red-dot + tab-active + white-border detectors with per-rule gates.
+  </Card>
+  <Card title="Web UI">
+    Next.js dashboard + Konva labeling (prod Docker on `:3000`).
+  </Card>
+  <Card title="Tesseract OCR">
+    Screen text via local `eng.traineddata` Tesseract inside the bot process.
+  </Card>
+  <Card title="Cron scheduler">
+    Interval-driven scenarios publish immediately on boot, then throttle by interval.
+  </Card>
+</CardGrid>
+
+</div>
+
+{/* Page enhancements (inline, no bundling): filter + count + highlight,
+    scroll-spy on chips, clipboard on code pills, heading hash-links, "/" hotkey,
+    reading-progress bar. */}
+<script is:inline>{`
+(function () {
+  function init() {
+    var container = document.querySelector('.scenario-tables');
+    var nav = document.getElementById('scenario-jump');
+    if (!container || !nav) return;
+
+    // Build per-section index: heading + content blocks + leaf items.
+    var headings = container.querySelectorAll('h2.scn-h');
+    var sections = [];
+    headings.forEach(function (h2) {
+      var blocks = [];
+      var items = [];
+      var node = h2.nextElementSibling;
+      while (node && node.tagName !== 'H2') {
+        blocks.push(node);
+        if (node.tagName === 'TABLE') {
+          node.querySelectorAll('tbody tr').forEach(function (tr) { items.push(tr); });
+        } else {
+          var children = node.children;
+          for (var i = 0; i < children.length; i++) items.push(children[i]);
+        }
+        node = node.nextElementSibling;
+      }
+      sections.push({ heading: h2, blocks: blocks, items: items });
+    });
+    var totalItems = sections.reduce(function (n, s) { return n + s.items.length; }, 0);
+
+    initFilter(sections, totalItems);
+    initScrollSpy(sections, nav);
+    initClipboard(container);
+    initAnchorLinks(container);
+    initShortcut();
+    initProgressBar();
+  }
+
+  // ---- Toast (shared) ----
+  var toastEl;
+  function showToast(text) {
+    if (!toastEl) {
+      toastEl = document.createElement('div');
+      toastEl.className = 'scn-toast';
+      toastEl.setAttribute('role', 'status');
+      toastEl.setAttribute('aria-live', 'polite');
+      document.body.appendChild(toastEl);
+    }
+    toastEl.textContent = text;
+    toastEl.classList.add('is-shown');
+    clearTimeout(toastEl._t);
+    toastEl._t = setTimeout(function () { toastEl.classList.remove('is-shown'); }, 1500);
+  }
+
+  // ---- Highlighting helpers ----
+  function clearMarks(el) {
+    var marks = el.querySelectorAll('mark.scn-mark');
+    marks.forEach(function (m) { m.replaceWith(document.createTextNode(m.textContent)); });
+    if (marks.length) el.normalize();
+  }
+  function markMatches(el, q) {
+    var walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT, {
+      acceptNode: function (n) {
+        if (!n.nodeValue || !n.nodeValue.trim()) return NodeFilter.FILTER_REJECT;
+        var p = n.parentElement;
+        if (!p || p.closest('script,style,mark,kbd')) return NodeFilter.FILTER_REJECT;
+        return n.nodeValue.toLowerCase().indexOf(q) !== -1
+          ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT;
+      }
+    });
+    var nodes = [];
+    while (walker.nextNode()) nodes.push(walker.currentNode);
+    nodes.forEach(function (node) {
+      var text = node.nodeValue;
+      var lower = text.toLowerCase();
+      var frag = document.createDocumentFragment();
+      var idx = lower.indexOf(q), last = 0;
+      while (idx !== -1) {
+        if (idx > last) frag.appendChild(document.createTextNode(text.slice(last, idx)));
+        var m = document.createElement('mark');
+        m.className = 'scn-mark';
+        m.textContent = text.slice(idx, idx + q.length);
+        frag.appendChild(m);
+        last = idx + q.length;
+        idx = lower.indexOf(q, last);
+      }
+      if (last < text.length) frag.appendChild(document.createTextNode(text.slice(last)));
+      node.parentNode.replaceChild(frag, node);
+    });
+  }
+
+  // ---- Filter (count + mark) ----
+  function initFilter(sections, totalItems) {
+    var input = document.getElementById('scenario-filter');
+    if (!input) return;
+    var empty = document.getElementById('scenario-filter-empty');
+    var count = document.getElementById('scenario-filter-count');
+    var kbd = document.getElementById('scenario-filter-kbd');
+
+    function apply() {
+      var q = input.value.trim().toLowerCase();
+      var visibleTotal = 0;
+      sections.forEach(function (s) {
+        var visible = 0;
+        s.items.forEach(function (el) {
+          clearMarks(el);
+          var match = !q || (el.textContent || '').toLowerCase().indexOf(q) !== -1;
+          el.hidden = !match;
+          if (match) {
+            visible++;
+            if (q) markMatches(el, q);
+          }
+        });
+        var sectionHidden = s.items.length > 0 && visible === 0;
+        s.heading.hidden = sectionHidden;
+        s.blocks.forEach(function (b) { b.hidden = sectionHidden; });
+        visibleTotal += visible;
+      });
+      if (empty) empty.hidden = visibleTotal > 0 || !q;
+      if (count && kbd) {
+        if (q) {
+          count.textContent = 'Showing ' + visibleTotal + ' of ' + totalItems;
+          count.hidden = false;
+          kbd.hidden = true;
+        } else {
+          count.hidden = true;
+          kbd.hidden = false;
+        }
+      }
+    }
+    input.addEventListener('input', apply);
+  }
+
+  // ---- Scroll spy ----
+  function initScrollSpy(sections, nav) {
+    if (!('IntersectionObserver' in window)) return;
+    var chips = nav.querySelectorAll('a[data-jump]');
+    var setActive = function (id) {
+      chips.forEach(function (c) {
+        c.classList.toggle('scn-chip-active', c.getAttribute('data-jump') === id);
+      });
+    };
+    var visible = new Set();
+    var observer = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) {
+        if (e.isIntersecting) visible.add(e.target.id); else visible.delete(e.target.id);
+      });
+      for (var i = 0; i < sections.length; i++) {
+        if (visible.has(sections[i].heading.id)) { setActive(sections[i].heading.id); return; }
+      }
+    }, { rootMargin: '-20% 0px -65% 0px', threshold: 0 });
+    sections.forEach(function (s) { observer.observe(s.heading); });
+  }
+
+  // ---- Click-to-copy on scenario name pills ----
+  function initClipboard(container) {
+    var codes = container.querySelectorAll('td:first-child code');
+    codes.forEach(function (c) {
+      c.title = 'Click to copy';
+      c.addEventListener('click', function () {
+        var text = (c.textContent || '').trim();
+        if (!text || !navigator.clipboard) return;
+        navigator.clipboard.writeText(text).then(function () {
+          showToast('Copied ' + text);
+        });
+      });
+    });
+  }
+
+  // ---- Hash-link icon shown on heading hover ----
+  function initAnchorLinks(container) {
+    var headings = container.querySelectorAll('h2[id]');
+    headings.forEach(function (h) {
+      if (h.querySelector('.scn-anchor')) return;
+      var a = document.createElement('a');
+      a.href = '#' + h.id;
+      a.className = 'scn-anchor';
+      a.textContent = '#';
+      a.setAttribute('aria-label', 'Copy link to ' + (h.textContent || '').trim());
+      a.addEventListener('click', function (e) {
+        e.preventDefault();
+        var url = location.origin + location.pathname + '#' + h.id;
+        history.replaceState(null, '', '#' + h.id);
+        h.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        if (navigator.clipboard) {
+          navigator.clipboard.writeText(url).then(function () { showToast('Link copied'); });
+        }
+      });
+      h.appendChild(a);
+    });
+  }
+
+  // ---- "/" focuses filter, Esc clears ----
+  function initShortcut() {
+    var input = document.getElementById('scenario-filter');
+    if (!input) return;
+    document.addEventListener('keydown', function (e) {
+      var ae = document.activeElement;
+      var inEditable = ae && (/^(input|textarea|select)$/i.test(ae.tagName) || ae.isContentEditable);
+      if (e.key === '/' && !inEditable && !e.metaKey && !e.ctrlKey && !e.altKey) {
+        e.preventDefault();
+        input.focus();
+        input.select();
+      } else if (e.key === 'Escape' && ae === input) {
+        input.value = '';
+        input.dispatchEvent(new Event('input'));
+        input.blur();
+      }
+    });
+  }
+
+  // ---- Reading-progress bar ----
+  function initProgressBar() {
+    var bar = document.getElementById('scn-progress');
+    if (!bar) return;
+    function update() {
+      var doc = document.documentElement;
+      var max = doc.scrollHeight - window.innerHeight;
+      var pct = max > 0 ? (window.scrollY / max) * 100 : 0;
+      bar.style.width = pct + '%';
+    }
+    window.addEventListener('scroll', update, { passive: true });
+    window.addEventListener('resize', update);
+    update();
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+})();
+`}</script>
