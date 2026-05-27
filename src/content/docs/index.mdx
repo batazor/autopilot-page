@@ -11,8 +11,8 @@ hero:
       link: /autopilot-page/install/prerequisites/
       icon: right-arrow
       variant: primary
-    - text: Whiteout Survival features
-      link: /autopilot-page/features/
+    - text: Supported games
+      link: /autopilot-page/games/
       icon: list-format
       variant: secondary
     - text: Discord
@@ -21,29 +21,19 @@ hero:
       variant: minimal
 ---
 
-import { Card, CardGrid, LinkCard } from '@astrojs/starlight/components';
+import { CardGrid, LinkCard } from '@astrojs/starlight/components';
 
-## Whiteout Survival — what's automated
+## Pick a game
 
-<CardGrid stagger>
-  <Card title="Combat & events" icon="rocket">
-    Squad Fight, Trials, Snowstorm, Arena, event-block scanning on the main city.
-  </Card>
-  <Card title="City management" icon="setting">
-    Building upgrades, furnace Max Power, worker assignment, VIP and daily shop.
-  </Card>
-  <Card title="Heroes" icon="star">
-    Free recruitments, hero upgrades, red-dot draining, unit-data sync.
-  </Card>
-  <Card title="Daily + quality of life" icon="open-book">
-    Mail gifts, gift codes, ad claims, backpack scheduling, popup dismissers.
-  </Card>
+<CardGrid>
+  <LinkCard
+    title="Whiteout Survival — fully covered"
+    description="80+ scenarios in production: daily loops, weekly events, shop, deals, heroes, combat, popups."
+    href="/autopilot-page/games/whiteout-survival/"
+  />
+  <LinkCard
+    title="Kingshot — looking for contributors"
+    description="Not started. We'll begin the implementation as soon as volunteers show up — ping us on Discord."
+    href="/autopilot-page/games/kingshot/"
+  />
 </CardGrid>
-
-## Other games
-
-<LinkCard
-  title="Kingshot — contributors wanted"
-  description="The engine isn't tied to Whiteout Survival. Kingshot support is on the roadmap but not started — if you want to help author scenarios, ping us on Discord."
-  href="/autopilot-page/games/kingshot/"
-/>

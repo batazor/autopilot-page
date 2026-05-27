@@ -1,0 +1,24 @@
+---
+title: Supported games
+description: Pick the game you want to automate. Whiteout Survival is fully covered; Kingshot is on the roadmap.
+sidebar:
+  order: 0
+  label: Overview
+---
+
+import { LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+The engine is game-agnostic — adding a new game is mostly authoring its scenario set under `modules/`, no engine changes required.
+
+<CardGrid>
+  <LinkCard
+    title="Whiteout Survival — fully covered"
+    description="Daily, weekly, events, shop, deals, heroes, combat — full automation, 80+ scenarios in production today."
+    href="/autopilot-page/games/whiteout-survival/"
+  />
+  <LinkCard
+    title="Kingshot — looking for contributors"
+    description="No scenarios yet. We'll start the implementation as soon as volunteers show up — ping us on Discord if you want to help."
+    href="/autopilot-page/games/kingshot/"
+  />
+</CardGrid>

@@ -1,0 +1,148 @@
+---
+title: Whiteout Survival
+description: Full automation coverage for Whiteout Survival — daily loops, events, heroes, shop, deals, combat. 80+ scenarios in production.
+sidebar:
+  order: 1
+  label: Whiteout Survival
+hero:
+  image:
+    file: ../../../assets/wos.png
+  actions:
+    - text: Install in 2 minutes
+      link: /autopilot-page/install/prerequisites/
+      icon: right-arrow
+      variant: primary
+template: doc
+---
+
+Whiteout Survival has full scenario coverage today: daily loops, weekly events, shop, deals, heroes, combat, popups. The lists below mirror the actual scenario files under `modules/` — what you see here is what runs.
+
+## Daily loops
+
+| Scenario | What it does |
+|:---------|:-------------|
+| `vip.daily` | Daily VIP login check |
+| `mail.claim.{tab}` | Read mail and claim attached gifts (all tabs) |
+| `redeem_gift_codes` | Fetch + redeem latest gift codes from the in-UI hub (per account) |
+| `chief_profile/sync_chief_profile` | Sync chief profile data to local state |
+| `claim_exploration_rewards` | Claim exploration chests (~4h) |
+| `free_recrutments_today` | Daily claim of free advanced/normal recruits (~5h) |
+
+## Combat & events
+
+| Scenario | What it does |
+|:---------|:-------------|
+| `squad_fight` | 12h cadence; re-deploys after every Victory until the squad finally loses |
+| `event.trials` + `claim_trials.{day}` | Trial events and reward claim |
+| `event.7-day` | 7-day starter / login event |
+| `event.alliance_championship` | Alliance Championship |
+| `event.armament_competition` | Armament Competition |
+| `event.bear_hunt` | Bear Hunt |
+| `event.castle_battle` | Castle Battle |
+| `event.fishing_tournament` | Fishing Tournament |
+| `event.fortress_battles` | Fortress Battles |
+| `event.foundry_battle` | Foundry Battle |
+| `event.labyrinth` | Labyrinth |
+| `myriad_bazaar` | Myriad Bazaar |
+| `event.state_of_power` | State of Power |
+| `event.tundra_trade_route` | Tundra Trade Route |
+| `deals.vault_of_enigma` | Vault of Enigma |
+| `event.first_purchase` | First Purchase event |
+
+## City management
+
+| Scenario | What it does |
+|:---------|:-------------|
+| `building.upgrade` + `tap_build_button` + `tap_upgrade_big_button` | Pick the next upgrade and queue it through the build loop |
+| `tap_furnace_max_power` | Auto-tap the Max Power furnace upgrade |
+| `survivors/assign_worker` | Auto-assign idle workers to open construction slots |
+| `survivors/welcome_new_survivors` + `survivors_intro` | Welcome flow for new survivors |
+| `main_city/check_main_city` | Periodic main-city overview + event-block tile scan (4 slots) |
+
+## Heroes
+
+| Scenario | What it does |
+|:---------|:-------------|
+| `click_heroes` + `scan_heroes_grid` | Drain every red dot on the heroes screen until clean |
+| `hero.upgrade` + `upgrade/level_up_{hero}` | Auto-level heroes |
+| `upgrade/skill_up_{hero}` | Auto-skill heroes |
+| `upgrade/star_tier_up_{hero}` | Promote heroes (star tier) |
+| `{hero}.recruit` | Per-hero recruitment flow |
+| `read_hero_wiki` + `heroes.{hero}.wiki` | Sync hero metadata from the in-game wiki |
+| `sync_hero_unit` | Sync hero unit data into local state |
+| `pets/pets.pet_skill` | Pet skill upgrades |
+
+## Shop · Daily and weekly
+
+| Scenario | What it does |
+|:---------|:-------------|
+| `shop.daily_deals` | Daily deals tab |
+| `shop.weekly_monthly_cards` | Weekly + monthly cards |
+| `shop.artisans_trove` | Artisans Trove |
+| `shop.construction_queue` | Construction Queue offers |
+| `shop.dawn_fund` + `shop.dawn_market` | Dawn fund / market |
+| `shop.event` | Event shop |
+| `shop.get_gems` | Get-gems flow |
+| `shop.mix_match` | Mix & Match |
+| `shop.regular_pack` | Regular packs |
+| `shop.tab.advance` | Advance tab navigation |
+
+## Deals · Limited-time
+
+| Scenario | What it does |
+|:---------|:-------------|
+| `deals.bank` | Bank |
+| `deals.dead_shot` | Dead Shot |
+| `deals.deals` | Generic deals tab |
+| `deals.endless_wayfarer` | Endless Wayfarer |
+| `deals.first_purchase` | First-purchase deal |
+| `deals.hall_of_heroes` + `hall_of_heroes.witness` | Hall of Heroes |
+| `deals.hero_rally` | Hero Rally |
+| `deals.home_and_beyond` | Home and Beyond |
+| `deals.journey_treasures` | Journey Treasures |
+| `deals.sign_in` | Sign-in deal |
+| `deals.tundra_trading_station` | Tundra Trading Station |
+
+## Ads · Auto-claim
+
+| Scenario | What it does |
+|:---------|:-------------|
+| `ads_rookie_value_pack` | Rookie Value Pack |
+| `ads_natalia` | Natalia |
+| `tap_ads_legend_transcend_pack` | Legend Transcend Pack |
+
+## Alliance
+
+| Scenario | What it does |
+|:---------|:-------------|
+| `alliance/invite.new` | Alliance invite handling |
+
+## Backpack
+
+| Scenario | What it does |
+|:---------|:-------------|
+| `backpack` + `backpack.tab.{tab}` | Use resources, speedups, gear, bonuses on a schedule (all tabs) |
+
+## Popups & onboarding
+
+| Scenario | What it does |
+|:---------|:-------------|
+| `onboarding.click.skip_button` | Skip tutorial buttons |
+| `onboarding.click.button.tap_anywhere_to_exit` | Dismiss "tap anywhere" prompts |
+| `onboarding.click.{pointer}` | Dismiss tutorial hand-pointers |
+| `popup/dismiss_unknown_popup` | Catch-all dismisser for unrecognized popups |
+| `rewards/exit_rewards_popup` | Confirm / claim / close rewards popup |
+| `who_i_am` | "Where am I?" / identity-recovery prompt |
+
+## Engine capabilities
+
+Game-agnostic infrastructure used by every scenario above:
+
+- **Multi-instance** — one worker per BlueStacks instance; accounts run in parallel, isolated by ADB serial.
+- **YAML DSL** — declarative scenarios: `match`, `click`, `while_match`, `ocr`, `cond`, `push_scenario`.
+- **Approval gate** — every tap can be approved in the UI before it fires, with preview snapshot.
+- **Redis queue** — pending + history + state in Redis, restart-safe, visible from the Web UI.
+- **Overlay engine** — template + OCR + red-dot + tab-active + white-border detectors with per-rule gates.
+- **Web UI** — Next.js dashboard + Konva labeling (prod Docker on `:3000`).
+- **Tesseract OCR** — screen text via local `eng.traineddata` Tesseract inside the bot process.
+- **Cron scheduler** — interval-driven scenarios publish immediately on boot, then throttle by interval.

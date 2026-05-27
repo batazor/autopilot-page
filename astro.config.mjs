@@ -41,7 +41,8 @@ export default defineConfig({
         {
           label: 'Supported games',
           items: [
-            { label: 'Whiteout Survival', slug: 'features' },
+            { label: 'Overview', slug: 'games' },
+            { label: 'Whiteout Survival', slug: 'games/whiteout-survival' },
             { label: 'Kingshot', slug: 'games/kingshot' },
           ],
         },
