@@ -32,5 +32,5 @@ curl -fsSL https://batazor.github.io/autopilot-page/docker-compose.prod.yml -o d
 Or save it manually from the link above. After that pick your platform: [macOS](/autopilot-page/install/macos/) · [Linux](/autopilot-page/install/linux/) · [Windows](/autopilot-page/install/windows/).
 
 :::tip[License]
-The bot is free, but you'll need a license file on first start. The dashboard asks for it via an upload prompt — get the current `licence.json` from the `#install` channel on [Discord](https://discord.gg/62twnzKG9). See [License activation](/autopilot-page/install/license/) for the full flow.
+The bot is free, but you'll need a license file on first start. The dashboard asks for it via an upload prompt — get the current `licence.jwt` from the `#install` channel on [Discord](https://discord.gg/62twnzKG9). See [License activation](/autopilot-page/install/license/) for the full flow.
 :::
