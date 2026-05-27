@@ -2,7 +2,7 @@
 title: Labeling regions
 description: Walkthrough of the Labeling editor — capture a screen, draw region boxes, set the detection action, save to area.json.
 sidebar:
-  order: 2
+  order: 3
   label: Labeling
 ---
 

@@ -2,7 +2,7 @@
 title: Writing scenarios (DSL)
 description: A primer on the YAML DSL — match, click, while_match, cond, push_scenario — with a complete worked example.
 sidebar:
-  order: 3
+  order: 4
   label: DSL primer
 ---
 

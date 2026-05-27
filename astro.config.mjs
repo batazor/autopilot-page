@@ -86,6 +86,7 @@ export default defineConfig({
           label: 'Authoring',
           items: [
             { label: 'Flow', slug: 'authoring/flow' },
+            { label: 'New module', slug: 'authoring/new-module' },
             { label: 'Labeling regions', slug: 'authoring/labeling' },
             { label: 'DSL primer', slug: 'authoring/dsl' },
           ],
