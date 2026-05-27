@@ -25,7 +25,7 @@ export default defineConfig({
         {
           icon: 'github',
           label: 'GitHub',
-          href: 'https://github.com/batazor/autopilot',
+          href: 'https://github.com/batazor/autopilot-page',
         },
       ],
       editLink: {
