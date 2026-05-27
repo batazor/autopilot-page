@@ -16,6 +16,25 @@ export default defineConfig({
       },
       favicon: '/favicon.png',
       customCss: ['./src/styles/wos.css'],
+      head: [
+        // OG / Twitter card image — what Discord, Slack, Telegram show when
+        // somebody pastes the docs URL. Served from /public so the absolute URL
+        // is stable.
+        {
+          tag: 'meta',
+          attrs: {
+            property: 'og:image',
+            content: 'https://batazor.github.io/autopilot-page/wos.png',
+          },
+        },
+        {
+          tag: 'meta',
+          attrs: {
+            name: 'twitter:image',
+            content: 'https://batazor.github.io/autopilot-page/wos.png',
+          },
+        },
+      ],
       social: [
         {
           icon: 'discord',
@@ -61,6 +80,14 @@ export default defineConfig({
           label: 'Configuration',
           items: [
             { label: 'Emulator setup', slug: 'config/emulator' },
+          ],
+        },
+        {
+          label: 'Authoring',
+          items: [
+            { label: 'Flow', slug: 'authoring/flow' },
+            { label: 'Labeling regions', slug: 'authoring/labeling' },
+            { label: 'DSL primer', slug: 'authoring/dsl' },
           ],
         },
         {
