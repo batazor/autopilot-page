@@ -1,6 +1,6 @@
 ---
 title: Device management
-description: ADB dashboard — configured devices vs live scan, per-device capture and input backends (minicap / mintouch / quartz / adb), one-click backend install and screen reset.
+description: ADB dashboard — configured devices vs live scan, per-device capture and input backends (scrcpy / mintouch / quartz / adb), one-click backend install and screen reset.
 sidebar:
   order: 1
   label: Devices (ADB)
@@ -16,11 +16,11 @@ The **ADB page** in the operator dashboard reconciles your configured fleet (sto
 ## What you get
 
 - **Configured vs live** — two side-by-side tables: what you've declared in the SQLite devices table (configured) and what `adb devices` is reporting right now (live). Mismatches are obvious at a glance.
-- **Auto-picked capture backend per device.** Physical phones default to **minicap** (~15–40 ms/frame). Emulators default to **quartz** (a software path that doesn't need `/dev/uinput`). Override per device by setting `capture_backend: minicap | quartz | auto` in the devices table.
+- **Auto-picked capture backend per device.** Physical phones default to **scrcpy**. Emulators default to **quartz** (a software path that doesn't need `/dev/uinput`). Override per device by setting `capture_backend: scrcpy | quartz | adb | auto` in the devices table.
 - **Auto-picked input backend per device.** **adb** input is the universal-compatibility default (~50–80 ms/tap). **mintouch** is the fast path (~5–20 ms/tap) but needs `/dev/uinput` access (rooted devices or accessible emulators). Opt in with `input_backend: mintouch` in the devices table.
-- **Live binary status.** For each connected device, the page shows whether minicap and mintouch are installed, with the actual architecture (e.g. `arm64-v8a · android-33`).
+- **Live binary status.** For each connected device, the page shows whether scrcpy-server and mintouch are installed, with the actual architecture (e.g. `arm64-v8a · android-33`).
 - **One-click recovery.** Per-device action buttons:
-  - **Reinstall minicap** — push the matching arch binary onto the device.
+  - **Reinstall scrcpy** — push `scrcpy-server.jar` onto the device.
   - **Reinstall mintouch** — same for the input binary.
   - **Reset screen** — clear any `wm size` / `wm density` overrides the bot might have applied during a failed run (a common cause of "everything's drifted by 8 pixels" mysteries).
 - **Refresh scan** — re-runs `adb devices` and the binary probes without restarting anything.
@@ -32,6 +32,6 @@ The **ADB page** in the operator dashboard reconciles your configured fleet (sto
 | `adb` input | ~50–80 ms/tap | nothing — works everywhere |
 | `mintouch` input | ~5–20 ms/tap | `/dev/uinput` (rooted device or `--allow-root` emulator) |
 | `quartz` capture | ~30–60 ms/frame | nothing — software path |
-| `minicap` capture | ~15–40 ms/frame | minicap binary installed on device (page handles install) |
+| `scrcpy` capture | live H.264 stream | scrcpy-server jar installed on device (page handles install) |
 
 The defaults are chosen for safety (works-everywhere). Opt into the fast path when your emulator/device supports it and you need the extra throughput — e.g. when running many instances on one host.
