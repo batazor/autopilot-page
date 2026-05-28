@@ -23,6 +23,18 @@ It's the fastest way to author a new scenario: you write the DSL, flip approvals
 - **Target region** + **payload** (the actual `click` / `swipe` arguments) + **trace ID** to correlate with logs.
 - **Approve / Skip / Reject** — the three outcomes.
 
+## Screenshot source
+
+The **Screenshot** dropdown picks how the canvas is fed:
+
+| Source | Backend | Notes |
+|:---|:---|:---|
+| **Captured (request)** | bot-side screencap | The exact frame the bot acted on at approval time. Static — best for verifying "what did it see when it decided to tap." |
+| **Live rolling** | rolling PNG on disk | Worker overwrites a PNG every tick (~1–2 Hz); the UI cache-busts on mtime. Works with any backend. |
+| **Live video (WebCodecs)** | [scrcpy](https://github.com/Genymobile/scrcpy) over WebSocket | **~30 fps with ~50 ms latency** — H.264 stream decoded in the browser via WebCodecs. Auto-enabled when the device's input/screenshot backend is set to `scrcpy` and the browser supports WebCodecs (Chrome / Edge / Safari). |
+
+The live-video path is the most ergonomic for authoring: you see touches land in near real time, so a mis-clicked region or a slow popup is obvious in motion rather than from frame-by-frame refreshes.
+
 ## Approval modes
 
 | Mode | Behavior | Best for |
