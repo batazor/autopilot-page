@@ -14,8 +14,8 @@
 #     ``licence.jwt`` from the ``#install`` channel on Discord, upload it
 #     in the UI, then ``docker compose ... restart bot`` once.
 #
-# Pinning a version (recommended for stability):
-#     WOS_IMAGE_TAG=v0.1.0 docker compose -f docker-compose.prod.yml up -d
+# Images are currently published as ``:latest`` only. ``WOS_IMAGE_TAG`` remains
+# configurable for private forks that publish their own tags.
 #
 # Using a fork's images:
 #     WOS_REGISTRY=ghcr.io/your-fork docker compose -f docker-compose.prod.yml up -d
