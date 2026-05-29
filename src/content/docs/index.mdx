@@ -23,6 +23,19 @@ hero:
 
 import { CardGrid, LinkCard } from '@astrojs/starlight/components';
 
+<aside class="not-content my-8 rounded-2xl border border-amber-500/40 bg-amber-500/10 p-5">
+  <div class="mb-2 flex flex-wrap items-center gap-3">
+    <span class="rounded-full bg-amber-500 px-3 py-1 text-xs font-bold uppercase tracking-widest text-amber-950">Early development</span>
+    <h3 class="m-0 text-lg font-semibold text-[var(--sl-color-text)]">Heads-up: actively-developed, no stability promises yet</h3>
+  </div>
+  <p class="m-0 text-sm text-[var(--sl-color-gray-2)]">
+    Autopilot is in the early stage of active development. Scenarios, APIs, file layouts, and
+    dashboard flows can change without notice until the base feature set lands. Pin a specific
+    image tag (not <code>latest</code>) if you need a build that won't move under you, and check
+    the release notes before upgrading.
+  </p>
+</aside>
+
 ## Pick a game
 
 <CardGrid>
