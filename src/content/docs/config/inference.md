@@ -99,3 +99,22 @@ fish are drawn as boxes with confidence scores.
 If you see **"Inference unavailable: … HTTP 401 …"**, the API key is missing or
 invalid — re-check steps 1–2 (and remember to restart the API process in dev so
 it reloads `.env`).
+
+## Validate on a recorded video
+
+The Fish detect page also has a **Validate on video** panel — upload a recorded
+gameplay clip to check the model offline (no live device needed):
+
+- The clip is sampled every **500 ms** (2 fps); each sampled frame is run through
+  the detector. Processing runs in the background with a progress bar, so long
+  clips don't block.
+- Results show as an annotated **filmstrip** — click any frame to enlarge it with
+  detection boxes plus **swipe arrows**.
+- **Swipe prediction:** because frames are evenly spaced, each fish's motion
+  between samples gives an **escape** direction (red arrow); the recommended
+  **catch** swipe is the opposite (green arrow). The per-frame card lists the
+  predicted escape/catch compass directions and speed. This is a heuristic to
+  validate and tune on real footage — it is not yet wired into gameplay.
+
+Uploads are capped at **100 MB**, stored under the gitignored `temporal/` dir,
+and the newest few jobs are kept (older ones are pruned automatically).
