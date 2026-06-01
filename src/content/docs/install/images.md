@@ -13,6 +13,17 @@ sidebar:
 | `api` | same `bot` image, `command: api` | FastAPI for the Web UI (`:8765`). |
 | `web` | `ghcr.io/batazor/autopilot/web:latest` | Next.js operator dashboard (`:3000`). Multi-arch. |
 | `redis` | `redis:alpine` | Queue + state. |
+| `inference` | `roboflow/roboflow-inference-server-cpu` | **Optional** — only with the `full` profile. Fishing Tournament fish detector ([Fish detection](/autopilot-page/config/inference/)). |
+
+### Default vs full stack (profiles)
+
+The `inference` image is **not pulled by default** — it sits behind a Compose
+profile, so a plain `up` runs only the core services:
+
+```sh
+docker compose -f docker-compose.prod.yml up -d                  # default: redis, bot, api, web
+docker compose -f docker-compose.prod.yml --profile full up -d   # + inference (needs ROBOFLOW_API_KEY)
+```
 
 ### Pinning a version
 

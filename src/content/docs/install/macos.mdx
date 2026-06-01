@@ -1,0 +1,107 @@
+---
+title: Install on macOS
+description: Run the autopilot stack on macOS with Docker Desktop — Apple silicon and Intel, with the Host networking toggle.
+sidebar:
+  order: 2
+  label: macOS
+---
+
+import { Steps, Tabs, TabItem, Aside } from '@astrojs/starlight/components';
+
+:::note[One-time setup — Host networking]
+Docker Desktop → **Settings → Resources → Network** → check **Enable host
+networking** (beta), then **Apply & restart**. Without it the bot container
+can't reach the host's `adb` server on `127.0.0.1:5037`.
+:::
+
+## 1. Install Docker Desktop + ADB
+
+You need **Docker Desktop** (ships with Compose v2) and **`adb`** on your `PATH`.
+
+<Tabs syncKey="mac-install">
+  <TabItem label="Homebrew">
+    ```sh
+    brew install --cask docker                       # Docker Desktop
+    brew install --cask android-platform-tools       # adb
+    ```
+
+    Launch Docker Desktop once so the engine starts, then enable Host
+    networking (note above).
+  </TabItem>
+
+  <TabItem label="Manual">
+    1. Download [Docker Desktop for Mac](https://docs.docker.com/desktop/install/mac-install/)
+       (pick the **Apple silicon** or **Intel** build for your Mac) and install it.
+    2. Download [Android Platform Tools](https://developer.android.com/tools/releases/platform-tools),
+       unzip, and add the `platform-tools` folder to your `PATH`.
+  </TabItem>
+</Tabs>
+
+Verify both are ready:
+
+```sh
+docker compose version   # Compose v2.x
+adb version
+```
+
+## 2. Run the stack
+
+<Steps>
+
+1. **Fetch the compose file**
+
+   ```sh
+   curl -fsSL https://batazor.github.io/autopilot-page/docker-compose.prod.yml -o docker-compose.prod.yml
+   ```
+
+2. **Start ADB and confirm BlueStacks is visible**
+
+   ```sh
+   adb start-server
+   adb devices        # BlueStacks should be listed as "device"
+   ```
+
+3. **Verify the display profile** — must be **720 × 1280 @ 320 DPI**, game
+   language **English**:
+
+   ```sh
+   adb shell wm size
+   adb shell wm density
+   ```
+
+   See [Emulator setup](/autopilot-page/config/emulator/) for the full list.
+
+4. **Pull and start** redis + bot + api + web:
+
+   ```sh
+   docker compose -f docker-compose.prod.yml up -d
+   ```
+
+5. **Open the dashboard**
+
+   ```sh
+   open http://127.0.0.1:3000/overview
+   ```
+
+</Steps>
+
+:::note[First start]
+The dashboard prompts for a license file on first load — see
+[License activation](/autopilot-page/install/license/). Grab the current
+`licence.jwt` from the `#install` channel on Discord, upload it in the UI, then
+`docker compose -f docker-compose.prod.yml restart bot` once.
+:::
+
+## Troubleshooting
+
+<Aside type="caution" title="Bot can't see the emulator">
+Almost always the **Host networking** toggle is off. Re-check Docker Desktop →
+Settings → Resources → Network, **Apply & restart**, then:
+
+```sh
+adb kill-server && adb start-server
+docker compose -f docker-compose.prod.yml exec bot adb devices
+```
+</Aside>
+
+See [Troubleshooting](/autopilot-page/ops/troubleshooting/) for the full list.

@@ -1,0 +1,100 @@
+---
+title: Install on Windows
+description: Run the autopilot stack on Windows with Docker Desktop + WSL2, Platform Tools on PATH, and BlueStacks ADB enabled.
+sidebar:
+  order: 4
+  label: Windows
+---
+
+import { Steps, Aside } from '@astrojs/starlight/components';
+
+:::note[One-time setup]
+1. **Docker Desktop** → **Settings → Resources → Network** → check **Enable host
+   networking** (beta), then **Apply & restart**. Required so the bot container
+   can reach the host's `adb` server on `127.0.0.1:5037`. (Docker Desktop needs
+   **WSL2**.)
+2. Install [Android Platform Tools](https://developer.android.com/tools/releases/platform-tools),
+   unzip to e.g. `%LOCALAPPDATA%\Android\Sdk\platform-tools\`, and add that
+   folder to your `PATH` (*System Properties → Environment Variables*).
+3. In **BlueStacks**: **Settings → Advanced → Android Debug Bridge** →
+   **Enabled**.
+:::
+
+## 1. Verify the tools
+
+Open **PowerShell** and confirm Docker (with Compose v2) and `adb` are ready:
+
+```powershell
+docker compose version   # Compose v2.x
+adb version
+```
+
+If `adb` isn't found, the `platform-tools` folder isn't on your `PATH` yet —
+re-check step 2 above and open a new terminal.
+
+## 2. Run the stack
+
+<Steps>
+
+1. **Fetch the compose file**
+
+   ```powershell
+   curl -fsSL https://batazor.github.io/autopilot-page/docker-compose.prod.yml -o docker-compose.prod.yml
+   ```
+
+2. **Start ADB and confirm BlueStacks is visible**
+
+   ```powershell
+   adb start-server
+   adb devices        # BlueStacks should be listed as "device"
+   ```
+
+3. **Verify the display profile** — must be **720 × 1280 @ 320 DPI**, game
+   language **English**:
+
+   ```powershell
+   adb shell wm size
+   adb shell wm density
+   ```
+
+   See [Emulator setup](/autopilot-page/config/emulator/) for the full list.
+
+4. **Pull and start** redis + bot + api + web:
+
+   ```powershell
+   docker compose -f docker-compose.prod.yml up -d
+   ```
+
+5. **Open the dashboard**
+
+   ```powershell
+   start http://127.0.0.1:3000/overview
+   ```
+
+</Steps>
+
+:::note[First start]
+The dashboard prompts for a license file on first load — see
+[License activation](/autopilot-page/install/license/). Grab the current
+`licence.jwt` from the `#install` channel on Discord, upload it in the UI, then
+`docker compose -f docker-compose.prod.yml restart bot` once.
+:::
+
+## Troubleshooting
+
+<Aside type="caution" title="Antivirus flags adb.exe">
+ADB is a legitimate dev tool but can open root shells, so some scanners flag
+`adb.exe` as PUA. Whitelist the Android Platform Tools folder.
+</Aside>
+
+<Aside type="caution" title="Bot can't see the emulator">
+Check that **Host networking** is enabled in Docker Desktop and that BlueStacks
+**Android Debug Bridge** is on, then:
+
+```powershell
+adb kill-server; adb start-server
+docker compose -f docker-compose.prod.yml exec bot adb devices
+```
+</Aside>
+
+See [Troubleshooting](/autopilot-page/ops/troubleshooting/) for the full list.
