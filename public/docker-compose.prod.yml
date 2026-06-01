@@ -115,6 +115,30 @@ services:
       start_period: 45s
       retries: 3
 
+  # Roboflow object-detection inference server (Fishing Tournament fish
+  # detector → model find-fish-ssnpa/6). ``api`` runs the detection and reaches
+  # it over the bridge network as ``inference:9001`` (see WOS_INFERENCE_URL on
+  # ``api``). Set ROBOFLOW_API_KEY in the environment so the server can pull
+  # weights on first request (cached in ``inference_cache``).
+  #
+  # OPTIONAL — gated behind the ``full`` / ``inference`` profile so the default
+  # stack does not pull this image. Enable it with:
+  #     ROBOFLOW_API_KEY=rf_... docker compose -f docker-compose.prod.yml --profile full up -d
+  inference:
+    image: roboflow/roboflow-inference-server-cpu:latest
+    profiles: ["full", "inference"]
+    environment:
+      ROBOFLOW_API_KEY: ${ROBOFLOW_API_KEY:-}
+    volumes:
+      - inference_cache:/tmp/cache
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:9001/info')"]
+      interval: 30s
+      timeout: 10s
+      start_period: 40s
+      retries: 3
+
   api:
     image: ${WOS_REGISTRY:-ghcr.io/batazor/autopilot}/bot:${WOS_IMAGE_TAG:-latest}
     command: ["api"]
@@ -127,6 +151,10 @@ services:
       WOS_REDIS_URL: unix:///var/run/redis/redis.sock?db=0
       WOS_API_HOST: 0.0.0.0
       WOS_API_PORT: "8765"
+      # Fish-detect debug page runs inference inside the API process; reach the
+      # sidecar by its Compose service name (api is on the default bridge net).
+      WOS_INFERENCE_URL: http://inference:9001
+      ROBOFLOW_API_KEY: ${ROBOFLOW_API_KEY:-}
       # Same license-file path as ``bot``. ``WOS_LICENSE`` is still honored as
       # an env override. ``WOS_ADMIN_TOKEN`` is only set in the maintainer's
       # environment — without it, the issuer endpoint 403s.
@@ -167,3 +195,4 @@ volumes:
   redis_socket:
   wos_state:
   wos_license:
+  inference_cache:

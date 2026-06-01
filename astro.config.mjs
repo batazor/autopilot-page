@@ -84,6 +84,7 @@ export default defineConfig({
           label: 'Configuration',
           items: [
             { label: 'Emulator setup', slug: 'config/emulator' },
+            { label: 'Fish detection (Roboflow)', slug: 'config/inference' },
           ],
         },
         {
