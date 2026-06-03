@@ -109,7 +109,11 @@ services:
       - /etc/machine-id:/etc/machine-id:ro
     restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "ps aux | grep -q '[w]orker.supervisor' || exit 1"]
+      # The supervisor serves a loopback /health endpoint (worker.health_server)
+      # reporting reconcile-loop liveness — catches a hung-but-alive supervisor,
+      # not just process existence. Port via WOS_BOT_HEALTH_PORT (default 8770);
+      # keep this curl in sync. ``bot`` uses host networking, so 127.0.0.1 hits it.
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:8770/health"]
       interval: 30s
       timeout: 5s
       start_period: 45s
