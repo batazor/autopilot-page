@@ -65,8 +65,13 @@ export default defineConfig({
           label: 'Supported games',
           items: [
             { label: 'Overview', slug: 'games' },
-            { label: 'Whiteout Survival', slug: 'games/whiteout-survival' },
-            { label: 'Dreamscape Memory', slug: 'games/dreamscape-memory' },
+            {
+              label: 'Whiteout Survival',
+              items: [
+                { label: 'Overview', slug: 'games/whiteout-survival' },
+                { label: 'Dreamscape Memory (module)', slug: 'games/dreamscape-memory' },
+              ],
+            },
             { label: 'Kingshot', slug: 'games/kingshot' },
           ],
         },
