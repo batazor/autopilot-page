@@ -1,6 +1,6 @@
 ---
 title: Kingshot
-description: Kingshot support is on the roadmap — we'll start the implementation as soon as volunteers show up.
+description: Kingshot support is in progress — the first event module is ported from Whiteout Survival; reference labeling is underway and contributors are welcome.
 sidebar:
   order: 2
 hero:
@@ -41,9 +41,9 @@ The autopilot engine is game-agnostic — scenarios, overlay rules, and the DSL 
 
 ## Status
 
-**In-game automation: not started.** No daily-loop scenarios, no labeled regions, no analyzer rules for Kingshot's in-game UI yet. (Gift codes above are a separate, complete feature — they don't depend on in-game automation.)
+**In-game automation: in progress.** The first event module — **Fishing Tournament** — has been ported from Whiteout Survival: its DSL scenario, analyzer rules, and screen routes are in place under `games/kingshot/events/fishing_tournament/`. What's left before it runs in-game is re-capturing the reference crops and labeling regions against Kingshot's own UI (the ported templates are WoS placeholders). There's no full daily loop yet. (Gift codes above are a separate, complete feature — they don't depend on in-game automation.)
 
-**We'll start the in-game scenario implementation as soon as volunteers show up.** This isn't a planned-but-delayed project — it's a "if there's interest, we'll do it" project. If even one person commits to authoring the daily-loop scenarios, we'll pair up and ship a working version.
+**We're looking for volunteers to drive the in-game scenario set.** This isn't a planned-but-delayed project — it's a "if there's interest, we'll do it" project. If even one person commits to authoring the daily-loop scenarios, we'll pair up and ship a working version.
 
 ## Want to help?
 
