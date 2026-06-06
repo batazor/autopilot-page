@@ -1,6 +1,6 @@
 ---
 title: Dreamscape Memory
-description: A self-learning Whiteout Survival Dreamscape Memory solver with Season 1-3 scene data, live OCR, solo/co-op support, and automatic dictionary growth.
+description: A Whiteout Survival Dreamscape Memory solver with Season 1-3 scene data, live OCR, solo/co-op support, and a manual New-word review flow.
 sidebar:
   order: 2
   label: Dreamscape Memory
@@ -21,7 +21,22 @@ template: doc
 
 import { Card, CardGrid } from '@astrojs/starlight/components';
 
-Dreamscape Memory is a dedicated Whiteout Survival event module for Recall Road. It watches the live device frame, OCRs the word buttons, chooses the right scene from the level title, and taps the mapped items automatically. It is built for the frantic part of the event: when the screen is moving, the timer is running, and tabbing through a guide would be slower than just letting the bot solve it.
+Dreamscape Memory is a dedicated Whiteout Survival event module for Recall Road. It watches the live device frame, OCRs the word buttons, chooses the right scene from the visible words, and taps the mapped items automatically. It is built for the frantic part of the event: when the screen is moving, the timer is running, and tabbing through a guide would be slower than just letting the bot solve it.
+
+<figure class="not-content my-8 overflow-hidden rounded-2xl border border-[var(--sl-color-hairline-shade)] bg-[var(--sl-color-bg-nav)] shadow-lg">
+  <video
+    class="block w-full bg-black"
+    controls
+    muted
+    playsinline
+    preload="metadata"
+  >
+    <source src="/autopilot-page/videos/dreamscape-memory-automation.mp4" type="video/mp4" />
+  </video>
+  <figcaption class="px-4 py-3 text-sm text-[var(--sl-color-gray-3)]">
+    Example run: the live solver reads the word slots, matches the scene, and taps mapped items without switching to a manual guide.
+  </figcaption>
+</figure>
 
 <div class="not-content my-8 grid grid-cols-2 gap-3 sm:grid-cols-4">
   <div class="rounded-xl border border-[var(--sl-color-hairline-shade)] bg-[var(--sl-color-bg-nav)] p-4 text-center">
@@ -37,8 +52,8 @@ Dreamscape Memory is a dedicated Whiteout Survival event module for Recall Road.
     <div class="mt-1 text-xs uppercase tracking-wider text-[var(--sl-color-gray-3)]">6 words</div>
   </div>
   <div class="rounded-xl border border-[var(--sl-color-hairline-shade)] bg-[var(--sl-color-bg-nav)] p-4 text-center">
-    <div class="text-2xl font-bold text-[var(--sl-color-text-accent)]">Learns</div>
-    <div class="mt-1 text-xs uppercase tracking-wider text-[var(--sl-color-gray-3)]">New words</div>
+    <div class="text-2xl font-bold text-[var(--sl-color-text-accent)]">New</div>
+    <div class="mt-1 text-xs uppercase tracking-wider text-[var(--sl-color-gray-3)]">Review queue</div>
   </div>
 </div>
 
@@ -49,23 +64,23 @@ Dreamscape Memory is a dedicated Whiteout Survival event module for Recall Road.
     The bundled scene database covers the recurring Dreamscape Memory seasons, so the solver starts with a real dictionary of rooms, words, and item coordinates instead of an empty template.
   </Card>
   <Card title="Live OCR, not a replay script">
-    Every loop reads the current level title and bottom word buttons from the device frame. The solver selects the matching scene at runtime, then taps only the item keys it has not already clicked in this run.
+    Every loop reads the bottom word buttons from the device frame. The solver selects the matching scene at runtime, then taps only the item keys it has not already clicked in this run.
   </Card>
   <Card title="Solo and multiplayer">
     The module has separate scenarios for the normal three-word layout and the six-word multiplayer layout, both running in the same fast Dreamscape loop.
   </Card>
-  <Card title="Self-learning dictionary">
-    If OCR sees a word that is not mapped yet, the bot can use Dreamscape's help button, detect the animated highlight, tap the revealed item, and save that word/location back into the scene database.
+  <Card title="New-word review flow">
+    If OCR sees a word that is not mapped yet, the live page captures the frame for the New tab. The operator places the item once, reviews it, and the scene database stays deliberate instead of silently growing from a bad OCR read.
   </Card>
 </CardGrid>
 
 ## How it works
 
 1. The solver captures a fresh frame from the active emulator.
-2. It OCRs the level name plus the visible word slots.
-3. It matches the level name against the Season 1-3 scene catalog, preferring the active event season when room names repeat.
+2. It OCRs the visible word slots.
+3. It matches that word set against the Season 1-3 scene catalog, preferring the active event season when room names repeat.
 4. It resolves each word to a saved item coordinate and taps the item on the scene.
-5. If a word is unknown, it can follow the help highlight and write the discovered point back into the dictionary for future runs.
+5. If a word is unknown, the dashboard captures it for the New tab so the item can be placed and reviewed manually.
 
 ## Scenarios
 
