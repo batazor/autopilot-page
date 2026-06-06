@@ -21,7 +21,7 @@ import { Card, CardGrid } from '@astrojs/starlight/components';
 {/* Reading-progress bar (driven by the inline script at the bottom). */}
 <div id="scn-progress" class="scn-progress" aria-hidden="true"></div>
 
-Whiteout Survival has full scenario coverage today: daily loops, weekly events, shop, deals, heroes, combat, popups. The lists below mirror the actual scenario files under `modules/` — what you see here is what runs.
+Whiteout Survival has full scenario coverage today: daily loops, weekly events, shop, deals, heroes, combat, popups, and a live Dreamscape Memory solver. The lists below mirror the actual scenario files under `modules/` — what you see here is what runs.
 
 {/* Stats strip — landing-style highlight band. */}
 <div class="not-content my-8 grid grid-cols-2 gap-3 sm:grid-cols-4">
@@ -59,6 +59,26 @@ Whiteout Survival has full scenario coverage today: daily loops, weekly events, 
   </ul>
   <p class="m-0 text-xs text-[var(--sl-color-gray-3)]">
     License feature flag: <code>gift_codes.external_accounts</code>. See <a href="/autopilot-page/ops/gift-codes/#external-accounts-pro">Gift codes → External accounts</a>.
+  </p>
+</aside>
+
+{/* Event-module spotlight — Dreamscape Memory self-learning solver. */}
+<aside class="not-content my-8 rounded-2xl border border-emerald-500/40 bg-emerald-500/10 p-6">
+  <div class="mb-3 flex flex-wrap items-center gap-3">
+    <span class="rounded-full bg-emerald-500 px-3 py-1 text-xs font-bold uppercase tracking-widest text-emerald-950">New module</span>
+    <span class="rounded-full border border-[var(--sl-color-hairline-shade)] bg-[var(--sl-color-bg-inline-code)] px-3 py-1 text-xs font-semibold uppercase tracking-widest text-[var(--sl-color-text-accent)]">Self-learning</span>
+    <h3 class="m-0 text-xl font-bold text-[var(--sl-color-text-accent)]">Dreamscape Memory solves Recall Road live</h3>
+  </div>
+  <p class="mb-3 text-[var(--sl-color-gray-2)]">
+    Dreamscape is no longer a manual lookup chore. The module ships with scene data for Seasons 1-3, reads the live word buttons with OCR, picks the right room from the level title, and taps the matching item locations automatically.
+  </p>
+  <ul class="mb-3 list-disc pl-5 text-sm text-[var(--sl-color-gray-2)]">
+    <li>Solo and co-op modes: three-word and six-word layouts use the same fast solver loop.</li>
+    <li>Season-aware scene matching keeps reused room names pointed at the current event's coordinates.</li>
+    <li>If a word is missing, the bot can spend a help charge, follow the in-game highlight, and save the new word/location back into the scene dictionary.</li>
+  </ul>
+  <p class="m-0 text-xs text-[var(--sl-color-gray-3)]">
+    See <a href="/autopilot-page/games/dreamscape-memory/">Dreamscape Memory</a> for the module overview.
   </p>
 </aside>
 
@@ -113,7 +133,7 @@ Whiteout Survival has full scenario coverage today: daily loops, weekly events, 
 | `claim_exploration_rewards` | Claim exploration chests (~4h) |
 | `free_recrutments_today` | Daily claim of free advanced/normal recruits (~5h) |
 
-<h2 id="combat-events" class="scn-h scn-accent-emerald">Combat & events <span class="scn-count">16</span></h2>
+<h2 id="combat-events" class="scn-h scn-accent-emerald">Combat & events <span class="scn-count">17</span></h2>
 
 | Scenario | What it does |
 |:---------|:-------------|
@@ -125,6 +145,7 @@ Whiteout Survival has full scenario coverage today: daily loops, weekly events, 
 | `event.bear_hunt` | Bear Hunt |
 | `event.castle_battle` | Castle Battle |
 | `event.fishing_tournament` | Fishing Tournament |
+| `dreamscape_memory` + `dreamscape_memory_multiplayer` | Dreamscape Memory Recall Road solver (solo/co-op OCR + self-learning scene dictionary) |
 | `event.fortress_battles` | Fortress Battles |
 | `event.foundry_battle` | Foundry Battle |
 | `event.labyrinth` | Labyrinth |

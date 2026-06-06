@@ -13,7 +13,7 @@ export default defineConfig({
     starlight({
       title: 'Autopilot',
       description:
-        'Free, game-agnostic Android autopilot — one worker per emulator instance, queue/state in Redis, screen text via local Tesseract OCR. Whiteout Survival fully covered; Kingshot on the roadmap.',
+        'Free, game-agnostic Android autopilot — one worker per emulator instance, queue/state in Redis, screen text via local Tesseract OCR. Whiteout Survival fully covered, including Dreamscape Memory; Kingshot on the roadmap.',
       logo: {
         src: './src/assets/logo.png',
         replacesTitle: false,
@@ -66,6 +66,7 @@ export default defineConfig({
           items: [
             { label: 'Overview', slug: 'games' },
             { label: 'Whiteout Survival', slug: 'games/whiteout-survival' },
+            { label: 'Dreamscape Memory', slug: 'games/dreamscape-memory' },
             { label: 'Kingshot', slug: 'games/kingshot' },
           ],
         },

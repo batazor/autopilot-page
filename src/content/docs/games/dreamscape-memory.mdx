@@ -1,0 +1,77 @@
+---
+title: Dreamscape Memory
+description: A self-learning Whiteout Survival Dreamscape Memory solver with Season 1-3 scene data, live OCR, solo/co-op support, and automatic dictionary growth.
+sidebar:
+  order: 2
+  label: Dreamscape Memory
+hero:
+  image:
+    file: ../../../assets/wos.png
+  actions:
+    - text: Open Whiteout coverage
+      link: /autopilot-page/games/whiteout-survival/
+      icon: right-arrow
+      variant: primary
+    - text: Labeling guide
+      link: /autopilot-page/authoring/labeling/
+      icon: open-book
+      variant: secondary
+template: doc
+---
+
+import { Card, CardGrid } from '@astrojs/starlight/components';
+
+Dreamscape Memory is a dedicated Whiteout Survival event module for Recall Road. It watches the live device frame, OCRs the word buttons, chooses the right scene from the level title, and taps the mapped items automatically. It is built for the frantic part of the event: when the screen is moving, the timer is running, and tabbing through a guide would be slower than just letting the bot solve it.
+
+<div class="not-content my-8 grid grid-cols-2 gap-3 sm:grid-cols-4">
+  <div class="rounded-xl border border-[var(--sl-color-hairline-shade)] bg-[var(--sl-color-bg-nav)] p-4 text-center">
+    <div class="text-2xl font-bold text-[var(--sl-color-text-accent)]">S1-S3</div>
+    <div class="mt-1 text-xs uppercase tracking-wider text-[var(--sl-color-gray-3)]">Scene data</div>
+  </div>
+  <div class="rounded-xl border border-[var(--sl-color-hairline-shade)] bg-[var(--sl-color-bg-nav)] p-4 text-center">
+    <div class="text-2xl font-bold text-[var(--sl-color-text-accent)]">Solo</div>
+    <div class="mt-1 text-xs uppercase tracking-wider text-[var(--sl-color-gray-3)]">3 words</div>
+  </div>
+  <div class="rounded-xl border border-[var(--sl-color-hairline-shade)] bg-[var(--sl-color-bg-nav)] p-4 text-center">
+    <div class="text-2xl font-bold text-[var(--sl-color-text-accent)]">Co-op</div>
+    <div class="mt-1 text-xs uppercase tracking-wider text-[var(--sl-color-gray-3)]">6 words</div>
+  </div>
+  <div class="rounded-xl border border-[var(--sl-color-hairline-shade)] bg-[var(--sl-color-bg-nav)] p-4 text-center">
+    <div class="text-2xl font-bold text-[var(--sl-color-text-accent)]">Learns</div>
+    <div class="mt-1 text-xs uppercase tracking-wider text-[var(--sl-color-gray-3)]">New words</div>
+  </div>
+</div>
+
+## Why it is good
+
+<CardGrid>
+  <Card title="Season 1-3 data included">
+    The bundled scene database covers the recurring Dreamscape Memory seasons, so the solver starts with a real dictionary of rooms, words, and item coordinates instead of an empty template.
+  </Card>
+  <Card title="Live OCR, not a replay script">
+    Every loop reads the current level title and bottom word buttons from the device frame. The solver selects the matching scene at runtime, then taps only the item keys it has not already clicked in this run.
+  </Card>
+  <Card title="Solo and multiplayer">
+    The module has separate scenarios for the normal three-word layout and the six-word multiplayer layout, both running in the same fast Dreamscape loop.
+  </Card>
+  <Card title="Self-learning dictionary">
+    If OCR sees a word that is not mapped yet, the bot can use Dreamscape's help button, detect the animated highlight, tap the revealed item, and save that word/location back into the scene database.
+  </Card>
+</CardGrid>
+
+## How it works
+
+1. The solver captures a fresh frame from the active emulator.
+2. It OCRs the level name plus the visible word slots.
+3. It matches the level name against the Season 1-3 scene catalog, preferring the active event season when room names repeat.
+4. It resolves each word to a saved item coordinate and taps the item on the scene.
+5. If a word is unknown, it can follow the help highlight and write the discovered point back into the dictionary for future runs.
+
+## Scenarios
+
+| Scenario | Use it for |
+|:---------|:-----------|
+| `dreamscape_memory` | Normal Dreamscape Memory / Recall Road levels with three visible words. |
+| `dreamscape_memory_multiplayer` | Co-op Dreamscape Memory levels with six visible words. |
+
+The live dashboard page also shows the current frame, detected screen, OCR'd words, matched scene, and which words are already known. When something new appears, it can capture the screen for labeling so the dictionary keeps getting better instead of silently failing.
