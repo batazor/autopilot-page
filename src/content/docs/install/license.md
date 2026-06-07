@@ -14,13 +14,13 @@ The bot itself is **free** under the trial tier. A license file is still require
 2. Open the dashboard at <http://127.0.0.1:3000/overview>
 3. Grab the current `licence.jwt` from the `#install` channel on [Discord](https://discord.gg/62twnzKG9)
 4. The UI will prompt you to **upload a license file** on first start — drop the `licence.jwt` in
-5. Restart the bot when the UI asks:
+5. Wait a few seconds while the bot service picks it up automatically
 
-   ```sh
-   docker compose -f docker-compose.prod.yml restart bot
-   ```
-
-That's it. The license file is persisted in the `wos_license` Docker volume (shared between `bot` and `api`) and survives `docker compose down`. It is only wiped by `docker compose down -v`.
+That's it. The bot service starts in a waiting state when no license is present,
+then continues automatically after upload — no restart is needed. The license
+file is persisted in the `wos_license` Docker volume (shared between `bot` and
+`api`) and survives `docker compose down`. It is only wiped by
+`docker compose down -v`.
 
 ## When the key expires
 
