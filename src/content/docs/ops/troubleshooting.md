@@ -10,6 +10,7 @@ docker info | grep -i 'server version\|host'      # daemon reachable, host-net m
 docker compose version --short                    # Compose v2 installed
 adb version && adb devices                        # ADB on PATH + emulator online
 which adb                                         # actual binary used
+docker compose -f docker-compose.prod.yml logs --tail=80 bot | grep -i license
 ```
 
 Typical failures:
@@ -24,6 +25,7 @@ Typical failures:
 ```sh
 docker compose -f docker-compose.prod.yml ps             # service status + healthchecks
 docker compose -f docker-compose.prod.yml logs -f bot    # worker logs
+docker compose -f docker-compose.prod.yml logs -f api    # dashboard API logs
 docker compose -f docker-compose.prod.yml exec bot adb devices   # ADB visibility from inside the bot container
 ```
 
@@ -31,6 +33,8 @@ docker compose -f docker-compose.prod.yml exec bot adb devices   # ADB visibilit
 
 | Symptom | Likely cause | Where to look |
 |:--------|:-------------|:--------------|
+| Bot service is healthy but no work starts; logs say `license gate: waiting for valid license` | Fresh install or expired/invalid license | Open `/license`, upload the current `licence.jwt`, then wait a few seconds. The bot service watches the shared `license-data` volume and continues automatically; no restart is needed. |
+| License page or another UI page shows an API error | Backend endpoint failed or returned a detailed validation error | Click **Copy report** in the red error banner and send the JSON report with `docker compose -f docker-compose.prod.yml logs --tail=120 api`. |
 | Bot UI loads, no work runs | All instances `paused=1` / `auto_paused=1` in Redis | `docker compose … logs bot` — the `game_health_watchdog` line shows why. Usually no ADB device online. |
 | `tap_*` scenarios stall on "waiting for approval" | `click_approval` mode left on with the approvals page closed | Open **Click approvals** in the Web UI (`/approvals`), or unset `wos:ui:click_approval:enabled:<inst>` in Redis. |
 | Bot can't see the emulator inside the container | `network_mode: host` not active | Docker Desktop → enable Host networking (see [Images & networking](/autopilot-page/install/images/)). |

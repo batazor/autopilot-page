@@ -120,8 +120,9 @@ any Android target that shows up in `adb devices` and can be kept at
 :::note[First start]
 The dashboard prompts for a license file on first load — see
 [License activation](/autopilot-page/install/license/). Grab the current
-`licence.jwt` from the `#install` channel on Discord, upload it in the UI, then
-`docker compose -f docker-compose.prod.yml restart bot` once.
+`licence.jwt` from the `#install` channel on Discord and upload it in the UI.
+The bot service waits for the file and continues automatically — no restart is
+needed.
 :::
 
 ## Troubleshooting

@@ -12,7 +12,7 @@
 #     baked into the image — nothing to mount, nothing to seed.
 #   * The dashboard prompts for a license file on first load. Grab the current
 #     ``licence.jwt`` from the ``#install`` channel on Discord, upload it
-#     in the UI, then ``docker compose ... restart bot`` once.
+#     in the UI, and the bot service continues automatically.
 #
 # Images are currently published as ``:latest`` only. ``WOS_IMAGE_TAG`` remains
 # configurable for private forks that publish their own tags.
@@ -67,8 +67,10 @@ services:
         --appendonly yes
         --unixsocket /var/run/redis/redis.sock
         --unixsocketperm 777
-    ports:
-      - "127.0.0.1:6379:6379"
+    # No ``ports:`` — every service talks to Redis over the ``redis_socket``
+    # unix socket, so there is nothing to publish. Exposing 6379 (even on
+    # loopback) would needlessly hand any local process anonymous read/write
+    # to the queue and state.
     volumes:
       - redis_data:/data
       - redis_socket:/var/run/redis
@@ -103,10 +105,6 @@ services:
       - wos_state:/app/db/state
       - wos_license:/app/license-data
       - redis_socket:/var/run/redis
-      # Stable per-host id for license binding. Mounted :ro so the container
-      # observes the same value across rebuilds. Falls back to MAC+hostname
-      # if the file is absent (e.g. on platforms without systemd).
-      - /etc/machine-id:/etc/machine-id:ro
     restart: unless-stopped
     healthcheck:
       # The supervisor serves a loopback /health endpoint (worker.health_server)
@@ -168,7 +166,6 @@ services:
       - wos_state:/app/db/state
       - wos_license:/app/license-data
       - redis_socket:/var/run/redis
-      - /etc/machine-id:/etc/machine-id:ro
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-fsS", "http://127.0.0.1:8765/health"]
