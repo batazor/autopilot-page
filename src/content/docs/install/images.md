@@ -21,20 +21,20 @@ The `inference` image is **not pulled by default** — it sits behind a Compose
 profile, so a plain `up` runs only the core services:
 
 ```sh
-docker compose -f docker-compose.prod.yml up -d                  # default: redis, bot, api, web
-docker compose -f docker-compose.prod.yml --profile full up -d   # + inference (needs ROBOFLOW_API_KEY)
+docker compose -f docker-compose.prod.yml up -d --pull always                  # default: redis, bot, api, web
+docker compose -f docker-compose.prod.yml --profile full up -d --pull always   # + inference (needs ROBOFLOW_API_KEY)
 ```
 
 ### Pinning a version
 
 ```sh
-WOS_IMAGE_TAG=v0.1.0 docker compose -f docker-compose.prod.yml up -d
+WOS_IMAGE_TAG=v0.1.0 docker compose -f docker-compose.prod.yml up -d --pull always
 ```
 
 ### Using a fork's images
 
 ```sh
-WOS_REGISTRY=ghcr.io/your-fork docker compose -f docker-compose.prod.yml up -d
+WOS_REGISTRY=ghcr.io/your-fork docker compose -f docker-compose.prod.yml up -d --pull always
 ```
 
 ## How the container reaches the host's ADB

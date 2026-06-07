@@ -70,7 +70,7 @@ Already running the default stack and just want to add inference? Naming the
 service starts it without restarting the rest:
 
 ```sh
-docker compose -f docker-compose.prod.yml up -d inference   # production
+docker compose -f docker-compose.prod.yml up -d inference --pull always   # production
 docker compose up -d inference                              # local dev
 ```
 

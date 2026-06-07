@@ -10,7 +10,7 @@ The bot itself is **free** under the trial tier. A license file is still require
 
 ## Get started in 30 seconds
 
-1. Start the stack — `docker compose -f docker-compose.prod.yml up -d`
+1. Start the stack — `docker compose -f docker-compose.prod.yml up -d --pull always`
 2. Open the dashboard at <http://127.0.0.1:3000/overview>
 3. Grab the current `licence.jwt` from the `#install` channel on [Discord](https://discord.gg/62twnzKG9)
 4. The UI will prompt you to **upload a license file** on first start — drop the `licence.jwt` in
