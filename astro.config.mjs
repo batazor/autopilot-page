@@ -21,6 +21,15 @@ export default defineConfig({
       favicon: '/favicon.png',
       customCss: ['./src/styles/tailwind.css', './src/styles/wos.css'],
       head: [
+        // Google Search Console ownership verification (meta-tag method —
+        // works on the project subpath, unlike a root robots.txt/HTML file).
+        {
+          tag: 'meta',
+          attrs: {
+            name: 'google-site-verification',
+            content: 'IaH1asFL1zDI_xzKMXBTQecdseb7IvWRpiPn6bC9MP0',
+          },
+        },
         // OG / Twitter card image — what Discord, Slack, Telegram show when
         // somebody pastes the docs URL. Served from /public so the absolute URL
         // is stable.
