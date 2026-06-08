@@ -27,7 +27,7 @@ export default defineConfig({
           tag: 'meta',
           attrs: {
             name: 'google-site-verification',
-            content: 'IaH1asFL1zDI_xzKMXBTQecdseb7IvWRpiPn6bC9MP0',
+            content: 'SV2rA14MQUfzFJ662HU_y99PCVv0RNUdwEmt5dxvxjI',
           },
         },
         // OG / Twitter card image — what Discord, Slack, Telegram show when
