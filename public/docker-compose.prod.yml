@@ -21,26 +21,28 @@
 #     WOS_REGISTRY=ghcr.io/your-fork docker compose -f docker-compose.prod.yml up -d
 #
 # === ADB / network model ===
-# ``bot`` runs in ``network_mode: host`` so the container shares the host's
-# loopback. That way the host's ``adb start-server`` (bound to 127.0.0.1:5037
-# by default — safe) is reachable as ``127.0.0.1:5037`` from inside the
-# container, **without** exposing ADB on the host's external interfaces via
-# ``adb -a``.
+# ``bot``, ``api``, and ``web`` run in ``network_mode: host`` so app containers
+# share the host's loopback. That way the host's ``adb start-server`` (bound to
+# 127.0.0.1:5037 by default — safe) is reachable as ``127.0.0.1:5037`` from
+# inside the containers, **without** exposing ADB on the host's external
+# interfaces via ``adb -a``.
 #
 # Side effects of host-mode that this file already accounts for:
-#   * ``bot`` cannot use the Compose-internal DNS name (``redis``) for the
-#     other services — host-mode bot has no Compose network attached.
-#     ``bot`` talks to Redis over the shared ``redis_socket`` named volume.
-#   * ``bot`` has no ``ports:`` block — workers bind only to Redis/ADB on the host.
-#   * ``api`` and ``web`` use the default bridge network and reach Redis via
-#     the ``redis`` service name; ``web`` proxies ``/api`` to ``api:8765``.
+#   * app containers cannot use Compose-internal DNS names for services that
+#     share host-mode networking. ``bot`` and ``api`` talk to Redis over the
+#     shared ``redis_socket`` named volume.
+#   * ``bot``, ``api``, and ``web`` have no ``ports:`` blocks — they bind
+#     directly on host loopback according to their own service settings.
+#   * ``api`` and ``web`` also use host-mode so the dashboard's ADB scan and
+#     the bot workers see the same host loopback. All app services talk to Redis
+#     over the shared ``redis_socket`` named volume, not over TCP.
 #
 # Platform support:
 #   * **Linux** — ``network_mode: host`` is fully supported out of the box.
 #   * **Docker Desktop (macOS/Windows)** — works only with the **Host
 #     networking** beta enabled: Settings → Resources → Network → "Enable
-#     host networking". Without it, the bot can reach ``redis`` on loopback
-#     but **not** the host's adb server.
+#     host networking". Without it, app containers can mount the Redis socket
+#     but **not** reliably reach the host's adb server.
 #
 # === Persistent state ===
 # Only the two mutable bits live in named volumes (shared between bot and api):
@@ -118,10 +120,10 @@ services:
       retries: 3
 
   # Roboflow object-detection inference server (Fishing Tournament fish
-  # detector → model find-fish-ssnpa/6). ``api`` runs the detection and reaches
-  # it over the bridge network as ``inference:9001`` (see WOS_INFERENCE_URL on
-  # ``api``). Set ROBOFLOW_API_KEY in the environment so the server can pull
-  # weights on first request (cached in ``inference_cache``).
+  # detector → model find-fish-ssnpa/6). It publishes only host loopback, and
+  # host-networked ``api`` reaches it on ``127.0.0.1:9001``. Set ROBOFLOW_API_KEY
+  # in the environment so the server can pull weights on first request (cached
+  # in ``inference_cache``).
   #
   # OPTIONAL — gated behind the ``full`` / ``inference`` profile so the default
   # stack does not pull this image. Enable it with:
@@ -133,6 +135,8 @@ services:
       ROBOFLOW_API_KEY: ${ROBOFLOW_API_KEY:-}
     volumes:
       - inference_cache:/tmp/cache
+    ports:
+      - "127.0.0.1:9001:9001"
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:9001/info')"]
@@ -144,18 +148,18 @@ services:
   api:
     image: ${WOS_REGISTRY:-ghcr.io/batazor/autopilot}/bot:${WOS_IMAGE_TAG:-latest}
     command: ["api"]
+    network_mode: host
     depends_on:
       redis:
         condition: service_healthy
-    ports:
-      - "127.0.0.1:8765:8765"
     environment:
       WOS_REDIS_URL: unix:///var/run/redis/redis.sock?db=0
-      WOS_API_HOST: 0.0.0.0
+      WOS_API_HOST: 127.0.0.1
       WOS_API_PORT: "8765"
+      ADB_SERVER_SOCKET: tcp:127.0.0.1:5037
       # Fish-detect debug page runs inference inside the API process; reach the
-      # sidecar by its Compose service name (api is on the default bridge net).
-      WOS_INFERENCE_URL: http://inference:9001
+      # optional sidecar over the shared host loopback.
+      WOS_INFERENCE_URL: http://127.0.0.1:9001
       ROBOFLOW_API_KEY: ${ROBOFLOW_API_KEY:-}
       # Same license-file path as ``bot``. ``WOS_LICENSE`` is still honored as
       # an env override. ``WOS_ADMIN_TOKEN`` is only set in the maintainer's
@@ -176,13 +180,13 @@ services:
 
   web:
     image: ${WOS_REGISTRY:-ghcr.io/batazor/autopilot}/web:${WOS_IMAGE_TAG:-latest}
+    network_mode: host
     depends_on:
       api:
         condition: service_healthy
-    ports:
-      - "127.0.0.1:3000:3000"
     environment:
-      WOS_API_URL: http://api:8765
+      HOSTNAME: 127.0.0.1
+      WOS_API_URL: http://127.0.0.1:8765
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/overview').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
