@@ -40,6 +40,20 @@ offline serial around after reconnecting. In that case, add the instance explici
 
 The worker resumes automatically once the configured serial is online.
 
+## Account identity by avatar
+
+The bot can identify the active account from the chief avatar shown in the top-left of the main city. This is a fast fallback before the full `who_i_am` OCR probe: if `active_player` is empty, the rolling frame matcher compares the visible avatar crop with the saved reference for each configured player on that device.
+
+This only works reliably when every account on the same device has a different in-game avatar. If two accounts share the same avatar, the matcher intentionally refuses ambiguous matches and the normal `who_i_am` flow takes over.
+
+To refresh a player's avatar reference:
+
+1. Open the game on that account and leave it on the main city screen.
+2. Start the worker so the dashboard has a fresh live frame.
+3. Open **Player state**, choose the instance and player, then click **Update avatar reference**.
+
+Avatar references are stored locally under `db/state/player_avatars/` with the rest of the runtime state. They are not part of the release image.
+
 ## Backend trade-offs
 
 | Backend | Latency | Requires |
