@@ -1,6 +1,6 @@
 ---
 title: Gift codes
-description: Scrape the latest promotional gift codes and auto-redeem them across every configured account. Shows a per-account success/failure matrix at a glance.
+description: Scrape the latest promotional gift codes and redeem them across configured accounts, including WOS/Kingshot beta code discovery from Discord channels.
 sidebar:
   order: 4
   label: Gift codes
@@ -9,21 +9,56 @@ sidebar:
 import { Image } from 'astro:assets';
 import giftCodesScreenshot from '../../../assets/gift_codes.png';
 
-One of the most popular features. The bot maintains a registry of Century Game promo codes (`db/giftCodes.yaml`), scrapes new ones from public sources, and redeems them against every configured account on a schedule. The dashboard page is your single view of "which codes succeeded for which accounts."
+One of the most popular features. Autopilot keeps a game-scoped registry of Century Game promo codes in `db/state/state.db`, scrapes new ones from configured sources, and redeems them against every configured account. The dashboard page is your single view of "which codes succeeded for which accounts."
 
 <Image src={giftCodesScreenshot} alt="Gift codes dashboard" />
 
 ## What it does
 
-- **Scrapes new codes** — the `Scrape now` button hits the public code sources, dedupes against the registry, and queues anything new.
-- **Redeems across all accounts** — `Redeem now` (or the cron schedule) walks every account configured in `db/state/state.db` and submits each pending code. The matrix view shows the result per account, per code.
+- **Scrapes new codes** — the API startup poller, scheduler poller, and `Scrape now` button all hit the configured source for the selected game, dedupe against `state.db`, and store anything new.
+- **Redeems live-game codes across all accounts** — `Redeem now` (or the shared 6-hour poll cycle) walks every account configured in `db/state/state.db` and submits each pending live-game code. The matrix view shows the result per account, per code.
+- **Works without ADB for live games** — gift-code discovery and live-game redeem use Century/Discord HTTP APIs directly. `uv run play` can refresh and redeem live codes even before you press **Start bot**.
 - **Tracks the lifecycle** — once a code is `ALREADY_RECEIVED` for an account, it never gets retried for that account. `SUCCESS` rows turn green and are dropped from the next pass.
 - **Per-account columns** — each configured player ID gets its own column. Status values:
   - **`SUCCESS`** — code redeemed, rewards in inbox
   - **`ALREADY_RECEIVED`** — this account already had it (no retry)
-  - **`FAILED`** — API rejected (expired, region-locked, hit a per-account limit, etc.)
+  - **`FAILED`** — API rejected the attempt or a transient request failed; it will be retried on a later run
+  - **`CDK_EXPIRED` / `CDK_NOT_FOUND`** — the code is globally dead and skipped on later runs
+  - **`STOVE_LEVEL_TOO_LOW` / `VIP_LEVEL_TOO_LOW`** — this account is not eligible for the code
   - **`PENDING`** — queued but not yet attempted
 - **API errors surfaced** — the `API ERR` column shows the upstream code (`20000`, `40005`, …) so you can tell "the code is bad" from "this one account is rate-limited."
+
+## Game tabs and sources
+
+The Gift codes page has separate tabs for:
+
+- **Whiteout Survival** — public WOS code sources plus Century's WOS redeem API.
+- **Kingshot** — Kingshot code aggregator plus Century's Kingshot redeem API.
+- **WOS Beta** — code discovery from a Discord channel, stored under `wos_beta`; apply manually inside the beta game client for the currently logged-in player.
+- **Kingshot Beta** — code discovery from a Discord channel, stored under `kingshot_beta`; apply manually inside the beta game client for the currently logged-in player.
+
+Beta tabs are discovery/manual-apply only. They still show discovered codes in the same table, but **Redeem now** and the external-account panel are hidden there because beta code application belongs to the in-game interface and only affects the current beta player.
+
+<div class="not-content my-6 rounded-2xl border border-[var(--sl-color-hairline-shade)] bg-[var(--sl-color-bg-sidebar)] p-5 shadow-sm">
+  <div class="mb-3 flex flex-wrap items-center justify-between gap-3">
+    <div>
+      <p class="m-0 text-xs font-bold uppercase tracking-widest text-[var(--sl-color-gray-3)]">Beta redeem pages</p>
+      <h3 class="m-0 mt-1 text-lg font-bold text-[var(--sl-color-white)]">Official beta code portals</h3>
+    </div>
+    <span class="rounded-full border border-[var(--sl-color-hairline-shade)] px-3 py-1 text-xs font-semibold text-[var(--sl-color-gray-2)]">manual check</span>
+  </div>
+  <p class="mb-4 text-sm text-[var(--sl-color-gray-2)]">
+    Use these pages when verifying beta codes by hand. Autopilot stores Discord-discovered beta codes separately under <code>wos_beta</code> and <code>kingshot_beta</code>.
+  </p>
+  <div class="flex flex-wrap gap-3">
+    <a class="inline-flex items-center rounded-lg border border-[var(--sl-color-accent)] px-4 py-2 text-sm font-semibold text-[var(--sl-color-text-accent)] no-underline transition hover:bg-[var(--sl-color-accent-low)]" href="https://h5-res.wzqqe.com/land/index.html">
+      Whiteout Survival beta
+    </a>
+    <a class="inline-flex items-center rounded-lg border border-[var(--sl-color-accent)] px-4 py-2 text-sm font-semibold text-[var(--sl-color-text-accent)] no-underline transition hover:bg-[var(--sl-color-accent-low)]" href="https://res.jxhk88.com/bbworld/index.html">
+      Kingshot beta
+    </a>
+  </div>
+</div>
 
 ## Counters at the top
 
@@ -55,4 +90,32 @@ The **External accounts** panel on the Gift codes page is where you manage this 
 
 ## Where it runs
 
-The redeem loop is scenario `gift_codes/scenarios/by_cron/redeem_gift_codes.yaml`. The default cron pulls and redeems every few hours; you can also kick a one-off run from the dashboard's `Redeem now` button or from the queue.
+Gift codes run through a global HTTP poller, not through emulator scenarios:
+
+- API startup (`uv run play` / `uv run api`) starts one background gift-code cycle.
+- The bot scheduler uses the same 6-hour cadence key, so API startup and bot scheduler do not double-run the same cycle.
+- `Scrape now` is a direct dashboard action for the selected game; `Redeem now` is shown only for live games.
+- A shared Redis redeem lock prevents manual, API startup, and scheduler redeems from racing.
+
+For beta games, the same cycle only scrapes Discord and stores new codes. It does not acquire the redeem lock or run a no-op redeemer.
+
+The shared cadence keys look like `wos:scheduler:gift_codes_poll:{game}`. The redeem locks look like `wos:gift_code_redeem:lock[:game]`.
+
+## Discord beta setup
+
+For beta-code discovery, add a Discord bot to the server/channel that receives beta codes and give it:
+
+- `VIEW_CHANNEL`
+- `READ_MESSAGE_HISTORY`
+- Message Content access in the Discord Developer Portal, so message `content` and embeds are readable
+
+Then open **Gift codes**, switch to either beta tab, and fill **Discord beta source**:
+
+- Bot token
+
+WOS Beta uses the built-in Discord channel `1511081143083077652` from `https://discord.com/channels/1430936597477589114/1511081143083077652`.
+Kingshot Beta uses the built-in Discord channel `1513031288695558285` from `https://discord.com/channels/1430936597477589114/1513031288695558285`.
+
+Autopilot stores this configuration in the encrypted `db/state/state.db` runtime database. The token is never echoed back to the browser after save; the page only shows whether a token is configured.
+
+The parser looks for common labels such as `gift code:`, `promo code:`, `code:`, `код:`, and backticked tokens.
