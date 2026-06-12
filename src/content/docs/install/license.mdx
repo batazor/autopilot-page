@@ -1,0 +1,145 @@
+---
+title: License & pricing
+description: Tiers R2 (free), R3 ($5) and R4 ($30) — what each unlocks, usage limits, and how to activate a license file.
+sidebar:
+  order: 5
+  label: License
+---
+
+The bot core is **free** (the R2 tier). A license file is still required — it carries your tier, expiry and usage limits (max devices, max players per device, external-account cap), and lets us rotate keys without releasing a new image.
+
+Tiers are named after in-game alliance ranks. **Features are cumulative** — a higher tier includes everything below it.
+
+{/* Pricing tiers — data mirrors src/licensing/plans.py (the single source of
+    truth for tiers, prices and feature flags). Update both together. */}
+<div class="not-content my-8 grid gap-4 lg:grid-cols-3">
+  {/* R2 · Free */}
+  <div class="scn-reveal scn-tier flex flex-col rounded-2xl border border-[var(--sl-color-hairline-shade)] bg-[var(--sl-color-bg-nav)] p-5 sm:p-6">
+    <div class="flex items-center gap-2">
+      <span class="rounded-full bg-[var(--sl-color-bg-inline-code)] border border-[var(--sl-color-hairline-shade)] px-3 py-1 text-xs font-bold uppercase tracking-widest text-[var(--sl-color-text-accent)]">R2</span>
+      <span class="text-sm font-semibold text-[var(--sl-color-gray-3)]">Free</span>
+    </div>
+    <div class="mt-4 flex items-baseline gap-1.5">
+      <span class="text-3xl font-extrabold sm:text-4xl text-[var(--sl-color-text)]">$0</span>
+      <span class="text-sm text-[var(--sl-color-gray-3)]">forever</span>
+    </div>
+    <p class="mt-3 text-sm leading-relaxed text-[var(--sl-color-gray-2)]">
+      Base bot: scenarios on your devices, OCR and the approvals queue.
+    </p>
+    <ul class="m-0 mt-4 flex list-none flex-col gap-2.5 p-0 text-sm">
+      <li class="flex items-start gap-2 text-[var(--sl-color-gray-2)]"><svg class="mt-0.5 h-4 w-4 flex-none text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 12l4 4 8-9"/></svg>All 80+ scenarios, OCR, approvals queue</li>
+      <li class="flex items-start gap-2 text-[var(--sl-color-gray-2)]"><svg class="mt-0.5 h-4 w-4 flex-none text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 12l4 4 8-9"/></svg>Gift codes for bot-owned accounts</li>
+      <li class="flex items-start gap-2 text-[var(--sl-color-gray-2)]"><svg class="mt-0.5 h-4 w-4 flex-none text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 12l4 4 8-9"/></svg>Shared key — works on any host</li>
+      <li class="flex items-start gap-2 text-[var(--sl-color-gray-4)]"><svg class="mt-0.5 h-4 w-4 flex-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>External gift-code accounts</li>
+      <li class="flex items-start gap-2 text-[var(--sl-color-gray-4)]"><svg class="mt-0.5 h-4 w-4 flex-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>Radar kingdom-map scanner</li>
+      <li class="flex items-start gap-2 text-[var(--sl-color-gray-4)]"><svg class="mt-0.5 h-4 w-4 flex-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>Alliance statistics</li>
+    </ul>
+    <p class="mt-auto pt-5 text-xs text-[var(--sl-color-gray-3)]">
+      Grab the current key from the <code>#install</code> channel on <a href="https://discord.gg/62twnzKG9">Discord</a>. Rotates monthly.
+    </p>
+  </div>
+
+  {/* R3 · $5 */}
+  <div class="scn-reveal scn-tier flex flex-col rounded-2xl border border-[var(--sl-color-hairline-shade)] bg-[var(--sl-color-bg-nav)] p-5 sm:p-6">
+    <div class="flex items-center gap-2">
+      <span class="rounded-full bg-[var(--sl-color-accent-low)] border border-[var(--sl-color-accent)] px-3 py-1 text-xs font-bold uppercase tracking-widest text-[var(--sl-color-text-accent)]">R3</span>
+      <span class="text-sm font-semibold text-[var(--sl-color-gray-3)]">Alliance helper</span>
+    </div>
+    <div class="mt-4 flex items-baseline gap-1.5">
+      <span class="text-3xl font-extrabold sm:text-4xl text-[var(--sl-color-text)]">$5</span>
+      <span class="text-sm text-[var(--sl-color-gray-3)]">per license</span>
+    </div>
+    <p class="mt-3 text-sm leading-relaxed text-[var(--sl-color-gray-2)]">
+      Adds gift-code redemption for external accounts — alliance members and partner farms the bot doesn't own.
+    </p>
+    <ul class="m-0 mt-4 flex list-none flex-col gap-2.5 p-0 text-sm">
+      <li class="flex items-start gap-2 text-[var(--sl-color-gray-2)]"><svg class="mt-0.5 h-4 w-4 flex-none text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 12l4 4 8-9"/></svg>Everything in R2</li>
+      <li class="flex items-start gap-2 text-[var(--sl-color-gray-2)]"><svg class="mt-0.5 h-4 w-4 flex-none text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 12l4 4 8-9"/></svg>External gift-code accounts — <strong>up to 5</strong> per game</li>
+      <li class="flex items-start gap-2 text-[var(--sl-color-gray-2)]"><svg class="mt-0.5 h-4 w-4 flex-none text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 12l4 4 8-9"/></svg>Matrix view tracks every FID's redeem state</li>
+      <li class="flex items-start gap-2 text-[var(--sl-color-gray-4)]"><svg class="mt-0.5 h-4 w-4 flex-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>Radar kingdom-map scanner</li>
+      <li class="flex items-start gap-2 text-[var(--sl-color-gray-4)]"><svg class="mt-0.5 h-4 w-4 flex-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>Alliance statistics</li>
+    </ul>
+    <p class="mt-auto pt-5 text-xs text-[var(--sl-color-gray-3)]">
+      Issued per request, bound to your host fingerprint. DM a maintainer on <a href="https://discord.gg/62twnzKG9">Discord</a>.
+    </p>
+  </div>
+
+  {/* R4 · $30 — highlighted */}
+  <div class="scn-reveal scn-tier relative flex flex-col rounded-2xl border border-[var(--sl-color-accent)] bg-gradient-to-br from-[var(--sl-color-accent-low)] to-transparent p-5 shadow-lg sm:p-6">
+    <span class="absolute -top-3 right-5 rounded-full bg-[var(--sl-color-accent)] px-3 py-0.5 text-[11px] font-bold uppercase tracking-widest text-white">Full kit</span>
+    <div class="flex items-center gap-2">
+      <span class="rounded-full bg-[var(--sl-color-accent)] px-3 py-1 text-xs font-bold uppercase tracking-widest text-white">R4</span>
+      <span class="text-sm font-semibold text-[var(--sl-color-gray-3)]">Alliance leadership</span>
+    </div>
+    <div class="mt-4 flex items-baseline gap-1.5">
+      <span class="text-3xl font-extrabold sm:text-4xl text-[var(--sl-color-text)]">$30</span>
+      <span class="text-sm text-[var(--sl-color-gray-3)]">per license</span>
+    </div>
+    <p class="mt-3 text-sm leading-relaxed text-[var(--sl-color-gray-2)]">
+      The alliance-R4 perk set: whole-alliance gift codes, the Radar map scanner and alliance statistics.
+    </p>
+    <ul class="m-0 mt-4 flex list-none flex-col gap-2.5 p-0 text-sm">
+      <li class="flex items-start gap-2 text-[var(--sl-color-gray-2)]"><svg class="mt-0.5 h-4 w-4 flex-none text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 12l4 4 8-9"/></svg>Everything in R3</li>
+      <li class="flex items-start gap-2 text-[var(--sl-color-gray-2)]"><svg class="mt-0.5 h-4 w-4 flex-none text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 12l4 4 8-9"/></svg>External gift-code accounts — <strong>up to 50</strong> per game</li>
+      <li class="flex items-start gap-2 text-[var(--sl-color-gray-2)]"><svg class="mt-0.5 h-4 w-4 flex-none text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 12l4 4 8-9"/></svg>Radar — scan & stitch the kingdom map, browse tile-by-tile</li>
+      <li class="flex items-start gap-2 text-[var(--sl-color-gray-2)]"><svg class="mt-0.5 h-4 w-4 flex-none text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 12l4 4 8-9"/></svg>Alliance statistics</li>
+    </ul>
+    <p class="mt-auto pt-5 text-xs text-[var(--sl-color-gray-3)]">
+      Issued per request, bound to your host fingerprint. DM a maintainer on <a href="https://discord.gg/62twnzKG9">Discord</a>.
+    </p>
+  </div>
+</div>
+
+:::tip[Free for contributors & testers]
+R3 / R4 keys are **free** for people helping the project — module development & debugging, labeling, and active testing of pre-release builds. DM a maintainer on [Discord](https://discord.gg/62twnzKG9) with your host fingerprint (shown on the dashboard's **License** page).
+:::
+
+## Usage limits
+
+Every license also carries usage caps, independent of the tier's feature list:
+
+| Claim | Free shared key | Paid (R3 / R4) |
+|:---|:---|:---|
+| Host binding | Any host (one shared key) | Bound to your machine fingerprint |
+| Devices (emulator instances) | **2** | Per request (default 1, up to 100) |
+| Players per device | **3** | **3** (up to 100) |
+| External gift-code accounts (per game) | 0 | 5 (R3) / 50 (R4) |
+| Validity | Monthly key rotation in [Discord](https://discord.gg/62twnzKG9) | Issued per request |
+
+The paid key won't run on a different host — copy your fingerprint from the dashboard's **License** page when requesting one.
+
+## Get started in 30 seconds
+
+1. Start the stack — `docker compose -f docker-compose.prod.yml up -d --pull always`
+2. Open the dashboard at [http://127.0.0.1:3000/overview](http://127.0.0.1:3000/overview)
+3. Grab the current `licence.jwt` from the `#install` channel on [Discord](https://discord.gg/62twnzKG9)
+4. The UI will prompt you to **upload a license file** on first start — drop the `licence.jwt` in
+5. Wait a few seconds while the bot service picks it up automatically
+
+That's it. The bot service starts in a waiting state when no license is present,
+then continues automatically after upload — no restart is needed. The license
+file is persisted in the `wos_license` Docker volume (shared between `bot` and
+`api`) and survives `docker compose down`. It is only wiped by
+`docker compose down -v`.
+
+## When the key expires
+
+Free keys rotate every so often. When yours stops working:
+
+1. Pull the latest `licence.jwt` from the `#install` channel on [Discord](https://discord.gg/62twnzKG9)
+2. Re-upload it through the same UI flow
+
+Paid keys are issued with their own expiry — DM a maintainer to renew.
+
+## Feature flags (for the curious)
+
+The license is an Ed25519-signed JWT. The tier resolves to feature flags the
+app checks at the API, service and UI layers:
+
+| Flag | Unlocked by | Gates |
+|:---|:---|:---|
+| `gift_codes.external_accounts` | R3 | External-FID redeem loop + matrix view |
+| `radar` | R4 | Kingdom-map scanner |
+| `alliance_stats` | R4 | Alliance statistics dashboards |
+
+A request hitting a locked feature returns HTTP 402 with `reason: feature_not_licensed`; the dashboard shows the corresponding upgrade hint instead of the panel.
