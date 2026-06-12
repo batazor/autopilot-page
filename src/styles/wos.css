@@ -84,6 +84,215 @@ body {
 }
 
 /* ---------------------------------------------------------------------------
+   WebGL aurora + snowfall backdrop (landing page, see index.mdx)
+
+   Fixed full-viewport canvas behind the content. Dark theme shows aurora +
+   bright snow; light theme crossfades (in-shader, u_lt uniform) to slate
+   daytime flakes with no aurora. Without WebGL the canvas is removed and
+   the body gradient below stays as-is.
+   --------------------------------------------------------------------------- */
+#wos-aurora {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 1.4s ease;
+}
+#wos-aurora.is-on {
+  opacity: 1;
+}
+
+/* Header theme toggle — small screens only (injected from astro.config head
+   script, appended to the site header next to search). Desktop keeps
+   Starlight's built-in select in the same header. */
+#wos-theme-fab {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 999px;
+  border: 1px solid var(--sl-color-hairline);
+  background: var(--sl-color-bg-nav);
+  color: var(--sl-color-text-accent);
+  cursor: pointer;
+  transition: transform var(--scn-spring-hover), border-color 0.2s ease;
+}
+#wos-theme-fab:hover {
+  border-color: var(--sl-color-accent);
+}
+#wos-theme-fab:active {
+  transform: scale(0.9);
+}
+#wos-theme-fab:focus-visible {
+  outline: 2px solid var(--sl-color-accent);
+  outline-offset: 2px;
+}
+@media (max-width: 50rem) {
+  #wos-theme-fab {
+    display: inline-flex;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Motion springs (https://motion.dev/docs/css)
+
+   Pre-generated with Motion's spring() → native CSS `<duration> linear(...)`
+   pairs, usable directly in transition/animation shorthands:
+     node -e "const {spring}=require('motion'); console.log(spring(0.3, 0.4))"
+   hover  = spring(0.3, 0.4)  — snappy, small overshoot (hover lifts, dots)
+   slide  = spring(0.45, 0.15) — calm settle (slideshow transforms)
+   --------------------------------------------------------------------------- */
+:root {
+  --scn-spring-hover: 650ms linear(0, 0.1162, 0.3622, 0.6245, 0.8404, 0.9868,
+    1.0661, 1.0937, 1.0885, 1.0672, 1.042, 1.02, 1.0043, 0.9952, 0.9914,
+    0.9913, 0.993, 0.9954, 0.9976, 0.9993, 1.0003, 1);
+  --scn-spring-slide: 800ms linear(0, 0.0523, 0.1708, 0.314, 0.4571, 0.5866,
+    0.6963, 0.7848, 0.8534, 0.9047, 0.9416, 0.9673, 0.9843, 0.9951, 1.0014,
+    1.0047, 1.0061, 1.0062, 1.0057, 1.0049, 1.004, 1.0031, 1.0023, 1.0017,
+    1.0012, 1.0008, 1);
+}
+
+/* Scroll-driven reveal — fade-up as the element enters the viewport.
+   Pure CSS (animation-timeline: view()); browsers without support, and
+   readers preferring reduced motion, simply see the content in place.
+   Apply only to containers WITHOUT their own hover transform (a filling
+   animation would override transition-driven hover lifts). */
+@media (prefers-reduced-motion: no-preference) {
+  @supports (animation-timeline: view()) {
+    .scn-reveal,
+    .scenario-tables table,
+    .scn-minis,
+    .sl-markdown-content .card-grid {
+      animation: scn-reveal both;
+      animation-timeline: view();
+      /* Length-based end: tall tables finish revealing after 200px of entry
+         instead of staying translucent until fully scrolled into view. */
+      animation-range: cover 0% cover 200px;
+    }
+  }
+}
+
+@keyframes scn-reveal {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Hover states
+
+   Shared vocabulary across the docs: cards lift on a spring, their icon chip
+   tilts, numbers pop. Hairline borders warm up to the accent color.
+   --------------------------------------------------------------------------- */
+
+/* Stats strip — lift the tile, pop the headline number. */
+.scn-stat {
+  transition: transform var(--scn-spring-hover), border-color 0.25s ease, box-shadow 0.25s ease;
+}
+.scn-stat > div:first-child {
+  transition: transform var(--scn-spring-hover);
+}
+.scn-stat:hover {
+  transform: translateY(-2px);
+  border-color: var(--sl-color-accent);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.14);
+}
+.scn-stat:hover > div:first-child {
+  transform: scale(1.12);
+}
+
+/* Pricing tiers (license page) — same lift language as the cards. */
+.scn-tier {
+  transition: transform var(--scn-spring-hover), border-color 0.25s ease, box-shadow 0.25s ease;
+}
+.scn-tier:hover {
+  transform: translateY(-4px);
+  border-color: var(--sl-color-accent);
+  box-shadow: 0 14px 32px rgba(0, 0, 0, 0.2);
+}
+
+/* Mini-card icon chip tilts toward the reader when the card lifts. */
+.scn-mini .scn-mini-icon {
+  transition: transform var(--scn-spring-hover);
+}
+.scn-mini:hover .scn-mini-icon {
+  transform: scale(1.12) rotate(-6deg);
+}
+
+/* Starlight Card icon gets the same treatment (Engine capabilities). */
+.sl-markdown-content .card .icon {
+  transition: transform var(--scn-spring-hover);
+}
+.sl-markdown-content .card:hover .icon {
+  transform: scale(1.12) rotate(-6deg);
+}
+
+/* Scenario tables — accent tick slides in at the row's left edge. */
+.scenario-tables table td:first-child {
+  box-shadow: inset 0 0 0 var(--sl-color-accent);
+  transition: box-shadow 0.2s ease;
+}
+.scenario-tables table tbody tr:hover td:first-child {
+  box-shadow: inset 3px 0 0 var(--sl-color-accent);
+}
+
+/* Copyable scenario pills — fill with accent tint, nudge up. */
+.scenario-tables td:first-child code {
+  transition: border-color 0.2s ease, background 0.2s ease, transform var(--scn-spring-hover);
+}
+.scenario-tables td:first-child code:hover {
+  background: var(--sl-color-accent-low);
+  transform: translateY(-1px);
+}
+
+/* Jump-nav chips — slight lift to match the cards. */
+#scenario-jump a {
+  transition: transform var(--scn-spring-hover), border-color 0.2s ease, background 0.2s ease;
+}
+#scenario-jump a:hover {
+  transform: translateY(-1px);
+}
+
+/* Slideshow: inactive dots wake up under the cursor; arrows press down. */
+.scn-slideshow .scn-slideshow-dot:not(.is-active):hover {
+  transform: scale(1.5);
+  background: var(--sl-color-accent);
+}
+.scn-slideshow .scn-slideshow-arrow:active {
+  transform: scale(0.9);
+}
+
+/* Active slide glows a touch while the reader is on it (autoplay is paused). */
+.scn-slideshow .scn-slide.is-active {
+  box-shadow: 0 0 0 rgba(0, 0, 0, 0);
+}
+.scn-slideshow:hover .scn-slide.is-active {
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scn-stat:hover,
+  .scn-stat:hover > div:first-child,
+  .scn-tier:hover,
+  .scn-mini:hover .scn-mini-icon,
+  .sl-markdown-content .card:hover .icon,
+  #scenario-jump a:hover,
+  .scenario-tables td:first-child code:hover {
+    transform: none;
+  }
+}
+
+/* ---------------------------------------------------------------------------
    Scenario tables (used on /games/whiteout-survival)
 
    The page is a stack of "scenario | what it does" tables grouped by domain.
@@ -93,7 +302,7 @@ body {
    --------------------------------------------------------------------------- */
 
 .scenario-tables h2,
-.scenario-tables h2.scn-h {
+h2.scn-h {
   position: relative;
   padding-left: 0.85rem;
   border-left: 3px solid var(--sl-color-accent);
@@ -106,7 +315,7 @@ body {
 }
 
 /* Count chip next to each section heading — "Daily loops · 6". */
-.scenario-tables .scn-count {
+.scn-h .scn-count {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -125,13 +334,13 @@ body {
 
 /* Per-section accent on the heading left bar — sky / emerald / amber / violet
    / pink / cyan / rose. Adds rhythm without recoloring the whole table. */
-.scenario-tables h2.scn-accent-sky     { border-left-color: #0ea5e9; }
-.scenario-tables h2.scn-accent-emerald { border-left-color: #10b981; }
-.scenario-tables h2.scn-accent-amber   { border-left-color: #f59e0b; }
-.scenario-tables h2.scn-accent-violet  { border-left-color: #8b5cf6; }
-.scenario-tables h2.scn-accent-pink    { border-left-color: #ec4899; }
-.scenario-tables h2.scn-accent-cyan    { border-left-color: #06b6d4; }
-.scenario-tables h2.scn-accent-rose    { border-left-color: #f43f5e; }
+h2.scn-accent-sky     { border-left-color: #0ea5e9; }
+h2.scn-accent-emerald { border-left-color: #10b981; }
+h2.scn-accent-amber   { border-left-color: #f59e0b; }
+h2.scn-accent-violet  { border-left-color: #8b5cf6; }
+h2.scn-accent-pink    { border-left-color: #ec4899; }
+h2.scn-accent-cyan    { border-left-color: #06b6d4; }
+h2.scn-accent-rose    { border-left-color: #f43f5e; }
 
 /* Active chip in the sticky jump-nav (set by scroll-spy in the page script). */
 #scenario-jump a.scn-chip-active {
@@ -150,15 +359,87 @@ html { scroll-behavior: smooth; }
   html { scroll-behavior: auto; }
 }
 
-/* Hover-lift on Starlight Card components (Ads/Alliance/Backpack/Engine). */
-.scenario-tables .card {
-  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+/* Hover-lift on Starlight Card components (Engine capabilities etc.). */
+.sl-markdown-content .card {
+  transition: transform var(--scn-spring-hover), box-shadow 0.25s ease, border-color 0.25s ease;
 }
-.scenario-tables .card:hover {
+.sl-markdown-content .card:hover {
   transform: translateY(-2px);
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.18);
   border-color: var(--sl-color-accent);
 }
+
+/* Mini-cards for small scenario sections (Ads / Alliance / Backpack) —
+   tinted icon chip + scenario code-pill + one-line description. Tint classes
+   mirror the section heading accents (rose / sky / emerald). */
+.scn-minis {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+  margin-block: 1rem 1.5rem;
+}
+
+.scn-mini {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.85rem;
+  padding: 0.9rem 1rem;
+  border: 1px solid var(--sl-color-hairline-shade);
+  border-radius: 12px;
+  background: var(--sl-color-bg-nav);
+  transition: transform var(--scn-spring-hover), box-shadow 0.25s ease, border-color 0.25s ease;
+}
+.scn-mini:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.18);
+  border-color: var(--scn-mini-tint, var(--sl-color-accent));
+}
+
+.scn-mini-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  flex: none;
+  border-radius: 10px;
+  color: var(--scn-mini-tint, var(--sl-color-accent));
+  background: color-mix(in srgb, var(--scn-mini-tint, var(--sl-color-accent)) 14%, transparent);
+  border: 1px solid color-mix(in srgb, var(--scn-mini-tint, var(--sl-color-accent)) 30%, transparent);
+}
+.scn-mini-icon svg {
+  width: 1.15rem;
+  height: 1.15rem;
+}
+
+.scn-mini-body {
+  min-width: 0;
+}
+.scn-mini-body code {
+  display: inline-block;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  background: var(--sl-color-bg-inline-code);
+  border: 1px solid var(--sl-color-hairline-shade);
+  color: var(--sl-color-text-accent);
+  padding: 0.1rem 0.45rem;
+  border-radius: 6px;
+  font-size: 0.78rem;
+  font-family: var(--sl-font-system-mono);
+}
+.scn-mini-body p {
+  margin: 0.35rem 0 0;
+  font-size: 0.85rem;
+  line-height: 1.45;
+  color: var(--sl-color-gray-3);
+}
+
+.scn-mini-rose    { --scn-mini-tint: #f43f5e; }
+.scn-mini-sky     { --scn-mini-tint: #0ea5e9; }
+.scn-mini-emerald { --scn-mini-tint: #10b981; }
+
+/* A lone card describing a whole domain can stretch the full row. */
+.scn-mini-wide { grid-column: 1 / -1; }
 
 /* Filter substring highlight — wrapped by the page script. */
 .scenario-tables mark.scn-mark {
@@ -170,7 +451,7 @@ html { scroll-behavior: smooth; }
 
 /* Click-to-copy affordance on scenario-name code pills. */
 .scenario-tables td:first-child code {
-  cursor: copy;
+  cursor: pointer;
 }
 .scenario-tables td:first-child code:hover {
   border-color: var(--sl-color-accent);
@@ -192,6 +473,160 @@ html { scroll-behavior: smooth; }
 }
 .scenario-tables h2 .scn-anchor:hover {
   color: var(--sl-color-accent);
+}
+
+/* ---------------------------------------------------------------------------
+   Spotlight slideshow (used on /games/whiteout-survival)
+
+   Slides are grid-stacked in one cell so the container always sizes to the
+   tallest card (no JS height syncing). Inactive slides crossfade out with a
+   subtle lift; controls sit in a bottom bar inside the card padding.
+   --------------------------------------------------------------------------- */
+
+.scn-slideshow {
+  position: relative;
+  /* Horizontal pans are ours (swipe); vertical stays with the browser. */
+  touch-action: pan-y;
+}
+
+/* While a finger is down the slide must track it 1:1 — no easing lag.
+   The spring transition takes back over on release (snap or advance). */
+.scn-slideshow.is-dragging .scn-slide {
+  transition: none;
+}
+.scn-slideshow.is-dragging {
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.scn-slideshow .scn-slides {
+  display: grid;
+}
+
+.scn-slideshow .scn-slide {
+  grid-area: 1 / 1;
+  opacity: 0;
+  transform: translateY(10px) scale(0.985);
+  visibility: hidden;
+  pointer-events: none;
+  transition:
+    opacity 0.45s ease,
+    transform var(--scn-spring-slide),
+    visibility 0s linear 0.45s;
+}
+
+.scn-slideshow .scn-slide.is-active {
+  opacity: 1;
+  transform: none;
+  visibility: visible;
+  pointer-events: auto;
+  transition:
+    opacity 0.45s ease,
+    transform var(--scn-spring-slide),
+    box-shadow 0.3s ease,
+    visibility 0s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scn-slideshow .scn-slide,
+  .scn-slideshow .scn-slide.is-active {
+    transition: none;
+    transform: none;
+  }
+}
+
+/* Bottom control bar — arrows flanking the dot strip, inside the card. */
+.scn-slideshow .scn-slideshow-bar {
+  position: absolute;
+  bottom: 0.85rem;
+  left: 1.5rem;
+  right: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  pointer-events: none;
+}
+
+.scn-slideshow .scn-slideshow-arrow {
+  pointer-events: auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 999px;
+  border: 1px solid var(--sl-color-hairline-shade);
+  background: var(--sl-color-bg-nav);
+  color: var(--sl-color-gray-3);
+  cursor: pointer;
+  transition: color 0.15s ease, border-color 0.15s ease, transform var(--scn-spring-hover);
+}
+.scn-slideshow .scn-slideshow-arrow:hover {
+  color: var(--sl-color-text-accent);
+  border-color: var(--sl-color-accent);
+  transform: scale(1.08);
+}
+.scn-slideshow .scn-slideshow-arrow:focus-visible {
+  outline: 2px solid var(--sl-color-accent);
+  outline-offset: 2px;
+}
+
+.scn-slideshow .scn-slideshow-dots {
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Dots: inactive are small circles; the active one stretches into a pill that
+   doubles as an autoplay progress bar (inner span fills over the interval). */
+.scn-slideshow .scn-slideshow-dot {
+  position: relative;
+  width: 0.5rem;
+  height: 0.5rem;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: var(--sl-color-hairline);
+  cursor: pointer;
+  overflow: hidden;
+  transition: width var(--scn-spring-hover), background 0.3s ease;
+}
+.scn-slideshow .scn-slideshow-dot.is-active {
+  width: 2.25rem;
+  background: var(--sl-color-accent-low);
+}
+.scn-slideshow .scn-slideshow-dot:focus-visible {
+  outline: 2px solid var(--sl-color-accent);
+  outline-offset: 2px;
+}
+
+.scn-slideshow .scn-slideshow-dot span {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: var(--sl-color-accent);
+  transform: scaleX(0);
+  transform-origin: left;
+}
+.scn-slideshow .scn-slideshow-dot.is-active span {
+  transform: scaleX(1);
+}
+.scn-slideshow .scn-slideshow-dot.is-active.is-ticking span {
+  animation: scn-dot-fill var(--scn-autoplay-ms, 8000ms) linear forwards;
+}
+
+@keyframes scn-dot-fill {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scn-slideshow .scn-slideshow-dot.is-active.is-ticking span {
+    animation: none;
+    transform: scaleX(1);
+  }
 }
 
 /* Reading-progress bar pinned to the very top of the viewport. */
@@ -304,5 +739,31 @@ html { scroll-behavior: smooth; }
   .scenario-tables table td,
   .scenario-tables table thead th {
     padding: 0.5rem 0.65rem;
+  }
+  /* The table wrapper clips horizontal overflow (border-radius), so pills
+     must wrap on narrow screens or long scenario keys become unreadable. */
+  .scenario-tables table td:first-child code {
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+}
+
+/* Slideshow + mini-cards on narrow screens: tighter padding, smaller titles,
+   controls tucked closer to the card edge. */
+@media (max-width: 40rem) {
+  .scn-slideshow .scn-slide {
+    padding: 1.1rem 1.1rem 3.4rem;
+  }
+  .scn-slideshow .scn-slide h3 {
+    font-size: 1.05rem;
+    line-height: 1.35;
+  }
+  .scn-slideshow .scn-slideshow-bar {
+    bottom: 0.65rem;
+    left: 1.1rem;
+    right: 1.1rem;
+  }
+  .scn-mini {
+    padding: 0.75rem 0.85rem;
   }
 }

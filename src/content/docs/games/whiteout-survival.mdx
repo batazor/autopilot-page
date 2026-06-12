@@ -21,66 +21,89 @@ import { Card, CardGrid } from '@astrojs/starlight/components';
 {/* Reading-progress bar (driven by the inline script at the bottom). */}
 <div id="scn-progress" class="scn-progress" aria-hidden="true"></div>
 
-Whiteout Survival has full scenario coverage today: daily loops, weekly events, shop, deals, heroes, combat, popups, and a live Dreamscape Memory solver. The lists below mirror the actual scenario files under `modules/` — what you see here is what runs.
+Whiteout Survival has full scenario coverage today: daily loops, weekly events, shop, deals, heroes, combat, popups, and a live Dreamscape Memory solver. The lists below mirror the actual scenario files under `games/wos/` — what you see here is what runs.
 
 {/* Stats strip — landing-style highlight band. */}
-<div class="not-content my-8 grid grid-cols-2 gap-3 sm:grid-cols-4">
-  <div class="rounded-xl border border-[var(--sl-color-hairline-shade)] bg-[var(--sl-color-bg-nav)] p-4 text-center">
+<div class="not-content scn-reveal my-8 grid grid-cols-2 gap-3 sm:grid-cols-4">
+  <div class="scn-stat rounded-xl border border-[var(--sl-color-hairline-shade)] bg-[var(--sl-color-bg-nav)] p-4 text-center">
     <div class="text-2xl font-bold text-[var(--sl-color-text-accent)]">80+</div>
     <div class="mt-1 text-xs uppercase tracking-wider text-[var(--sl-color-gray-3)]">Scenarios</div>
   </div>
-  <div class="rounded-xl border border-[var(--sl-color-hairline-shade)] bg-[var(--sl-color-bg-nav)] p-4 text-center">
+  <div class="scn-stat rounded-xl border border-[var(--sl-color-hairline-shade)] bg-[var(--sl-color-bg-nav)] p-4 text-center">
     <div class="text-2xl font-bold text-[var(--sl-color-text-accent)]">10</div>
     <div class="mt-1 text-xs uppercase tracking-wider text-[var(--sl-color-gray-3)]">Domains</div>
   </div>
-  <div class="rounded-xl border border-[var(--sl-color-hairline-shade)] bg-[var(--sl-color-bg-nav)] p-4 text-center">
+  <div class="scn-stat rounded-xl border border-[var(--sl-color-hairline-shade)] bg-[var(--sl-color-bg-nav)] p-4 text-center">
     <div class="text-2xl font-bold text-[var(--sl-color-text-accent)]">MIT</div>
     <div class="mt-1 text-xs uppercase tracking-wider text-[var(--sl-color-gray-3)]">License</div>
   </div>
-  <div class="rounded-xl border border-[var(--sl-color-hairline-shade)] bg-[var(--sl-color-bg-nav)] p-4 text-center">
+  <div class="scn-stat rounded-xl border border-[var(--sl-color-hairline-shade)] bg-[var(--sl-color-bg-nav)] p-4 text-center">
     <div class="text-2xl font-bold text-[var(--sl-color-text-accent)]">Multi</div>
     <div class="mt-1 text-xs uppercase tracking-wider text-[var(--sl-color-gray-3)]">Accounts</div>
   </div>
 </div>
 
-{/* Pro feature spotlight — gift codes for any user ID. */}
-<aside class="not-content my-8 rounded-2xl border border-[var(--sl-color-accent)] bg-gradient-to-br from-[var(--sl-color-accent-low)] to-transparent p-6">
-  <div class="mb-3 flex flex-wrap items-center gap-3">
-    <span class="rounded-full bg-[var(--sl-color-accent)] px-3 py-1 text-xs font-bold uppercase tracking-widest text-white">Pro</span>
-    <h3 class="m-0 text-xl font-bold text-[var(--sl-color-text-accent)]">Gift codes for any Whiteout Survival user ID</h3>
-  </div>
-  <p class="mb-3 text-[var(--sl-color-gray-2)]">
-    Bot-owned accounts get gift codes automatically. <strong>External accounts</strong> extend the same redeem loop to arbitrary player IDs (FIDs) you paste in — alliance members, partner farms, accounts on other states, friends who don't run the bot themselves. The matrix view tracks each one alongside your own.
-  </p>
-  <ul class="mb-3 list-disc pl-5 text-sm text-[var(--sl-color-gray-2)]">
-    <li>Bulk paste: <code>fid</code> or <code>fid label</code>, one per line.</li>
-    <li>Works for accounts on any state — no emulator or login required.</li>
-    <li>Redeem a fresh code for the whole alliance in one pass.</li>
-  </ul>
-  <p class="m-0 text-xs text-[var(--sl-color-gray-3)]">
-    License feature flag: <code>gift_codes.external_accounts</code>. See <a href="/autopilot-page/ops/gift-codes/#external-accounts-pro">Gift codes → External accounts</a>.
-  </p>
-</aside>
+{/* Feature spotlight slideshow — crossfading carousel over the highlight cards.
+    Autoplay (paused on hover/focus/hidden tab), arrows, dots, swipe; driven by
+    initSpotlight() in the inline script below. Add slides by appending more
+    .scn-slide articles — controls and dots are generated from the DOM. */}
+<section
+  id="spotlight"
+  class="not-content scn-slideshow scn-reveal my-8"
+  aria-roledescription="carousel"
+  aria-label="Feature spotlights"
+>
+  <div class="scn-slides">
+    {/* Slide 1 — Pro: gift codes for any user ID. */}
+    <article class="scn-slide is-active rounded-2xl border border-[var(--sl-color-accent)] bg-gradient-to-br from-[var(--sl-color-accent-low)] to-transparent p-6 pb-14" aria-roledescription="slide" aria-label="1 of 2">
+      <div class="mb-3 flex flex-wrap items-center gap-3">
+        <span class="rounded-full bg-[var(--sl-color-accent)] px-3 py-1 text-xs font-bold uppercase tracking-widest text-white">Pro</span>
+        <h3 class="m-0 text-xl font-bold text-[var(--sl-color-text-accent)]">Gift codes for any Whiteout Survival user ID</h3>
+      </div>
+      <p class="mb-3 text-[var(--sl-color-gray-2)]">
+        Bot-owned accounts get gift codes automatically. <strong>External accounts</strong> extend the same redeem loop to arbitrary player IDs (FIDs) you paste in — alliance members, partner farms, accounts on other states, friends who don't run the bot themselves. The matrix view tracks each one alongside your own.
+      </p>
+      <ul class="mb-3 list-disc pl-5 text-sm text-[var(--sl-color-gray-2)]">
+        <li>Bulk paste: <code>fid</code> or <code>fid label</code>, one per line.</li>
+        <li>Works for accounts on any state — no emulator or login required.</li>
+        <li>Redeem a fresh code for the whole alliance in one pass.</li>
+      </ul>
+      <p class="m-0 text-xs text-[var(--sl-color-gray-3)]">
+        License feature flag: <code>gift_codes.external_accounts</code>. See <a href="/autopilot-page/ops/gift-codes/#external-accounts-pro">Gift codes → External accounts</a>.
+      </p>
+    </article>
 
-{/* Event-module spotlight — Dreamscape Memory live solver. */}
-<aside class="not-content my-8 rounded-2xl border border-emerald-500/40 bg-emerald-500/10 p-6">
-  <div class="mb-3 flex flex-wrap items-center gap-3">
-    <span class="rounded-full bg-emerald-500 px-3 py-1 text-xs font-bold uppercase tracking-widest text-emerald-950">New module</span>
-    <span class="rounded-full border border-[var(--sl-color-hairline-shade)] bg-[var(--sl-color-bg-inline-code)] px-3 py-1 text-xs font-semibold uppercase tracking-widest text-[var(--sl-color-text-accent)]">Live OCR</span>
-    <h3 class="m-0 text-xl font-bold text-[var(--sl-color-text-accent)]">Dreamscape Memory solves Recall Road live</h3>
+    {/* Slide 2 — New module: Dreamscape Memory live solver. */}
+    <article class="scn-slide rounded-2xl border border-emerald-500/40 bg-emerald-500/10 p-6 pb-14" aria-roledescription="slide" aria-label="2 of 2">
+      <div class="mb-3 flex flex-wrap items-center gap-3">
+        <span class="rounded-full bg-emerald-500 px-3 py-1 text-xs font-bold uppercase tracking-widest text-emerald-950">New module</span>
+        <span class="rounded-full border border-[var(--sl-color-hairline-shade)] bg-[var(--sl-color-bg-inline-code)] px-3 py-1 text-xs font-semibold uppercase tracking-widest text-[var(--sl-color-text-accent)]">Live OCR</span>
+        <h3 class="m-0 text-xl font-bold text-[var(--sl-color-text-accent)]">Dreamscape Memory solves Recall Road live</h3>
+      </div>
+      <p class="mb-3 text-[var(--sl-color-gray-2)]">
+        Dreamscape is no longer a manual lookup chore. The module ships with scene data for Seasons 1-3, reads the live word buttons with OCR, picks the right room from the visible word set, and taps the matching item locations automatically.
+      </p>
+      <ul class="mb-3 list-disc pl-5 text-sm text-[var(--sl-color-gray-2)]">
+        <li>Solo and co-op modes: three-word and six-word layouts use the same fast solver loop.</li>
+        <li>Season-aware scene matching keeps reused room names pointed at the current event's coordinates.</li>
+        <li>If a word is missing, the dashboard captures it for the New tab so the item can be placed and reviewed manually.</li>
+      </ul>
+      <p class="m-0 text-xs text-[var(--sl-color-gray-3)]">
+        See <a href="/autopilot-page/games/dreamscape-memory/">Dreamscape Memory</a> for the module overview.
+      </p>
+    </article>
   </div>
-  <p class="mb-3 text-[var(--sl-color-gray-2)]">
-    Dreamscape is no longer a manual lookup chore. The module ships with scene data for Seasons 1-3, reads the live word buttons with OCR, picks the right room from the visible word set, and taps the matching item locations automatically.
-  </p>
-  <ul class="mb-3 list-disc pl-5 text-sm text-[var(--sl-color-gray-2)]">
-    <li>Solo and co-op modes: three-word and six-word layouts use the same fast solver loop.</li>
-    <li>Season-aware scene matching keeps reused room names pointed at the current event's coordinates.</li>
-    <li>If a word is missing, the dashboard captures it for the New tab so the item can be placed and reviewed manually.</li>
-  </ul>
-  <p class="m-0 text-xs text-[var(--sl-color-gray-3)]">
-    See <a href="/autopilot-page/games/dreamscape-memory/">Dreamscape Memory</a> for the module overview.
-  </p>
-</aside>
+
+  <div class="scn-slideshow-bar">
+    <button type="button" class="scn-slideshow-arrow" data-slide-prev aria-label="Previous slide">
+      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"></polyline></svg>
+    </button>
+    <div class="scn-slideshow-dots" role="tablist" aria-label="Choose slide"></div>
+    <button type="button" class="scn-slideshow-arrow" data-slide-next aria-label="Next slide">
+      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"></polyline></svg>
+    </button>
+  </div>
+</section>
 
 {/* Live filter — hides table rows / cards by substring match.
     Right-side affordances: "/" kbd hint when empty, "Showing N of M" when typing. */}
@@ -211,23 +234,65 @@ Whiteout Survival has full scenario coverage today: daily loops, weekly events, 
 
 <h2 id="ads" class="scn-h scn-accent-rose">Ads · Auto-claim <span class="scn-count">3</span></h2>
 
-<CardGrid>
-  <Card title="ads_rookie_value_pack">Rookie Value Pack</Card>
-  <Card title="ads_natalia">Natalia</Card>
-  <Card title="tap_ads_legend_transcend_pack">Legend Transcend Pack</Card>
-</CardGrid>
+{/* Compact mini-cards: tinted icon + scenario pill + one-liner. The filter
+    script indexes each card as an item (children of the grid div). */}
+<div class="not-content scn-minis">
+  <div class="scn-mini scn-mini-rose">
+    <span class="scn-mini-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3 11 18-5v12L3 14v-3z"/><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/></svg>
+    </span>
+    <div class="scn-mini-body">
+      <code>ads_rookie_value_pack</code>
+      <p>Rookie Value Pack</p>
+    </div>
+  </div>
+  <div class="scn-mini scn-mini-rose">
+    <span class="scn-mini-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="6 3 20 12 6 21 6 3"/></svg>
+    </span>
+    <div class="scn-mini-body">
+      <code>ads_natalia</code>
+      <p>Natalia</p>
+    </div>
+  </div>
+  <div class="scn-mini scn-mini-rose">
+    <span class="scn-mini-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 12V8a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h12"/><path d="M2 9h20"/><circle cx="19" cy="17" r="3"/><path d="m21.5 19.5 1.5 1.5"/></svg>
+    </span>
+    <div class="scn-mini-body">
+      <code>tap_ads_legend_transcend_pack</code>
+      <p>Legend Transcend Pack</p>
+    </div>
+  </div>
+</div>
 
 <h2 id="alliance" class="scn-h scn-accent-sky">Alliance <span class="scn-count">1</span></h2>
 
-<CardGrid>
-  <Card title="alliance/invite.new">Alliance invite handling</Card>
-</CardGrid>
+<div class="not-content scn-minis">
+  <div class="scn-mini scn-mini-sky">
+    <span class="scn-mini-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+    </span>
+    <div class="scn-mini-body">
+      <code>alliance/invite.new</code>
+      <p>Alliance invite handling</p>
+    </div>
+  </div>
+</div>
 
 <h2 id="backpack" class="scn-h scn-accent-emerald">Backpack <span class="scn-count">1</span></h2>
 
-<CardGrid>
-  <Card title="backpack + backpack.tab.{tab}">Use resources, speedups, gear, bonuses on a schedule (all tabs)</Card>
-</CardGrid>
+<div class="not-content scn-minis">
+  <div class="scn-mini scn-mini-emerald scn-mini-wide">
+    <span class="scn-mini-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 10a4 4 0 0 1 4-4h8a4 4 0 0 1 4 4v9a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2Z"/><path d="M9 6V4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"/><path d="M8 21v-5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v5"/><path d="M8 10h8"/></svg>
+    </span>
+    <div class="scn-mini-body">
+      <code>backpack + backpack.tab.&#123;tab&#125;</code>
+      <p>Use resources, speedups, gear, bonuses on a schedule (all tabs)</p>
+    </div>
+  </div>
+</div>
 
 <h2 id="popups" class="scn-h scn-accent-amber">Popups & onboarding <span class="scn-count">6</span></h2>
 
@@ -247,28 +312,28 @@ Whiteout Survival has full scenario coverage today: daily loops, weekly events, 
 Game-agnostic infrastructure used by every scenario above.
 
 <CardGrid>
-  <Card title="Multi-instance">
+  <Card title="Multi-instance" icon="rocket">
     One worker per BlueStacks instance; accounts run in parallel, isolated by ADB serial.
   </Card>
-  <Card title="YAML DSL">
+  <Card title="YAML DSL" icon="seti:yml">
     Declarative scenarios: `match`, `click`, `while_match`, `ocr`, `cond`, `push_scenario`.
   </Card>
-  <Card title="Approval gate">
+  <Card title="Approval gate" icon="approve-check">
     Every tap can be approved in the UI before it fires, with a preview snapshot.
   </Card>
-  <Card title="Redis queue">
+  <Card title="Redis queue" icon="list-format">
     Pending + history + state in Redis. Restart-safe, visible from the Web UI.
   </Card>
-  <Card title="Overlay engine">
+  <Card title="Overlay engine" icon="magnifier">
     Template + OCR + red-dot + tab-active + white-border detectors with per-rule gates.
   </Card>
-  <Card title="Web UI">
+  <Card title="Web UI" icon="laptop">
     Next.js dashboard + Konva labeling (prod Docker on `:3000`).
   </Card>
-  <Card title="Tesseract OCR">
+  <Card title="Tesseract OCR" icon="translate">
     Screen text via local `eng.traineddata` Tesseract inside the bot process.
   </Card>
-  <Card title="Cron scheduler">
+  <Card title="Cron scheduler" icon="setting">
     Interval-driven scenarios publish immediately on boot, then throttle by interval.
   </Card>
 </CardGrid>
@@ -310,6 +375,139 @@ Game-agnostic infrastructure used by every scenario above.
     initAnchorLinks(container);
     initShortcut();
     initProgressBar();
+    initSpotlight();
+  }
+
+  // ---- Spotlight slideshow (crossfade, autoplay, dots, arrows, swipe) ----
+  function initSpotlight() {
+    var root = document.getElementById('spotlight');
+    if (!root) return;
+    var slides = Array.prototype.slice.call(root.querySelectorAll('.scn-slide'));
+    if (slides.length < 2) return;
+
+    var dotsHost = root.querySelector('.scn-slideshow-dots');
+    var AUTOPLAY_MS = 8000;
+    var current = Math.max(0, slides.indexOf(root.querySelector('.scn-slide.is-active')));
+    var timer = null;
+    var paused = false;
+
+    var reduceMotion = window.matchMedia
+      && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    var dots = slides.map(function (_, i) {
+      var dot = document.createElement('button');
+      dot.type = 'button';
+      dot.className = 'scn-slideshow-dot';
+      dot.setAttribute('role', 'tab');
+      dot.setAttribute('aria-label', 'Slide ' + (i + 1) + ' of ' + slides.length);
+      dot.style.setProperty('--scn-autoplay-ms', AUTOPLAY_MS + 'ms');
+      dot.appendChild(document.createElement('span'));
+      dot.addEventListener('click', function () { goTo(i); restart(); });
+      dotsHost.appendChild(dot);
+      return dot;
+    });
+
+    function render() {
+      slides.forEach(function (slide, i) {
+        var active = i === current;
+        slide.classList.toggle('is-active', active);
+        slide.setAttribute('aria-hidden', active ? 'false' : 'true');
+        // Keep links in hidden slides out of the tab order.
+        slide.querySelectorAll('a').forEach(function (a) {
+          if (active) a.removeAttribute('tabindex'); else a.tabIndex = -1;
+        });
+      });
+      dots.forEach(function (dot, i) {
+        var active = i === current;
+        dot.classList.toggle('is-active', active);
+        dot.classList.toggle('is-ticking', active && !paused && !reduceMotion);
+        dot.setAttribute('aria-selected', active ? 'true' : 'false');
+      });
+    }
+
+    function goTo(i) {
+      current = (i + slides.length) % slides.length;
+      render();
+    }
+
+    function restart() {
+      clearInterval(timer);
+      timer = setInterval(function () { goTo(current + 1); }, AUTOPLAY_MS);
+      // Re-trigger the dot progress animation from zero.
+      dots.forEach(function (dot) { dot.classList.remove('is-ticking'); });
+      void dotsHost.offsetWidth;
+      render();
+    }
+
+    function setPaused(value) {
+      if (paused === value) return;
+      paused = value;
+      if (paused) clearInterval(timer); else restart();
+      render();
+    }
+
+    root.querySelector('[data-slide-prev]').addEventListener('click', function () { goTo(current - 1); restart(); });
+    root.querySelector('[data-slide-next]').addEventListener('click', function () { goTo(current + 1); restart(); });
+
+    // Autoplay pauses while the reader is engaging with the card (or tab hidden).
+    root.addEventListener('mouseenter', function () { setPaused(true); });
+    root.addEventListener('mouseleave', function () { setPaused(false); });
+    root.addEventListener('focusin', function () { setPaused(true); });
+    root.addEventListener('focusout', function (e) {
+      if (!root.contains(e.relatedTarget)) setPaused(false);
+    });
+    document.addEventListener('visibilitychange', function () {
+      if (document.hidden) { clearInterval(timer); }
+      else if (!paused) { restart(); }
+    });
+
+    // Keyboard arrows while the carousel has focus.
+    root.addEventListener('keydown', function (e) {
+      if (e.key === 'ArrowLeft') { e.preventDefault(); goTo(current - 1); restart(); }
+      if (e.key === 'ArrowRight') { e.preventDefault(); goTo(current + 1); restart(); }
+    });
+
+    // Touch swipe with drag feedback: the active slide follows the finger
+    // (touch-action: pan-y leaves vertical scrolling to the browser; a
+    // vertical pan fires pointercancel and we snap back). On release past
+    // the threshold the deck advances; otherwise the slide springs back.
+    var drag = { id: null, startX: 0, dx: 0 };
+    function activeSlide() { return slides[current]; }
+    function dragReset(advanceTo) {
+      root.classList.remove('is-dragging');
+      slides.forEach(function (s) { s.style.transform = ''; s.style.opacity = ''; });
+      drag.id = null;
+      if (advanceTo !== undefined) goTo(advanceTo);
+      restart();
+    }
+    root.addEventListener('pointerdown', function (e) {
+      if (e.pointerType === 'mouse' || drag.id !== null) return;
+      drag.id = e.pointerId;
+      drag.startX = e.clientX;
+      drag.dx = 0;
+      try { root.setPointerCapture(e.pointerId); } catch (err) { /* no-op */ }
+      clearInterval(timer);
+    });
+    root.addEventListener('pointermove', function (e) {
+      if (e.pointerId !== drag.id) return;
+      drag.dx = e.clientX - drag.startX;
+      if (Math.abs(drag.dx) > 8) root.classList.add('is-dragging');
+      var w = root.offsetWidth || 1;
+      var slide = activeSlide();
+      slide.style.transform = 'translateX(' + drag.dx + 'px)';
+      slide.style.opacity = String(Math.max(0.35, 1 - Math.abs(drag.dx) / w));
+    });
+    root.addEventListener('pointerup', function (e) {
+      if (e.pointerId !== drag.id) return;
+      var w = root.offsetWidth || 1;
+      var past = Math.abs(drag.dx) > Math.max(60, w * 0.15);
+      dragReset(past ? current + (drag.dx < 0 ? 1 : -1) : undefined);
+    });
+    root.addEventListener('pointercancel', function (e) {
+      if (e.pointerId === drag.id) dragReset();
+    });
+
+    if (reduceMotion) { render(); } else { restart(); }
   }
 
   // ---- Toast (shared) ----
