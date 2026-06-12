@@ -42,9 +42,11 @@ The worker resumes automatically once the configured serial is online.
 
 ## Account identity by avatar
 
-The bot can identify the active account from the chief avatar shown in the top-left of the main city. This is a fast fallback before the full `who_i_am` OCR probe: if `active_player` is empty, the rolling frame matcher compares the visible avatar crop with the saved reference for each configured player on that device.
+The bot can identify the active account from the chief avatar shown in the top-left of the main city. This is a fast fallback before the full `who_i_am` OCR probe: if `active_player` is empty, the rolling frame matcher treats the visible avatar as the account identity and compares that crop with the saved reference for each configured player on that device.
 
-This only works reliably when every account on the same device has a different in-game avatar. If two accounts share the same avatar, the matcher intentionally refuses ambiguous matches and the normal `who_i_am` flow takes over.
+Recommended setup: give every account on the same emulator/device a different in-game avatar before relying on avatar identity. The matcher does not try to infer the player from profile text in this fast path; the avatar is the signal.
+
+If two accounts share the same avatar, the matcher intentionally treats the result as ambiguous and the normal `who_i_am` flow takes over.
 
 To refresh a player's avatar reference:
 
