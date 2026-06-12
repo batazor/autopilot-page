@@ -35,6 +35,10 @@ The **Screenshot** dropdown picks how the canvas is fed:
 
 The live-video path is the most ergonomic for authoring: you see touches land in near real time, so a mis-clicked region or a slow popup is obvious in motion rather than from frame-by-frame refreshes.
 
+In Docker installs, rolling screenshots are shared through the `wos_temporal` volume mounted by both
+`bot` and `api`. If the screenshot panel is blank after an upgrade, fetch the current
+`docker-compose.prod.yml` and recreate the `bot` + `api` services so that volume is mounted.
+
 ## Approval modes
 
 | Mode | Behavior | Best for |

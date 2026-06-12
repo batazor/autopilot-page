@@ -16,6 +16,8 @@ The **ADB page** in the operator dashboard reconciles your configured fleet (sto
 ## What you get
 
 - **Configured vs live** — two side-by-side tables: what you've declared in the SQLite devices table (configured) and what `adb devices` is reporting right now (live). Mismatches are obvious at a glance.
+- **Manual device add.** If the scan misses a BlueStacks instance or another emulator, use **Add device** and enter the instance name plus ADB serial directly. Existing rows can be replaced or removed from the same page.
+- **TCP port scan with a smaller default step.** The scan probes the BlueStacks-style port range in steps of `5` by default, which catches more local instances than the older coarse scan.
 - **Auto-picked capture backend per device.** Every device defaults to **scrcpy** (live H.264 stream); it falls back to a direct **adb** `screencap` if the stream is unavailable. Override per device by setting `capture_backend: scrcpy | adb | auto` in the devices table.
 - **Auto-picked input backend per device.** **adb** input is the universal-compatibility default (~50–80 ms/tap). **mintouch** is the fast path (~5–20 ms/tap) but needs `/dev/uinput` access (rooted devices or accessible emulators). Opt in with `input_backend: mintouch` in the devices table.
 - **Live binary status.** For each connected device, the page shows whether scrcpy-server and mintouch are installed, with the actual architecture (e.g. `arm64-v8a · android-33`).
@@ -24,6 +26,19 @@ The **ADB page** in the operator dashboard reconciles your configured fleet (sto
   - **Reinstall mintouch** — same for the input binary.
   - **Reset screen** — clear any `wm size` / `wm density` overrides the bot might have applied during a failed run (a common cause of "everything's drifted by 8 pixels" mysteries).
 - **Refresh scan** — re-runs `adb devices` and the binary probes without restarting anything.
+
+## When scan is not enough
+
+Some emulators expose ADB on a valid TCP port but do not appear in the scanned range, or keep an old
+offline serial around after reconnecting. In that case, add the instance explicitly:
+
+1. Open **Devices (ADB)**.
+2. Click **Add device**.
+3. Enter a stable instance name such as `bs1` and the serial shown by `adb devices`, for example
+   `127.0.0.1:5615`.
+4. Keep the default backends unless you are intentionally testing `scrcpy` or `mintouch`.
+
+The worker resumes automatically once the configured serial is online.
 
 ## Backend trade-offs
 

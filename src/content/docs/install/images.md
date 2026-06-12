@@ -25,11 +25,14 @@ docker compose -f docker-compose.prod.yml up -d --pull always                  #
 docker compose -f docker-compose.prod.yml --profile full up -d --pull always   # + inference (needs ROBOFLOW_API_KEY)
 ```
 
-### Pinning a version
+### Updating the public images
 
 ```sh
-WOS_IMAGE_TAG=v0.1.0 docker compose -f docker-compose.prod.yml up -d --pull always
+docker compose -f docker-compose.prod.yml up -d --pull always
 ```
+
+Public images are published as `latest` only. `WOS_IMAGE_TAG` is still available in the compose file
+for private forks that publish their own tags, but the official install path should stay on `latest`.
 
 ### Using a fork's images
 
@@ -44,6 +47,9 @@ WOS_REGISTRY=ghcr.io/your-fork docker compose -f docker-compose.prod.yml up -d -
 No `adb -a`, no socat sidecar, no `host.docker.internal` indirection.
 
 Side effect: app containers do not use Compose-internal DNS for `redis`. Instead, `bot` and `api` connect to Redis over a shared **Unix socket volume** (`redis_socket` → `/var/run/redis/redis.sock`), and `web` proxies `/api` to `127.0.0.1:8765`.
+
+The compose file also shares `wos_temporal` between `bot` and `api`; that is where the worker writes
+rolling screenshots used by the dashboard preview and Click approvals page.
 
 ## Platform support for `network_mode: host`
 

@@ -1,6 +1,6 @@
 # External-user setup — pulls pre-built images from GitHub Container Registry
-# (published by ``.github/workflows/docker.yml`` on every push to ``main`` and
-# every ``v*.*.*`` tag). No local toolchain required.
+# (published by ``.github/workflows/docker.yml`` when a GitHub Release is
+# published). No local toolchain required.
 #
 # Usage (from any folder):
 #     curl -fsSL https://batazor.github.io/autopilot-page/docker-compose.prod.yml -o docker-compose.prod.yml
@@ -45,9 +45,10 @@
 #     but **not** reliably reach the host's adb server.
 #
 # === Persistent state ===
-# Only the two mutable bits live in named volumes (shared between bot and api):
+# Only the mutable runtime bits live in named volumes (shared between bot and api):
 #   * ``wos_state``   → /app/db/state    (SQLite: devices, accounts, runtime)
 #   * ``wos_license`` → /app/license-data (license file uploaded via the UI)
+#   * ``wos_temporal``→ /app/temporal    (rolling screenshots for dashboard preview)
 # Both survive ``docker compose down``; wiped only by ``docker compose down -v``.
 
 services:
@@ -106,6 +107,7 @@ services:
     volumes:
       - wos_state:/app/db/state
       - wos_license:/app/license-data
+      - wos_temporal:/app/temporal
       - redis_socket:/var/run/redis
     restart: unless-stopped
     healthcheck:
@@ -169,6 +171,7 @@ services:
     volumes:
       - wos_state:/app/db/state
       - wos_license:/app/license-data
+      - wos_temporal:/app/temporal
       - redis_socket:/var/run/redis
     restart: unless-stopped
     healthcheck:
@@ -200,4 +203,5 @@ volumes:
   redis_socket:
   wos_state:
   wos_license:
+  wos_temporal:
   inference_cache:

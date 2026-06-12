@@ -30,11 +30,25 @@ import { CardGrid, LinkCard } from '@astrojs/starlight/components';
   </div>
   <p class="m-0 text-sm text-[var(--sl-color-gray-2)]">
     Autopilot is in the early stage of active development. Scenarios, APIs, file layouts, and
-    dashboard flows can change without notice until the base feature set lands. Pin a specific
-    image tag (not <code>latest</code>) if you need a build that won't move under you, and check
-    the release notes before upgrading.
+    dashboard flows can change without notice until the base feature set lands. Public Docker
+    images are published as <code>latest</code>; update with <code>--pull always</code> when the
+    docs or Discord announce a new build.
   </p>
 </aside>
+
+## Current dashboard features
+
+The operator UI is designed to recover from the common Docker + emulator failure modes without
+editing SQLite or shelling into Redis:
+
+- **Device management** can scan live ADB ports, add a device manually when scan misses it, remove
+  stale devices, and override capture/input backends per device.
+- **Bot control** reflects fleet workers running inside Docker, so the sidebar does not stay
+  "Stopped" when a worker is already alive.
+- **Click approvals** show captured frames, rolling screenshots, and live scrcpy video when the
+  device backend supports it.
+- **Mail scenarios** read tab badges from the mail tab strip, so messages hidden behind another tab
+  can push the right claim scenario.
 
 ## Pick a game
 
