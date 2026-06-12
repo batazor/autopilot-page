@@ -114,6 +114,12 @@ Then open **Gift codes**, switch to either beta tab, and paste the **bot token**
 - WOS Beta reads channel `1511081143083077652` from `https://discord.com/channels/1430936597477589114/1511081143083077652`.
 - Kingshot Beta reads channel `1513031288695558285` from `https://discord.com/channels/1430936597477589114/1513031288695558285`.
 
-Autopilot stores this configuration in the encrypted `db/state/state.db` runtime database. The token is never echoed back to the browser after save; the page only shows whether a token is configured.
+{/* Token-safety note — emerald "safe" badge, same pill style as other badges. */}
+<div class="not-content my-4 flex flex-wrap items-start gap-3 rounded-xl border border-emerald-500/40 bg-emerald-500/10 p-4">
+  <span class="mt-0.5 rounded-full bg-emerald-500 px-3 py-1 text-xs font-bold uppercase tracking-widest text-emerald-950">Safe</span>
+  <p class="m-0 min-w-[16rem] flex-1 text-sm leading-relaxed text-[var(--sl-color-gray-2)]">
+    Autopilot stores this configuration in the encrypted <code>db/state/state.db</code> runtime database. The token is never echoed back to the browser after save; the page only shows whether a token is configured.
+  </p>
+</div>
 
 The parser looks for common labels such as `gift code:`, `promo code:`, `code:`, `код:`, and backticked tokens.
