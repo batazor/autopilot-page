@@ -50,23 +50,22 @@ The autopilot engine is game-agnostic — scenarios, overlay rules, and the DSL 
   </a>
 </div>
 
-{/* Pro feature spotlight — Kingshot gift codes (pure HTTP, by design). */}
+{/* Pro feature spotlight — Kingshot gift codes. */}
 <aside class="not-content my-8 rounded-2xl border border-[var(--sl-color-accent)] bg-gradient-to-br from-[var(--sl-color-accent-low)] to-transparent p-6">
   <div class="mb-3 flex flex-wrap items-center gap-3">
     <span class="rounded-full bg-[var(--sl-color-accent)] px-3 py-1 text-xs font-bold uppercase tracking-widest text-white">Pro</span>
-    <span class="rounded-full border border-[var(--sl-color-hairline-shade)] bg-[var(--sl-color-bg-inline-code)] px-3 py-1 text-xs font-semibold uppercase tracking-widest text-[var(--sl-color-text-accent)]">Pure HTTP</span>
     <h3 class="m-0 text-xl font-bold text-[var(--sl-color-text-accent)]">Kingshot gift codes</h3>
   </div>
   <p class="mb-3 text-[var(--sl-color-gray-2)]">
-    Fully automated and intentionally UI-less: the bot scrapes new codes from public sources, signs them, and POSTs to Century Game's Kingshot API. No emulator, no in-game taps, no labeled regions — gift codes don't need any of that. Paste a list of Kingshot player IDs (FIDs) — your own, your alliance's, partner farms, accounts on other states — and every new code is submitted for each one, with the same per-account/per-code matrix as Whiteout Survival.
+    Autopilot can redeem Kingshot gift codes across your saved player IDs, including external accounts you paste in for alliance members or farms.
   </p>
   <ul class="mb-3 list-disc pl-5 text-sm text-[var(--sl-color-gray-2)]">
-    <li>Bulk paste: <code>fid</code> or <code>fid label</code>, one per line.</li>
-    <li>Cron-driven; default fires every 6 hours offset from the WOS scrape.</li>
-    <li>Independent scope from WOS — Kingshot has its own list and its own matrix.</li>
+    <li>Bulk paste player IDs, one per line.</li>
+    <li>Run manually or let the scheduled redeem cycle handle new codes.</li>
+    <li>Kingshot keeps its own code list and redemption history.</li>
   </ul>
   <p class="m-0 text-xs text-[var(--sl-color-gray-3)]">
-    Scenario: <code>games/kingshot/gift_codes/scenarios/by_cron/redeem_gift_codes.yaml</code>. License feature flag: <code>gift_codes.external_accounts</code>. See <a href="/autopilot-page/ops/gift-codes/#external-accounts-pro">Gift codes → External accounts</a>.
+    See <a href="/autopilot-page/ops/gift-codes/#external-accounts-pro">Gift codes → External accounts</a>.
   </p>
 </aside>
 
@@ -85,7 +84,7 @@ Current authored modules include:
 
 This is not full coverage yet. The next useful chunks are expanding daily loops, shop/deals, heroes, backpack usage, and more event modules from real Kingshot screens.
 
-Gift codes above are separate and already complete: they use Century Game's HTTP API and do not depend on in-game screen automation.
+Gift codes are separate from the in-game automation work above and are already available.
 
 ## Want to help?
 
