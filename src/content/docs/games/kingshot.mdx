@@ -1,6 +1,6 @@
 ---
 title: Kingshot
-description: Kingshot support is in progress — the first event module is ported from Whiteout Survival; reference labeling is underway and contributors are welcome.
+description: "Kingshot support has entered basic in-game automation: welcome flow, main-city routes, mail rewards, reward popups, VIP daily actions, and Fishing Tournament are now authored from Kingshot references."
 sidebar:
   order: 2
 hero:
@@ -21,7 +21,17 @@ hero:
       variant: minimal
 ---
 
-The autopilot engine is game-agnostic — scenarios, overlay rules, and the DSL aren't tied to any specific game. Adding Kingshot is essentially authoring its scenario set under `games/kingshot/`; no engine changes required.
+The autopilot engine is game-agnostic — scenarios, overlay rules, and the DSL aren't tied to any specific game. Kingshot now has its first real in-game modules under `games/kingshot/`; the remaining work is expanding scenario coverage from that base.
+
+<aside class="not-content my-8 rounded-2xl border border-emerald-500/40 bg-emerald-500/10 p-6">
+  <div class="mb-3 flex flex-wrap items-center gap-3">
+    <span class="rounded-full bg-emerald-500 px-3 py-1 text-xs font-bold uppercase tracking-widest text-emerald-950">Basic automation started</span>
+    <h3 class="m-0 text-xl font-bold text-[var(--sl-color-text-accent)]">Kingshot is no longer just a roadmap item</h3>
+  </div>
+  <p class="m-0 text-sm leading-relaxed text-[var(--sl-color-gray-2)]">
+    The first device-captured modules are in place: welcome-back dismissal, main-city navigation, mail rewards, generic rewards popups, VIP daily actions, and Fishing Tournament. Coverage is still early, but the project now has a working Kingshot foundation instead of placeholder ports.
+  </p>
+</aside>
 
 {/* Beta private-server callout — same card style as the gift-codes page. */}
 <div class="not-content my-6 rounded-2xl border border-[var(--sl-color-hairline-shade)] bg-[var(--sl-color-bg-sidebar)] p-6 shadow-sm">
@@ -62,9 +72,20 @@ The autopilot engine is game-agnostic — scenarios, overlay rules, and the DSL 
 
 ## Status
 
-**In-game automation: in progress.** The first event module — **Fishing Tournament** — has been ported from Whiteout Survival: its DSL scenario, analyzer rules, and screen routes are in place under `games/kingshot/events/fishing_tournament/`. What's left before it runs in-game is re-capturing the reference crops and labeling regions against Kingshot's own UI (the ported templates are WoS placeholders). There's no full daily loop yet. (Gift codes above are a separate, complete feature — they don't depend on in-game automation.)
+**In-game automation: basic development started.** Kingshot now has real ADB-captured references, region crops, navigation routes, analyzer rules, and DSL scenarios for the first everyday flows.
 
-**We're looking for volunteers to drive the in-game scenario set.** This isn't a planned-but-delayed project — it's a "if there's interest, we'll do it" project. If even one person commits to authoring the daily-loop scenarios, we'll pair up and ship a working version.
+Current authored modules include:
+
+- **Welcome back** — detects the offline-income welcome dialog and confirms it back to `main_city`.
+- **Main city** — navigation zones for conquest, heroes, backpack, shop, world, mail, governor profile, VIP, and event icon search.
+- **Mail** — tab red-dot detection, mail reward claiming, long-letter claim search with scroll retry, claim-all rewards popup handling, and delete confirmation.
+- **Rewards** — generic `Rewards` popup detection and tap-anywhere exit.
+- **VIP** — daily claim button, VIP chest/add red-dot triggers, Increase Level `Use` loop, and close/back routes.
+- **Fishing Tournament** — event entry and claim scenario ported into the Kingshot tree.
+
+This is not full coverage yet. The next useful chunks are expanding daily loops, shop/deals, heroes, backpack usage, and more event modules from real Kingshot screens.
+
+Gift codes above are separate and already complete: they use Century Game's HTTP API and do not depend on in-game screen automation.
 
 ## Want to help?
 
@@ -76,6 +97,6 @@ We have public docs for the full authoring flow already:
 - [Labeling regions](/autopilot-page/authoring/labeling/) — using the editor
 - [DSL primer](/autopilot-page/authoring/dsl/) — `match`, `click`, `while_match`, `cond`, `push_scenario` with a worked example
 
-We'll pair on the labeling pass and review your first scenarios.
+We'll pair on the labeling pass and review your first scenarios. There is now enough Kingshot structure in the repo to copy patterns instead of starting from an empty game tree.
 
-The [Whiteout Survival coverage](/autopilot-page/games/whiteout-survival/) is a good template for what "fully covered" looks like — that's roughly what we'd aim for with Kingshot, ideally driven by someone who actually plays the game.
+The [Whiteout Survival coverage](/autopilot-page/games/whiteout-survival/) is still the template for what "fully covered" looks like — Kingshot is now on that path, just much earlier in the curve.
