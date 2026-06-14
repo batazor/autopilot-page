@@ -57,13 +57,16 @@
   const TIERS = [
     { id: 'R2', name: 'R2 · Free', label: 'Free', price: '$0', unit: 'forever', hex: 0x6fe0d6, css: '#6fe0d6', url: scoutUrl,
       feats: ['All 80+ scenarios, OCR, approvals queue', 'Gift codes for bot-owned accounts', 'Shared key — works on any host'],
-      locked: ['External gift-code accounts', 'Radar kingdom-map scanner', 'Alliance statistics'] },
+      locked: ['External gift-code accounts', 'Radar kingdom-map scanner', 'Alliance statistics'],
+      limits: [['Devices', '2'], ['Players / device', '3'], ['External accts', '0'], ['Host', 'Shared key']] },
     { id: 'R3', name: 'R3 · Alliance helper', label: 'Alliance helper', price: '$5', unit: 'per license', hex: 0x4f9bff, css: '#4f9bff', url: knightUrl,
       feats: ['Everything in R2', 'External gift-code accounts — up to 5 per game', 'Matrix view tracks every FID'],
-      locked: ['Radar kingdom-map scanner', 'Alliance statistics'] },
+      locked: ['Radar kingdom-map scanner', 'Alliance statistics'],
+      limits: [['Devices', '1–100'], ['Players / device', '3–100'], ['External accts', '5 / game'], ['Host', 'Fingerprint-bound']] },
     { id: 'R4', name: 'R4 · Alliance leadership', label: 'Alliance leadership', price: '$30', unit: 'per license', hex: 0xffcf5c, css: '#ffcf5c', url: barbarianUrl,
       feats: ['Everything in R3', 'External gift-code accounts — up to 50 per game', 'Radar — scan & stitch the kingdom map', 'Alliance statistics'],
-      locked: [] },
+      locked: [],
+      limits: [['Devices', '1–100'], ['Players / device', '3–100'], ['External accts', '50 / game'], ['Host', 'Fingerprint-bound']] },
   ];
   const STATION_X = [-5.5, 0, 5.5];
   const PED_TOP = 0.3;
@@ -109,13 +112,16 @@
       `<li class="flex items-start gap-2.5 text-[var(--sl-color-white)]">${CHECK.replace('stroke="currentColor"', 'stroke="' + t.css + '"')}<span>${f}</span></li>`).join('');
     const locked = t.locked.map((f) =>
       `<li class="flex items-start gap-2.5 text-[var(--sl-color-gray-4)]">${CROSS}<span>${f}</span></li>`).join('');
+    const caps = t.limits.map(([k, v]) =>
+      `<div class="flex flex-col gap-0.5"><span class="text-[11px] uppercase tracking-wider text-[var(--sl-color-gray-3)]">${k}</span><span class="text-sm font-semibold text-[var(--sl-color-white)]">${v}</span></div>`).join('');
     panelEl.innerHTML =
       `<div class="mb-4 flex flex-wrap items-baseline gap-x-2.5 gap-y-1">
         <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-[0.18em]" style="background:${t.css}26;color:${t.css}">${t.id}</span>
         <span class="text-base font-semibold text-[var(--sl-color-white)]">${t.label}</span>
         <span class="text-sm text-[var(--sl-color-gray-3)]">${t.price} · ${t.unit}</span>
       </div>
-      <ul class="grid list-none gap-x-6 gap-y-2.5 p-0 text-sm leading-relaxed sm:grid-cols-2">${feats}${locked}</ul>`;
+      <ul class="grid list-none gap-x-6 gap-y-2.5 p-0 text-sm leading-relaxed sm:grid-cols-2">${feats}${locked}</ul>
+      <div class="mt-5 grid grid-cols-2 gap-x-6 gap-y-3 border-t border-[var(--sl-color-hairline-shade)] pt-4 sm:grid-cols-4">${caps}</div>`;
   }
 
   // Reassigned to the full 3D-aware handler once the renderer is up. Declared
@@ -196,9 +202,11 @@
           const box = new THREE.Box3().setFromObject(model);
           const size = new THREE.Vector3(); box.getSize(size);
           const s = 2.5 / (size.y || 1); model.scale.setScalar(s);
+          // Place by the rig's own origin (feet, between the legs) rather than
+          // the bbox centre — held weapons skew the bbox and push the body off
+          // to one side.
+          model.position.set(STATION_X[idx], 0, 0);
           const box2 = new THREE.Box3().setFromObject(model);
-          model.position.x += STATION_X[idx] - (box2.min.x + box2.max.x) / 2;
-          model.position.z += -(box2.min.z + box2.max.z) / 2;
           model.position.y += PED_TOP - box2.min.y;
           model.rotation.y = 0;
           model.traverse((o) => { if (o.isMesh) { o.castShadow = false; o.frustumCulled = false; } });
