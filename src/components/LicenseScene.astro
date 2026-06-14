@@ -46,6 +46,16 @@
   @media (max-width: 640px) { .lic-stage { height: 56vh; } }
 </style>
 
+<style is:global>
+  /* This component only renders on the License page, so widening the content
+     measure here scopes the change to that page — keeps the site nav sidebar
+     (template: doc) while letting the scene and cards run wide. Prose stays at
+     a readable measure; full-width blocks (.not-content) use the whole column. */
+  :root { --sl-content-width: 64rem; }
+  .sl-markdown-content > :not(.not-content):not(:where(h1, h2, h3)) { max-width: 50rem; }
+  .sl-markdown-content > :where(h2, h3) { max-width: 50rem; }
+</style>
+
 <script>
   import * as THREE from 'three';
   import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
