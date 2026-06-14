@@ -1,0 +1,277 @@
+---
+// Interactive 3D license-tier scene. three.js + meshopt-compressed KayKit
+// characters (CC0). Lazy-loads one character per tier; pedestals populate as
+// the visitor explores. Falls back to the static pricing cards below it for
+// no-JS / reduced-motion / no-WebGL.
+---
+
+<div class="lic-scene not-content" aria-hidden="true">
+  <div class="lic-stage" id="lic-stage">
+    <canvas id="lic-canvas"></canvas>
+    <div class="lic-loading" id="lic-loading"><span class="lic-spinner"></span>Summoning the outpost…</div>
+    <div class="lic-hint" id="lic-hint">drag to look · tap a tier below</div>
+  </div>
+  <div class="lic-tabs" id="lic-tabs"></div>
+  <div class="lic-panel" id="lic-panel"></div>
+</div>
+
+<style>
+  .lic-scene { margin: 1.5rem 0 2rem; }
+  .lic-stage {
+    position: relative; height: 380px; border-radius: 16px; overflow: hidden;
+    background: #0a1626; border: 1px solid var(--sl-color-hairline-shade);
+  }
+  .lic-stage canvas { display: block; width: 100%; height: 100%; cursor: grab; }
+  .lic-stage canvas:active { cursor: grabbing; }
+  .lic-loading {
+    position: absolute; inset: 0; display: flex; gap: 10px; align-items: center;
+    justify-content: center; color: rgba(220,235,255,.8); font-size: 14px;
+    background: #0a1626; transition: opacity .5s; pointer-events: none;
+  }
+  .lic-loading.hidden { opacity: 0; }
+  .lic-spinner {
+    width: 16px; height: 16px; border-radius: 50%;
+    border: 2px solid rgba(220,235,255,.25); border-top-color: rgba(220,235,255,.9);
+    animation: lic-spin .8s linear infinite;
+  }
+  @keyframes lic-spin { to { transform: rotate(360deg); } }
+  .lic-hint {
+    position: absolute; left: 12px; bottom: 10px; font-size: 12px;
+    color: rgba(220,235,255,.55); pointer-events: none;
+  }
+  .lic-tabs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 12px; }
+  .lic-tab {
+    cursor: pointer; text-align: left; padding: 10px 12px; border-radius: 12px;
+    border: 1px solid var(--sl-color-hairline-shade); background: var(--sl-color-bg-nav);
+    color: var(--sl-color-text); transition: border-color .2s, transform .1s;
+  }
+  .lic-tab:hover { transform: translateY(-1px); }
+  .lic-tab[aria-pressed="true"] { border-width: 2px; padding: 9px 11px; }
+  .lic-tab .lic-dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 6px; vertical-align: 1px; }
+  .lic-tab .lic-name { font-size: 13px; font-weight: 600; }
+  .lic-tab .lic-price { display: block; margin-top: 2px; font-size: 18px; font-weight: 700; }
+  .lic-tab .lic-unit { font-size: 12px; font-weight: 400; color: var(--sl-color-gray-3); }
+  .lic-panel {
+    margin-top: 12px; padding: 1rem 1.25rem; border-radius: 12px;
+    border: 1px solid var(--sl-color-hairline-shade); background: var(--sl-color-bg-nav);
+  }
+  .lic-panel h4 { margin: 0 0 10px; font-size: 16px; }
+  .lic-panel ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; font-size: 14px; }
+  .lic-panel li { display: flex; gap: 8px; align-items: flex-start; line-height: 1.45; }
+  .lic-panel li svg { flex: none; width: 16px; height: 16px; margin-top: 2px; }
+  .lic-panel li.locked { color: var(--sl-color-gray-4); }
+  @media (max-width: 640px) { .lic-stage { height: 300px; } .lic-tab .lic-price { font-size: 16px; } }
+</style>
+
+<script>
+  import * as THREE from 'three';
+  import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+  import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
+  import scoutUrl from '../assets/models/scout.glb?url';
+  import knightUrl from '../assets/models/knight.glb?url';
+  import barbarianUrl from '../assets/models/barbarian.glb?url';
+
+  const TIERS = [
+    { id: 'R2', name: 'R2 · Free', price: '$0', unit: 'forever', hex: 0x6fe0d6, css: '#6fe0d6', url: scoutUrl,
+      feats: ['All 80+ scenarios, OCR, approvals queue', 'Gift codes for bot-owned accounts', 'Shared key — works on any host'],
+      locked: ['External gift-code accounts', 'Radar kingdom-map scanner', 'Alliance statistics'] },
+    { id: 'R3', name: 'R3 · Alliance helper', price: '$5', unit: 'per license', hex: 0x4f9bff, css: '#4f9bff', url: knightUrl,
+      feats: ['Everything in R2', 'External gift-code accounts — up to 5 per game', 'Matrix view tracks every FID'],
+      locked: ['Radar kingdom-map scanner', 'Alliance statistics'] },
+    { id: 'R4', name: 'R4 · Alliance leadership', price: '$30', unit: 'per license', hex: 0xffcf5c, css: '#ffcf5c', url: barbarianUrl,
+      feats: ['Everything in R3', 'External gift-code accounts — up to 50 per game', 'Radar — scan & stitch the kingdom map', 'Alliance statistics'],
+      locked: [] },
+  ];
+  const STATION_X = [-5.5, 0, 5.5];
+  const PED_TOP = 0.3;
+  const CHECK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 12l4 4 8-9"/></svg>';
+  const CROSS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>';
+
+  const stage = document.getElementById('lic-stage');
+  const canvas = document.getElementById('lic-canvas');
+  const loadingEl = document.getElementById('lic-loading');
+  const tabsEl = document.getElementById('lic-tabs');
+  const panelEl = document.getElementById('lic-panel');
+  if (!stage || !canvas) { /* page rendered without the scene */ }
+
+  const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let selected = 0;
+
+  function renderTabs() {
+    tabsEl.innerHTML = TIERS.map((t, i) =>
+      `<button class="lic-tab" aria-pressed="${i === selected}" data-i="${i}"
+        style="${i === selected ? 'border-color:' + t.css + ';' : ''}">
+        <span class="lic-name"><span class="lic-dot" style="background:${t.css}"></span>${t.name}</span>
+        <span class="lic-price" style="color:var(--sl-color-text)">${t.price} <span class="lic-unit">${t.unit}</span></span>
+      </button>`).join('');
+    tabsEl.querySelectorAll('.lic-tab').forEach((b) =>
+      b.addEventListener('click', () => select(parseInt(b.dataset.i, 10))));
+  }
+  function renderPanel() {
+    const t = TIERS[selected];
+    const feats = t.feats.map((f) => `<li>${CHECK.replace('<svg', '<svg style="color:' + t.css + '"')}<span>${f}</span></li>`).join('');
+    const locked = t.locked.map((f) => `<li class="locked">${CROSS}<span>${f}</span></li>`).join('');
+    panelEl.innerHTML = `<h4>${t.name} — ${t.price} <span style="font-size:13px;color:var(--sl-color-gray-3)">${t.unit}</span></h4><ul>${feats}${locked}</ul>`;
+  }
+
+  // Reassigned to the full 3D-aware handler once the renderer is up. Declared
+  // here so renderTabs()'s click handlers (module scope) can resolve it.
+  let select = (i) => { selected = i; renderTabs(); renderPanel(); };
+
+  let renderer;
+  try { renderer = new THREE.WebGLRenderer({ canvas, antialias: true }); }
+  catch (e) { renderer = null; }
+
+  if (!renderer) {
+    stage.style.display = 'none';
+    renderTabs(); renderPanel();
+  } else {
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x0a1626);
+    scene.fog = new THREE.Fog(0x0a1626, 16, 40);
+    const camera = new THREE.PerspectiveCamera(48, 16 / 9, 0.1, 200);
+    camera.position.set(0, 3.4, 9);
+
+    scene.add(new THREE.HemisphereLight(0xbcd6ff, 0x223044, 1.1));
+    const sun = new THREE.DirectionalLight(0xdfeaff, 1.0); sun.position.set(-6, 10, 6); scene.add(sun);
+    const fill = new THREE.DirectionalLight(0x88aaff, 0.4); fill.position.set(5, 4, 8); scene.add(fill);
+    const tierLight = new THREE.PointLight(0x6fe0d6, 18, 26, 2); tierLight.position.set(0, 3, 3); scene.add(tierLight);
+
+    const ground = new THREE.Mesh(
+      new THREE.PlaneGeometry(80, 80, 40, 40),
+      new THREE.MeshStandardMaterial({ color: 0xc9ddf2, flatShading: true, roughness: 1 }));
+    ground.rotation.x = -Math.PI / 2; ground.position.y = -0.6;
+    const gp = ground.geometry.attributes.position;
+    for (let i = 0; i < gp.count; i++) gp.setZ(i, (Math.sin(gp.getX(i) * 0.5) + Math.cos(gp.getY(i) * 0.5)) * 0.25 + Math.random() * 0.18);
+    gp.needsUpdate = true; ground.geometry.computeVertexNormals(); scene.add(ground);
+
+    const auroras = [];
+    [[0x4f9bff, -3, 14, 18], [0x6fe0d6, 2, 17, 22], [0x9b7bff, -1, 20, 16]].forEach((a) => {
+      const m = new THREE.Mesh(new THREE.PlaneGeometry(a[3], 6, 12, 1),
+        new THREE.MeshBasicMaterial({ color: a[0], transparent: true, opacity: 0.15, side: THREE.DoubleSide, depthWrite: false }));
+      m.position.set(a[1], a[2], -22);
+      const p = m.geometry.attributes.position; m.userData.base = [];
+      for (let i = 0; i < p.count; i++) m.userData.base.push(p.getY(i));
+      scene.add(m); auroras.push(m);
+    });
+
+    const rings = [];
+    STATION_X.forEach((x, idx) => {
+      const ped = new THREE.Mesh(new THREE.CylinderGeometry(1.7, 2.0, 0.9, 8),
+        new THREE.MeshStandardMaterial({ color: 0x9fc4e8, flatShading: true, roughness: 0.85 }));
+      ped.position.set(x, -0.15, 0); scene.add(ped);
+      const ring = new THREE.Mesh(new THREE.TorusGeometry(1.45, 0.08, 8, 32),
+        new THREE.MeshStandardMaterial({ color: TIERS[idx].hex, emissive: TIERS[idx].hex, emissiveIntensity: 0.6, flatShading: true }));
+      ring.rotation.x = Math.PI / 2; ring.position.set(x, PED_TOP + 0.02, 0); scene.add(ring);
+      const aura = new THREE.Mesh(new THREE.TorusGeometry(1.2, 0.05, 8, 40),
+        new THREE.MeshBasicMaterial({ color: TIERS[idx].hex, transparent: true, opacity: 0.0 }));
+      aura.rotation.x = Math.PI / 2; aura.position.set(x, PED_TOP + 0.15, 0); scene.add(aura);
+      rings.push({ ring, aura });
+    });
+
+    const snowCnt = 700, sg = new THREE.BufferGeometry(), sp = new Float32Array(snowCnt * 3);
+    for (let i = 0; i < snowCnt; i++) { sp[i * 3] = (Math.random() - 0.5) * 55; sp[i * 3 + 1] = Math.random() * 28; sp[i * 3 + 2] = (Math.random() - 0.5) * 44 - 4; }
+    sg.setAttribute('position', new THREE.BufferAttribute(sp, 3));
+    const snow = new THREE.Points(sg, new THREE.PointsMaterial({ color: 0xffffff, size: 0.13, transparent: true, opacity: 0.85, depthWrite: false }));
+    scene.add(snow);
+
+    const loader = new GLTFLoader();
+    loader.setMeshoptDecoder(MeshoptDecoder);
+    const entries = {};
+    let firstLoaded = false;
+
+    function loadTier(idx) {
+      if (entries[idx]) return Promise.resolve(entries[idx]);
+      const t = TIERS[idx];
+      const pending = new Promise((resolve) => {
+        loader.load(t.url, (gltf) => {
+          const model = gltf.scene;
+          const box = new THREE.Box3().setFromObject(model);
+          const size = new THREE.Vector3(); box.getSize(size);
+          const s = 2.5 / (size.y || 1); model.scale.setScalar(s);
+          const box2 = new THREE.Box3().setFromObject(model);
+          model.position.x += STATION_X[idx] - (box2.min.x + box2.max.x) / 2;
+          model.position.z += -(box2.min.z + box2.max.z) / 2;
+          model.position.y += PED_TOP - box2.min.y;
+          model.rotation.y = 0;
+          model.traverse((o) => { if (o.isMesh) { o.castShadow = false; o.frustumCulled = false; } });
+          scene.add(model);
+          const mixer = new THREE.AnimationMixer(model);
+          const get = (n) => { const c = gltf.animations.find((a) => a.name === n); return c ? mixer.clipAction(c) : null; };
+          const idle = get('Idle'), cheer = get('Cheer');
+          if (idle) idle.play();
+          if (cheer) { cheer.setLoop(THREE.LoopOnce); cheer.clampWhenFinished = true; }
+          mixer.addEventListener('finished', () => { if (idle) { idle.reset().fadeIn(0.3).play(); } });
+          entries[idx] = { model, mixer, idle, cheer };
+          if (!firstLoaded) { firstLoaded = true; loadingEl.classList.add('hidden'); }
+          resolve(entries[idx]);
+        }, undefined, () => { if (!firstLoaded) loadingEl.textContent = 'Could not load model'; resolve(null); });
+      });
+      return pending;
+    }
+
+    function playCheer(entry) {
+      if (!entry || !entry.cheer) return;
+      if (entry.idle) entry.idle.fadeOut(0.2);
+      entry.cheer.reset().fadeIn(0.2).play();
+    }
+
+    function applyTier(idx) {
+      const t = TIERS[idx];
+      tierLight.color.setHex(t.hex);
+      rings.forEach((r, i) => {
+        r.ring.material.emissiveIntensity = i === idx ? 1.4 : 0.55;
+        r.aura.material.opacity = i === idx ? 0.7 : 0.0;
+      });
+    }
+
+    select = async (idx) => {
+      selected = idx; renderTabs(); renderPanel(); applyTier(idx);
+      const entry = await loadTier(idx);
+      tierLight.position.x = STATION_X[idx];
+      playCheer(entry);
+    };
+
+    const target = new THREE.Vector3(0, 1.5, 0);
+    const camPos = new THREE.Vector3(0, 3.4, 9);
+    const drag = { active: false, x: 0, y: 0, rx: 0, ry: 0 };
+    canvas.addEventListener('pointerdown', (e) => { drag.active = true; drag.x = e.clientX; drag.y = e.clientY; });
+    window.addEventListener('pointerup', () => { drag.active = false; });
+    window.addEventListener('pointermove', (e) => {
+      if (!drag.active) return;
+      drag.ry += (e.clientX - drag.x) * 0.005; drag.rx += (e.clientY - drag.y) * 0.003;
+      drag.rx = Math.max(-0.4, Math.min(0.5, drag.rx)); drag.x = e.clientX; drag.y = e.clientY;
+    });
+
+    function resize() { const w = stage.clientWidth, h = stage.clientHeight; renderer.setSize(w, h, false); camera.aspect = w / h; camera.updateProjectionMatrix(); }
+    window.addEventListener('resize', resize); resize();
+
+    const clock = new THREE.Clock();
+    function frame() {
+      const dt = clock.getDelta(), t = clock.elapsedTime;
+      const sx = STATION_X[selected];
+      const r = 9, ry = drag.ry;
+      camPos.set(sx + Math.sin(ry) * r, 3.4 + drag.rx * 4, Math.cos(ry) * r);
+      camera.position.lerp(camPos, reduce ? 1 : 0.08);
+      target.lerp(new THREE.Vector3(sx, 1.5, 0), reduce ? 1 : 0.08);
+      camera.lookAt(target);
+      for (const k in entries) { if (entries[k] && entries[k].mixer) entries[k].mixer.update(dt); }
+      if (!reduce) {
+        rings.forEach((r) => { r.aura.rotation.z = t * 0.7; });
+        const p = snow.geometry.attributes.position;
+        for (let i = 0; i < snowCnt; i++) { let y = p.getY(i) - (0.04 + (i % 5) * 0.012); if (y < -0.4) y = 28; p.setY(i, y); }
+        p.needsUpdate = true;
+        auroras.forEach((m, k) => { const pp = m.geometry.attributes.position; for (let i = 0; i < pp.count; i++) pp.setY(i, m.userData.base[i] + Math.sin(t * 0.6 + i * 0.7 + k) * 0.5); pp.needsUpdate = true; m.material.opacity = 0.11 + Math.sin(t * 0.5 + k) * 0.05; });
+      }
+      renderer.render(scene, camera);
+      requestAnimationFrame(frame);
+    }
+
+    renderTabs(); renderPanel(); applyTier(0);
+    select(0);
+    frame();
+  }
+</script>
