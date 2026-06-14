@@ -5,8 +5,8 @@
 // no-JS / reduced-motion / no-WebGL.
 ---
 
-<div class="lic-scene not-content" aria-hidden="true">
-  <div class="lic-stage" id="lic-stage">
+<div class="lic-scene not-content">
+  <div class="lic-stage" id="lic-stage" aria-hidden="true">
     <canvas id="lic-canvas"></canvas>
     <div class="lic-loading" id="lic-loading"><span class="lic-spinner"></span>Summoning the outpost…</div>
     <div class="lic-hint" id="lic-hint">drag to look · tap a tier below</div>
@@ -40,14 +40,9 @@
     color: rgba(220,235,255,.55); pointer-events: none;
   }
   .lic-panel {
-    margin-top: 12px; padding: 1rem 1.25rem; border-radius: 12px;
+    margin-top: 12px; padding: 1.1rem 1.35rem; border-radius: 14px;
     border: 1px solid var(--sl-color-hairline-shade); background: var(--sl-color-bg-nav);
   }
-  .lic-panel h4 { margin: 0 0 10px; font-size: 16px; }
-  .lic-panel ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; font-size: 14px; }
-  .lic-panel li { display: flex; gap: 8px; align-items: flex-start; line-height: 1.45; }
-  .lic-panel li svg { flex: none; width: 16px; height: 16px; margin-top: 2px; }
-  .lic-panel li.locked { color: var(--sl-color-gray-4); }
   @media (max-width: 640px) { .lic-stage { height: 56vh; } }
 </style>
 
@@ -72,8 +67,8 @@
   ];
   const STATION_X = [-5.5, 0, 5.5];
   const PED_TOP = 0.3;
-  const CHECK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 12l4 4 8-9"/></svg>';
-  const CROSS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>';
+  const CHECK = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="mt-0.5 flex-none" aria-hidden="true"><path d="M6 12l4 4 8-9"/></svg>';
+  const CROSS = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="mt-0.5 flex-none" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>';
 
   const stage = document.getElementById('lic-stage');
   const canvas = document.getElementById('lic-canvas');
@@ -110,9 +105,17 @@
   }
   function renderPanel() {
     const t = TIERS[selected];
-    const feats = t.feats.map((f) => `<li>${CHECK.replace('<svg', '<svg style="color:' + t.css + '"')}<span>${f}</span></li>`).join('');
-    const locked = t.locked.map((f) => `<li class="locked">${CROSS}<span>${f}</span></li>`).join('');
-    panelEl.innerHTML = `<h4>${t.name} — ${t.price} <span style="font-size:13px;color:var(--sl-color-gray-3)">${t.unit}</span></h4><ul>${feats}${locked}</ul>`;
+    const feats = t.feats.map((f) =>
+      `<li class="flex items-start gap-2.5 text-[var(--sl-color-white)]">${CHECK.replace('stroke="currentColor"', 'stroke="' + t.css + '"')}<span>${f}</span></li>`).join('');
+    const locked = t.locked.map((f) =>
+      `<li class="flex items-start gap-2.5 text-[var(--sl-color-gray-4)]">${CROSS}<span>${f}</span></li>`).join('');
+    panelEl.innerHTML =
+      `<div class="mb-4 flex flex-wrap items-baseline gap-x-2.5 gap-y-1">
+        <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-[0.18em]" style="background:${t.css}26;color:${t.css}">${t.id}</span>
+        <span class="text-base font-semibold text-[var(--sl-color-white)]">${t.label}</span>
+        <span class="text-sm text-[var(--sl-color-gray-3)]">${t.price} · ${t.unit}</span>
+      </div>
+      <ul class="grid list-none gap-x-6 gap-y-2.5 p-0 text-sm leading-relaxed sm:grid-cols-2">${feats}${locked}</ul>`;
   }
 
   // Reassigned to the full 3D-aware handler once the renderer is up. Declared
