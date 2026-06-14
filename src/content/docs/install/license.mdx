@@ -11,7 +11,7 @@ The bot core is **free** (the R2 tier). A license file is still required — it 
 Tiers are named after in-game alliance ranks. **Features are cumulative** — a higher tier includes everything below it.
 
 {/* Pricing tiers — data mirrors src/licensing/plans.py (the single source of
-    truth for tiers, prices and feature flags). Update both together. */}
+    truth for tiers and prices). Update both together. */}
 <div class="not-content my-8 grid gap-4 lg:grid-cols-3">
   {/* R2 · Free */}
   <div class="scn-reveal scn-tier flex flex-col rounded-2xl border border-[var(--sl-color-hairline-shade)] bg-[var(--sl-color-bg-nav)] p-5 sm:p-6">
@@ -108,20 +108,6 @@ Every license also carries usage caps, independent of the tier's feature list:
 
 The paid key won't run on a different host — copy your fingerprint from the dashboard's **License** page when requesting one.
 
-## Get started in 30 seconds
-
-1. Start the stack — `docker compose -f docker-compose.prod.yml up -d --pull always`
-2. Open the dashboard at [http://127.0.0.1:3000/overview](http://127.0.0.1:3000/overview)
-3. Grab the current `licence.jwt` from the `#install` channel on [Discord](https://discord.gg/62twnzKG9)
-4. The UI will prompt you to **upload a license file** on first start — drop the `licence.jwt` in
-5. Wait a few seconds while the bot service picks it up automatically
-
-That's it. The bot service starts in a waiting state when no license is present,
-then continues automatically after upload — no restart is needed. The license
-file is persisted in the `wos_license` Docker volume (shared between `bot` and
-`api`) and survives `docker compose down`. It is only wiped by
-`docker compose down -v`.
-
 ## When the key expires
 
 Free keys rotate every so often. When yours stops working:
@@ -130,16 +116,3 @@ Free keys rotate every so often. When yours stops working:
 2. Re-upload it through the same UI flow
 
 Paid keys are issued with their own expiry — DM a maintainer to renew.
-
-## Feature flags (for the curious)
-
-The license is an Ed25519-signed JWT. The tier resolves to feature flags the
-app checks at the API, service and UI layers:
-
-| Flag | Unlocked by | Gates |
-|:---|:---|:---|
-| `gift_codes.external_accounts` | R3 | External-FID redeem loop + matrix view |
-| `radar` | R4 | Kingdom-map scanner |
-| `alliance_stats` | R4 | Alliance statistics dashboards |
-
-A request hitting a locked feature returns HTTP 402 with `reason: feature_not_licensed`; the dashboard shows the corresponding upgrade hint instead of the panel.
