@@ -970,3 +970,62 @@ html { scroll-behavior: smooth; }
     padding: 0.75rem 0.85rem;
   }
 }
+
+/* ──────────────────────────────────────────────────────────────────────────
+   Asides (:::tip / :::note / :::caution / :::danger)
+   Lift the default Starlight callout into the same card language as the rest
+   of the docs: full hairline border + accent edge, rounded corners, a soft
+   tinted fill, and an icon chip. Colours come from Starlight's per-variant
+   --sl-color-asides-* vars, so every aside type is themed automatically.
+   ────────────────────────────────────────────────────────────────────────── */
+.sl-markdown-content .starlight-aside {
+  --scn-aside: var(--sl-color-asides-border);
+  padding: 1rem 1.25rem;
+  border: 1px solid color-mix(in srgb, var(--scn-aside) 38%, transparent);
+  border-inline-start: 3px solid var(--scn-aside);
+  border-radius: 12px;
+  background:
+    linear-gradient(180deg,
+      color-mix(in srgb, var(--scn-aside) 11%, transparent),
+      color-mix(in srgb, var(--scn-aside) 5%, transparent)),
+    var(--sl-color-bg-nav);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+  transition: box-shadow 0.25s ease, border-color 0.25s ease;
+}
+.sl-markdown-content .starlight-aside:hover {
+  border-color: color-mix(in srgb, var(--scn-aside) 60%, transparent);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.12);
+}
+.sl-markdown-content .starlight-aside__title {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  margin-bottom: 0.5rem;
+  font-size: 0.92rem;
+  font-weight: 600;
+  text-transform: none;
+  letter-spacing: 0;
+  color: var(--sl-color-asides-text-accent);
+}
+.sl-markdown-content .starlight-aside__icon {
+  box-sizing: content-box;
+  inline-size: 1rem;
+  block-size: 1rem;
+  padding: 0.32rem;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--scn-aside) 16%, transparent);
+  border: 1px solid color-mix(in srgb, var(--scn-aside) 30%, transparent);
+  color: var(--sl-color-asides-text-accent);
+  font-size: 1rem;
+}
+.sl-markdown-content .starlight-aside__content {
+  color: var(--sl-color-gray-1);
+}
+.sl-markdown-content .starlight-aside__content a {
+  color: var(--sl-color-asides-text-accent);
+  text-underline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sl-markdown-content .starlight-aside { transition: none; }
+}
