@@ -29,6 +29,25 @@ docker compose -f docker-compose.prod.yml logs -f api    # dashboard API logs
 docker compose -f docker-compose.prod.yml exec bot adb devices   # ADB visibility from inside the bot container
 ```
 
+## Error reporting
+
+Official production images **automatically ship error logs** to the maintainer's
+Grafana Cloud (Loki): uncaught exceptions, crashes, and any `ERROR`-level log
+line are sent with their stack trace and the `inst` / `player` / `node` context,
+so most issues can be diagnosed without you sending anything by hand. Only
+`ERROR` and above leave your machine — normal `INFO`/`DEBUG` logs stay local.
+This is tied to a credential baked into the official image; local/source builds
+without it ship nothing.
+
+When you open an issue or ask in the `#install` channel on Discord, include the
+approximate time and what you were doing so the report can be matched up. For
+the local container logs around that moment:
+
+```sh
+docker compose -f docker-compose.prod.yml logs --tail=200 bot
+docker compose -f docker-compose.prod.yml logs --tail=200 api
+```
+
 ## Common symptoms
 
 | Symptom | Likely cause | Where to look |
