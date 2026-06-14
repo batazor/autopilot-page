@@ -11,14 +11,14 @@
     <div class="lic-loading" id="lic-loading"><span class="lic-spinner"></span>Summoning the outpost…</div>
     <div class="lic-hint" id="lic-hint">drag to look · tap a tier below</div>
   </div>
-  <div class="lic-tabs" id="lic-tabs"></div>
+  <div id="lic-tabs" class="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3"></div>
   <div class="lic-panel" id="lic-panel"></div>
 </div>
 
 <style>
-  .lic-scene { margin: 1.5rem 0 2rem; }
+  .lic-scene { margin: 1.5rem 0 2rem; width: 100%; }
   .lic-stage {
-    position: relative; height: 380px; border-radius: 16px; overflow: hidden;
+    position: relative; height: clamp(380px, 62vh, 700px); border-radius: 18px; overflow: hidden;
     background: #0a1626; border: 1px solid var(--sl-color-hairline-shade);
   }
   .lic-stage canvas { display: block; width: 100%; height: 100%; cursor: grab; }
@@ -39,18 +39,6 @@
     position: absolute; left: 12px; bottom: 10px; font-size: 12px;
     color: rgba(220,235,255,.55); pointer-events: none;
   }
-  .lic-tabs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 12px; }
-  .lic-tab {
-    cursor: pointer; text-align: left; padding: 10px 12px; border-radius: 12px;
-    border: 1px solid var(--sl-color-hairline-shade); background: var(--sl-color-bg-nav);
-    color: var(--sl-color-text); transition: border-color .2s, transform .1s;
-  }
-  .lic-tab:hover { transform: translateY(-1px); }
-  .lic-tab[aria-pressed="true"] { border-width: 2px; padding: 9px 11px; }
-  .lic-tab .lic-dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 6px; vertical-align: 1px; }
-  .lic-tab .lic-name { font-size: 13px; font-weight: 600; }
-  .lic-tab .lic-price { display: block; margin-top: 2px; font-size: 18px; font-weight: 700; }
-  .lic-tab .lic-unit { font-size: 12px; font-weight: 400; color: var(--sl-color-gray-3); }
   .lic-panel {
     margin-top: 12px; padding: 1rem 1.25rem; border-radius: 12px;
     border: 1px solid var(--sl-color-hairline-shade); background: var(--sl-color-bg-nav);
@@ -60,7 +48,7 @@
   .lic-panel li { display: flex; gap: 8px; align-items: flex-start; line-height: 1.45; }
   .lic-panel li svg { flex: none; width: 16px; height: 16px; margin-top: 2px; }
   .lic-panel li.locked { color: var(--sl-color-gray-4); }
-  @media (max-width: 640px) { .lic-stage { height: 300px; } .lic-tab .lic-price { font-size: 16px; } }
+  @media (max-width: 640px) { .lic-stage { height: 56vh; } }
 </style>
 
 <script>
@@ -72,13 +60,13 @@
   import barbarianUrl from '../assets/models/barbarian.glb?url';
 
   const TIERS = [
-    { id: 'R2', name: 'R2 · Free', price: '$0', unit: 'forever', hex: 0x6fe0d6, css: '#6fe0d6', url: scoutUrl,
+    { id: 'R2', name: 'R2 · Free', label: 'Free', price: '$0', unit: 'forever', hex: 0x6fe0d6, css: '#6fe0d6', url: scoutUrl,
       feats: ['All 80+ scenarios, OCR, approvals queue', 'Gift codes for bot-owned accounts', 'Shared key — works on any host'],
       locked: ['External gift-code accounts', 'Radar kingdom-map scanner', 'Alliance statistics'] },
-    { id: 'R3', name: 'R3 · Alliance helper', price: '$5', unit: 'per license', hex: 0x4f9bff, css: '#4f9bff', url: knightUrl,
+    { id: 'R3', name: 'R3 · Alliance helper', label: 'Alliance helper', price: '$5', unit: 'per license', hex: 0x4f9bff, css: '#4f9bff', url: knightUrl,
       feats: ['Everything in R2', 'External gift-code accounts — up to 5 per game', 'Matrix view tracks every FID'],
       locked: ['Radar kingdom-map scanner', 'Alliance statistics'] },
-    { id: 'R4', name: 'R4 · Alliance leadership', price: '$30', unit: 'per license', hex: 0xffcf5c, css: '#ffcf5c', url: barbarianUrl,
+    { id: 'R4', name: 'R4 · Alliance leadership', label: 'Alliance leadership', price: '$30', unit: 'per license', hex: 0xffcf5c, css: '#ffcf5c', url: barbarianUrl,
       feats: ['Everything in R3', 'External gift-code accounts — up to 50 per game', 'Radar — scan & stitch the kingdom map', 'Alliance statistics'],
       locked: [] },
   ];
@@ -98,13 +86,26 @@
   let selected = 0;
 
   function renderTabs() {
-    tabsEl.innerHTML = TIERS.map((t, i) =>
-      `<button class="lic-tab" aria-pressed="${i === selected}" data-i="${i}"
-        style="${i === selected ? 'border-color:' + t.css + ';' : ''}">
-        <span class="lic-name"><span class="lic-dot" style="background:${t.css}"></span>${t.name}</span>
-        <span class="lic-price" style="color:var(--sl-color-text)">${t.price} <span class="lic-unit">${t.unit}</span></span>
-      </button>`).join('');
-    tabsEl.querySelectorAll('.lic-tab').forEach((b) =>
+    tabsEl.innerHTML = TIERS.map((t, i) => {
+      const on = i === selected;
+      const style = on
+        ? `border-color:${t.css};box-shadow:0 0 0 1.5px ${t.css},0 14px 34px -16px ${t.css};background-image:linear-gradient(160deg, ${t.css}1f, transparent 70%)`
+        : 'border-color:var(--sl-color-hairline-shade)';
+      return `<button data-i="${i}" aria-pressed="${on}"
+        class="group relative flex flex-col items-start gap-2 overflow-hidden rounded-2xl border bg-[var(--sl-color-bg-nav)] px-4 py-3.5 text-left transition duration-200 ease-out hover:-translate-y-0.5 focus-visible:outline-none cursor-pointer"
+        style="${style}">
+        <span class="flex items-center gap-2">
+          <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-[0.18em]" style="background:${t.css}26;color:${t.css}">${t.id}</span>
+          <span class="text-sm font-semibold text-[var(--sl-color-white)]">${t.label}</span>
+        </span>
+        <span class="flex items-baseline gap-1.5">
+          <span class="text-2xl font-extrabold leading-none text-[var(--sl-color-white)] sm:text-3xl">${t.price}</span>
+          <span class="text-xs text-[var(--sl-color-gray-3)]">${t.unit}</span>
+        </span>
+        <span class="pointer-events-none absolute right-3 top-3 h-2.5 w-2.5 rounded-full transition-all duration-200 ${on ? 'scale-100 opacity-100' : 'scale-0 opacity-0'}" style="background:${t.css};box-shadow:0 0 10px ${t.css}"></span>
+      </button>`;
+    }).join('');
+    tabsEl.querySelectorAll('button').forEach((b) =>
       b.addEventListener('click', () => select(parseInt(b.dataset.i, 10))));
   }
   function renderPanel() {
