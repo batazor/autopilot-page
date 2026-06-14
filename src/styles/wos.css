@@ -984,17 +984,12 @@ html { scroll-behavior: smooth; }
   border: 1px solid color-mix(in srgb, var(--scn-aside) 38%, transparent);
   border-inline-start: 3px solid var(--scn-aside);
   border-radius: 12px;
-  background:
-    linear-gradient(180deg,
-      color-mix(in srgb, var(--scn-aside) 11%, transparent),
-      color-mix(in srgb, var(--scn-aside) 5%, transparent)),
-    var(--sl-color-bg-nav);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
-  transition: box-shadow 0.25s ease, border-color 0.25s ease;
+  background: color-mix(in srgb, var(--scn-aside) 7%, var(--sl-color-bg-nav));
+  transition: border-color 0.25s ease, background 0.25s ease;
 }
 .sl-markdown-content .starlight-aside:hover {
-  border-color: color-mix(in srgb, var(--scn-aside) 60%, transparent);
-  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.12);
+  border-color: color-mix(in srgb, var(--scn-aside) 55%, transparent);
+  background: color-mix(in srgb, var(--scn-aside) 11%, var(--sl-color-bg-nav));
 }
 .sl-markdown-content .starlight-aside__title {
   display: flex;
