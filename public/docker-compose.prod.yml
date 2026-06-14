@@ -54,6 +54,7 @@
 services:
   redis:
     image: redis:alpine
+    container_name: autopilot-redis
     # ``redis:alpine`` runs as the ``redis`` user, but a fresh named volume
     # is mounted root-owned — so bind() on the socket fails with EACCES on
     # first boot. ``chown`` the socket dir in a thin entrypoint wrapper,
@@ -86,6 +87,9 @@ services:
 
   bot:
     image: ${WOS_REGISTRY:-ghcr.io/batazor/autopilot}/bot:${WOS_IMAGE_TAG:-latest}
+    # Stable name so you can shell in directly, e.g.
+    #     docker exec autopilot-bot adb devices
+    container_name: autopilot-bot
     # host-mode: shared loopback with the host so ``adb`` and the
     # ``127.0.0.1:5037`` server are reachable without ``adb -a`` (which would
     # expose ADB on every interface, including LAN).
@@ -132,6 +136,7 @@ services:
   #     ROBOFLOW_API_KEY=rf_... docker compose -f docker-compose.prod.yml --profile full up -d
   inference:
     image: roboflow/roboflow-inference-server-cpu:latest
+    container_name: autopilot-inference
     profiles: ["full", "inference"]
     environment:
       ROBOFLOW_API_KEY: ${ROBOFLOW_API_KEY:-}
@@ -149,6 +154,7 @@ services:
 
   api:
     image: ${WOS_REGISTRY:-ghcr.io/batazor/autopilot}/bot:${WOS_IMAGE_TAG:-latest}
+    container_name: autopilot-api
     command: ["api"]
     network_mode: host
     depends_on:
@@ -183,6 +189,7 @@ services:
 
   web:
     image: ${WOS_REGISTRY:-ghcr.io/batazor/autopilot}/web:${WOS_IMAGE_TAG:-latest}
+    container_name: autopilot-web
     network_mode: host
     depends_on:
       api:

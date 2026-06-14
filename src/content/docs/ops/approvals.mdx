@@ -27,11 +27,15 @@ It's the fastest way to author a new scenario: you write the DSL, flip approvals
 
 The **Screenshot** dropdown picks how the canvas is fed:
 
+<div class="scenario-tables">
+
 | Source | Backend | Notes |
 |:---|:---|:---|
 | **Captured (request)** | bot-side screencap | The exact frame the bot acted on at approval time. Static — best for verifying "what did it see when it decided to tap." |
 | **Live rolling** | rolling PNG on disk | Worker overwrites a PNG every tick (~1–2 Hz); the UI cache-busts on mtime. Works with any backend. |
 | **Live video (WebCodecs)** | [scrcpy](https://github.com/Genymobile/scrcpy) over WebSocket | **~30 fps with ~50 ms latency** — H.264 stream decoded in the browser via WebCodecs. Auto-enabled when the device's input/screenshot backend is set to `scrcpy` and the browser supports WebCodecs (Chrome / Edge / Safari). |
+
+</div>
 
 The live-video path is the most ergonomic for authoring: you see touches land in near real time, so a mis-clicked region or a slow popup is obvious in motion rather than from frame-by-frame refreshes.
 
@@ -41,12 +45,16 @@ In Docker installs, rolling screenshots are shared through the `wos_temporal` vo
 
 ## Approval modes
 
+<div class="scenario-tables">
+
 | Mode | Behavior | Best for |
 |:---|:---|:---|
 | **Off** | All taps fire automatically. | Production runs. |
 | **Hold rolling** | Pauses on every sensitive tap, you decide per step. | Authoring a new scenario, debugging a misfire. |
 | **Auto-refresh** | Each new pending tap auto-loads the screenshot without you clicking refresh. | Active debugging session. |
 | **Reset…** | Drops the current approval queue (skip everything pending). | Got stuck in a chain, want to start over. |
+
+</div>
 
 ## Cross-references
 

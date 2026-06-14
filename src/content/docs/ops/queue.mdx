@@ -7,6 +7,7 @@ sidebar:
 ---
 
 import { Image } from 'astro:assets';
+import { Card, CardGrid } from '@astrojs/starlight/components';
 import queueScreenshot from '../../../assets/queue.png';
 
 The **Queue page** is the central view of what the bot is doing right now and what's pending. Everything goes through Redis (queue + history + state), so this view is restart-safe and reflects reality across all worker processes — including a worker that just crashed and restarted.
@@ -15,10 +16,20 @@ The **Queue page** is the central view of what the bot is doing right now and wh
 
 ## What you get
 
-- **Per-instance filter** — pick one BlueStacks instance (`bs1`, `127.0.0.1:5555`, …) or view the whole fleet. The page subscribes to live Redis updates, no manual refresh.
-- **At-a-glance counters** — `Pending`, `Overdue`, `Running`, `Recent OK`, `Recent failed`. The first place to look when something feels off.
-- **Currently running task panel** — what's executing on which instance, with priority, current step, elapsed time, and the player ID it's acting on. One click opens the DSL runner with the same state for live introspection.
-- **Pending table** — sorted per instance in execution order: due tasks first, then scheduled tasks by time. Each row shows status (Overdue / Pending / Scheduled), the scenario name, the region it's targeting, priority, and quick actions (DSL runner, copy debug payload).
+<CardGrid>
+  <Card title="Per-instance filter" icon="magnifier">
+    Pick one BlueStacks instance (`bs1`, `127.0.0.1:5555`, …) or view the whole fleet. The page subscribes to live Redis updates — no manual refresh.
+  </Card>
+  <Card title="At-a-glance counters" icon="list-format">
+    `Pending`, `Overdue`, `Running`, `Recent OK`, `Recent failed`. The first place to look when something feels off.
+  </Card>
+  <Card title="Currently running task" icon="rocket">
+    What's executing on which instance, with priority, current step, elapsed time, and the player ID. One click opens the DSL runner with the same state.
+  </Card>
+  <Card title="Pending table" icon="setting">
+    Sorted per instance in execution order — due tasks first, then scheduled by time. Each row shows status, scenario, target region, priority, and quick actions.
+  </Card>
+</CardGrid>
 
 ## Two views: Table and Timeline
 

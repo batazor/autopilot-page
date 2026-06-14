@@ -90,7 +90,7 @@ Whiteout Survival has full scenario coverage today: daily loops, weekly events, 
         <li>Redeem a fresh code for the whole alliance in one pass.</li>
       </ul>
       <p class="m-0 text-xs text-[var(--sl-color-gray-3)]">
-        License feature flag: <code>gift_codes.external_accounts</code>. See <a href="/autopilot-page/ops/gift-codes/#external-accounts-pro">Gift codes → External accounts</a>.
+        Requires an <strong>R3</strong> or higher license. See <a href="/autopilot-page/ops/gift-codes/#external-accounts-pro">Gift codes → External accounts</a>.
       </p>
     </article>
 
@@ -168,122 +168,276 @@ Whiteout Survival has full scenario coverage today: daily loops, weekly events, 
 
 <h2 id="daily-loops" class="scn-h scn-accent-sky">Daily loops <span class="scn-count">6</span></h2>
 
-| Scenario | What it does |
-|:---------|:-------------|
-| `vip.daily` | Daily VIP login check |
-| `mail.claim.{tab}` | Read mail and claim attached gifts (all tabs) |
-| `redeem_gift_codes` | Fetch + redeem latest gift codes from the in-UI hub (per account) |
-| `chief_profile/sync_chief_profile` | Sync chief profile data to local state |
-| `claim_exploration_rewards` | Claim exploration chests (~4h) |
-| `free_recrutments_today` | Daily claim of free advanced/normal recruits (~5h) |
+<div class="not-content scn-cards scn-tint-sky">
+  <div class="scn-card">
+    <div class="scn-card-ids"><code>vip.daily</code></div>
+    <p>Daily VIP login check.</p>
+  </div>
+  <div class="scn-card">
+    <div class="scn-card-ids"><code>mail.claim.&#123;tab&#125;</code></div>
+    <p>Read mail and claim attached gifts across all tabs.</p>
+  </div>
+  <div class="scn-card">
+    <div class="scn-card-ids"><code>redeem_gift_codes</code></div>
+    <p>Fetch and redeem the latest gift codes from the in-UI hub, per account.</p>
+  </div>
+  <div class="scn-card">
+    <div class="scn-card-ids"><code>chief_profile/sync_chief_profile</code></div>
+    <p>Sync chief profile data into local state.</p>
+  </div>
+  <div class="scn-card">
+    <div class="scn-card-ids"><code>claim_exploration_rewards</code></div>
+    <p>Claim exploration chests on a ~4h cadence.</p>
+  </div>
+  <div class="scn-card">
+    <div class="scn-card-ids"><code>free_recrutments_today</code></div>
+    <p>Daily claim of free advanced and normal recruits (~5h).</p>
+  </div>
+</div>
 
 <h2 id="combat-events" class="scn-h scn-accent-emerald">Combat & events <span class="scn-count">17</span></h2>
 
-| Scenario | What it does |
-|:---------|:-------------|
-| `squad_fight` | 12h cadence; re-deploys after every Victory until the squad finally loses |
-| `event.trials` + `claim_trials.{day}` | Trial events and reward claim |
-| `event.7-day` | 7-day starter / login event |
-| `event.alliance_championship` | Alliance Championship |
-| `event.armament_competition` | Armament Competition |
-| `event.bear_hunt` | Bear Hunt |
-| `event.castle_battle` | Castle Battle |
-| `event.fishing_tournament` | Fishing Tournament |
-| `dreamscape_memory` + `dreamscape_memory_multiplayer` | Dreamscape Memory Recall Road solver (solo/co-op OCR + reviewed scene dictionary) |
-| `event.fortress_battles` | Fortress Battles |
-| `event.foundry_battle` | Foundry Battle |
-| `event.labyrinth` | Labyrinth |
-| `myriad_bazaar` | Myriad Bazaar |
-| `event.state_of_power` | State of Power |
-| `event.tundra_trade_route` | Tundra Trade Route |
-| `deals.vault_of_enigma` | Vault of Enigma |
-| `event.first_purchase` | First Purchase event |
+<div class="not-content scn-cards scn-tint-emerald">
+  <div class="scn-card">
+    <div class="scn-card-ids"><code>squad_fight</code></div>
+    <p>12h cadence; re-deploys after every Victory until the squad finally loses.</p>
+  </div>
+  <div class="scn-card">
+    <div class="scn-card-ids"><code>event.trials</code><span class="scn-plus">+</span><code>claim_trials.&#123;day&#125;</code></div>
+    <p>Trial events and per-day reward claim.</p>
+  </div>
+  <div class="scn-card">
+    <div class="scn-card-ids"><code>event.7-day</code></div>
+    <p>7-day starter / login event.</p>
+  </div>
+  <div class="scn-card">
+    <div class="scn-card-ids"><code>event.alliance_championship</code></div>
+    <p>Alliance Championship.</p>
+  </div>
+  <div class="scn-card">
+    <div class="scn-card-ids"><code>event.armament_competition</code></div>
+    <p>Armament Competition.</p>
+  </div>
+  <div class="scn-card">
+    <div class="scn-card-ids"><code>event.bear_hunt</code></div>
+    <p>Bear Hunt.</p>
+  </div>
+  <div class="scn-card">
+    <div class="scn-card-ids"><code>event.castle_battle</code></div>
+    <p>Castle Battle.</p>
+  </div>
+  <div class="scn-card">
+    <div class="scn-card-ids"><code>event.fishing_tournament</code></div>
+    <p>Fishing Tournament.</p>
+  </div>
+  <div class="scn-card">
+    <div class="scn-card-ids"><code>dreamscape_memory</code><span class="scn-plus">+</span><code>dreamscape_memory_multiplayer</code></div>
+    <p>Dreamscape Memory Recall Road solver — solo/co-op OCR backed by a reviewed scene dictionary.</p>
+  </div>
+  <div class="scn-card">
+    <div class="scn-card-ids"><code>event.fortress_battles</code></div>
+    <p>Fortress Battles.</p>
+  </div>
+  <div class="scn-card">
+    <div class="scn-card-ids"><code>event.foundry_battle</code></div>
+    <p>Foundry Battle.</p>
+  </div>
+  <div class="scn-card">
+    <div class="scn-card-ids"><code>event.labyrinth</code></div>
+    <p>Labyrinth.</p>
+  </div>
+  <div class="scn-card">
+    <div class="scn-card-ids"><code>myriad_bazaar</code></div>
+    <p>Myriad Bazaar.</p>
+  </div>
+  <div class="scn-card">
+    <div class="scn-card-ids"><code>event.state_of_power</code></div>
+    <p>State of Power.</p>
+  </div>
+  <div class="scn-card">
+    <div class="scn-card-ids"><code>event.tundra_trade_route</code></div>
+    <p>Tundra Trade Route.</p>
+  </div>
+  <div class="scn-card">
+    <div class="scn-card-ids"><code>deals.vault_of_enigma</code></div>
+    <p>Vault of Enigma.</p>
+  </div>
+  <div class="scn-card">
+    <div class="scn-card-ids"><code>event.first_purchase</code></div>
+    <p>First Purchase event.</p>
+  </div>
+</div>
 
 <h2 id="city" class="scn-h scn-accent-amber">City management <span class="scn-count">5</span></h2>
 
-| Scenario | What it does |
-|:---------|:-------------|
-| `building.upgrade` + `tap_build_button` + `tap_upgrade_big_button` | Pick the next upgrade and queue it through the build loop |
-| `tap_furnace_max_power` | Auto-tap the Max Power furnace upgrade |
-| `survivors/assign_worker` | Auto-assign idle workers to open construction slots |
-| `survivors/welcome_new_survivors` + `survivors_intro` | Welcome flow for new survivors |
-| `main_city/check_main_city` | Periodic main-city overview + event-block tile scan (4 slots) |
+<div class="not-content scn-cards scn-tint-amber">
+  <div class="scn-card">
+    <div class="scn-card-ids"><code>building.upgrade</code><span class="scn-plus">+</span><code>tap_build_button</code><span class="scn-plus">+</span><code>tap_upgrade_big_button</code></div>
+    <p>Pick the next upgrade and queue it through the build loop.</p>
+  </div>
+  <div class="scn-card">
+    <div class="scn-card-ids"><code>tap_furnace_max_power</code></div>
+    <p>Auto-tap the Max Power furnace upgrade.</p>
+  </div>
+  <div class="scn-card">
+    <div class="scn-card-ids"><code>survivors/assign_worker</code></div>
+    <p>Auto-assign idle workers to open construction slots.</p>
+  </div>
+  <div class="scn-card">
+    <div class="scn-card-ids"><code>survivors/welcome_new_survivors</code><span class="scn-plus">+</span><code>survivors_intro</code></div>
+    <p>Welcome flow for new survivors.</p>
+  </div>
+  <div class="scn-card">
+    <div class="scn-card-ids"><code>main_city/check_main_city</code></div>
+    <p>Periodic main-city overview plus event-block tile scan (4 slots).</p>
+  </div>
+</div>
 
 <h2 id="heroes" class="scn-h scn-accent-violet">Heroes <span class="scn-count">8</span></h2>
 
-| Scenario | What it does |
-|:---------|:-------------|
-| `click_heroes` + `scan_heroes_grid` | Drain every red dot on the heroes screen until clean |
-| `hero.upgrade` + `upgrade/level_up_{hero}` | Auto-level heroes |
-| `upgrade/skill_up_{hero}` | Auto-skill heroes |
-| `upgrade/star_tier_up_{hero}` | Promote heroes (star tier) |
-| `{hero}.recruit` | Per-hero recruitment flow |
-| `read_hero_wiki` + `heroes.{hero}.wiki` | Sync hero metadata from the in-game wiki |
-| `sync_hero_unit` | Sync hero unit data into local state |
-| `pets/pets.pet_skill` | Pet skill upgrades |
+<div class="not-content scn-cards scn-tint-violet">
+  <div class="scn-card">
+    <div class="scn-card-ids"><code>click_heroes</code><span class="scn-plus">+</span><code>scan_heroes_grid</code></div>
+    <p>Drain every red dot on the heroes screen until clean.</p>
+  </div>
+  <div class="scn-card">
+    <div class="scn-card-ids"><code>hero.upgrade</code><span class="scn-plus">+</span><code>upgrade/level_up_&#123;hero&#125;</code></div>
+    <p>Auto-level heroes.</p>
+  </div>
+  <div class="scn-card">
+    <div class="scn-card-ids"><code>upgrade/skill_up_&#123;hero&#125;</code></div>
+    <p>Auto-skill heroes.</p>
+  </div>
+  <div class="scn-card">
+    <div class="scn-card-ids"><code>upgrade/star_tier_up_&#123;hero&#125;</code></div>
+    <p>Promote heroes by star tier.</p>
+  </div>
+  <div class="scn-card">
+    <div class="scn-card-ids"><code>&#123;hero&#125;.recruit</code></div>
+    <p>Per-hero recruitment flow.</p>
+  </div>
+  <div class="scn-card">
+    <div class="scn-card-ids"><code>read_hero_wiki</code><span class="scn-plus">+</span><code>heroes.&#123;hero&#125;.wiki</code></div>
+    <p>Sync hero metadata from the in-game wiki.</p>
+  </div>
+  <div class="scn-card">
+    <div class="scn-card-ids"><code>sync_hero_unit</code></div>
+    <p>Sync hero unit data into local state.</p>
+  </div>
+  <div class="scn-card">
+    <div class="scn-card-ids"><code>pets/pets.pet_skill</code></div>
+    <p>Pet skill upgrades.</p>
+  </div>
+</div>
 
 <h2 id="shop" class="scn-h scn-accent-pink">Shop · Daily and weekly <span class="scn-count">10</span></h2>
 
-| Scenario | What it does |
-|:---------|:-------------|
-| `shop.daily_deals` | Daily deals tab |
-| `shop.weekly_monthly_cards` | Weekly + monthly cards |
-| `shop.artisans_trove` | Artisans Trove |
-| `shop.construction_queue` | Construction Queue offers |
-| `shop.dawn_fund` + `shop.dawn_market` | Dawn fund / market |
-| `shop.event` | Event shop |
-| `shop.get_gems` | Get-gems flow |
-| `shop.mix_match` | Mix & Match |
-| `shop.regular_pack` | Regular packs |
-| `shop.tab.advance` | Advance tab navigation |
+<div class="not-content scn-cards scn-tint-pink">
+  <div class="scn-card">
+    <div class="scn-card-ids"><code>shop.daily_deals</code></div>
+    <p>Daily deals tab.</p>
+  </div>
+  <div class="scn-card">
+    <div class="scn-card-ids"><code>shop.weekly_monthly_cards</code></div>
+    <p>Weekly and monthly cards.</p>
+  </div>
+  <div class="scn-card">
+    <div class="scn-card-ids"><code>shop.artisans_trove</code></div>
+    <p>Artisans Trove.</p>
+  </div>
+  <div class="scn-card">
+    <div class="scn-card-ids"><code>shop.construction_queue</code></div>
+    <p>Construction Queue offers.</p>
+  </div>
+  <div class="scn-card">
+    <div class="scn-card-ids"><code>shop.dawn_fund</code><span class="scn-plus">+</span><code>shop.dawn_market</code></div>
+    <p>Dawn fund and Dawn market.</p>
+  </div>
+  <div class="scn-card">
+    <div class="scn-card-ids"><code>shop.event</code></div>
+    <p>Event shop.</p>
+  </div>
+  <div class="scn-card">
+    <div class="scn-card-ids"><code>shop.get_gems</code></div>
+    <p>Get-gems flow.</p>
+  </div>
+  <div class="scn-card">
+    <div class="scn-card-ids"><code>shop.mix_match</code></div>
+    <p>Mix &amp; Match.</p>
+  </div>
+  <div class="scn-card">
+    <div class="scn-card-ids"><code>shop.regular_pack</code></div>
+    <p>Regular packs.</p>
+  </div>
+  <div class="scn-card">
+    <div class="scn-card-ids"><code>shop.tab.advance</code></div>
+    <p>Advance tab navigation.</p>
+  </div>
+</div>
 
 <h2 id="deals" class="scn-h scn-accent-cyan">Deals · Limited-time <span class="scn-count">11</span></h2>
 
-| Scenario | What it does |
-|:---------|:-------------|
-| `deals.bank` | Bank |
-| `deals.dead_shot` | Dead Shot |
-| `deals.deals` | Generic deals tab |
-| `deals.endless_wayfarer` | Endless Wayfarer |
-| `deals.first_purchase` | First-purchase deal |
-| `deals.hall_of_heroes` + `hall_of_heroes.witness` | Hall of Heroes |
-| `deals.hero_rally` | Hero Rally |
-| `deals.home_and_beyond` | Home and Beyond |
-| `deals.journey_treasures` | Journey Treasures |
-| `deals.sign_in` | Sign-in deal |
-| `deals.tundra_trading_station` | Tundra Trading Station |
+<div class="not-content scn-cards scn-tint-cyan">
+  <div class="scn-card">
+    <div class="scn-card-ids"><code>deals.bank</code></div>
+    <p>Bank.</p>
+  </div>
+  <div class="scn-card">
+    <div class="scn-card-ids"><code>deals.dead_shot</code></div>
+    <p>Dead Shot.</p>
+  </div>
+  <div class="scn-card">
+    <div class="scn-card-ids"><code>deals.deals</code></div>
+    <p>Generic deals tab.</p>
+  </div>
+  <div class="scn-card">
+    <div class="scn-card-ids"><code>deals.endless_wayfarer</code></div>
+    <p>Endless Wayfarer.</p>
+  </div>
+  <div class="scn-card">
+    <div class="scn-card-ids"><code>deals.first_purchase</code></div>
+    <p>First-purchase deal.</p>
+  </div>
+  <div class="scn-card">
+    <div class="scn-card-ids"><code>deals.hall_of_heroes</code><span class="scn-plus">+</span><code>hall_of_heroes.witness</code></div>
+    <p>Hall of Heroes.</p>
+  </div>
+  <div class="scn-card">
+    <div class="scn-card-ids"><code>deals.hero_rally</code></div>
+    <p>Hero Rally.</p>
+  </div>
+  <div class="scn-card">
+    <div class="scn-card-ids"><code>deals.home_and_beyond</code></div>
+    <p>Home and Beyond.</p>
+  </div>
+  <div class="scn-card">
+    <div class="scn-card-ids"><code>deals.journey_treasures</code></div>
+    <p>Journey Treasures.</p>
+  </div>
+  <div class="scn-card">
+    <div class="scn-card-ids"><code>deals.sign_in</code></div>
+    <p>Sign-in deal.</p>
+  </div>
+  <div class="scn-card">
+    <div class="scn-card-ids"><code>deals.tundra_trading_station</code></div>
+    <p>Tundra Trading Station.</p>
+  </div>
+</div>
 
 <h2 id="ads" class="scn-h scn-accent-rose">Ads · Auto-claim <span class="scn-count">3</span></h2>
 
-{/* Compact mini-cards: tinted icon + scenario pill + one-liner. The filter
-    script indexes each card as an item (children of the grid div). */}
-<div class="not-content scn-minis">
-  <div class="scn-mini scn-mini-rose">
-    <span class="scn-mini-icon">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3 11 18-5v12L3 14v-3z"/><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/></svg>
-    </span>
-    <div class="scn-mini-body">
-      <code>ads_rookie_value_pack</code>
-      <p>Rookie Value Pack</p>
-    </div>
+<div class="not-content scn-cards scn-tint-rose">
+  <div class="scn-card">
+    <div class="scn-card-ids"><code>ads_rookie_value_pack</code></div>
+    <p>Auto-claim the Rookie Value Pack ad reward.</p>
   </div>
-  <div class="scn-mini scn-mini-rose">
-    <span class="scn-mini-icon">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="6 3 20 12 6 21 6 3"/></svg>
-    </span>
-    <div class="scn-mini-body">
-      <code>ads_natalia</code>
-      <p>Natalia</p>
-    </div>
+  <div class="scn-card">
+    <div class="scn-card-ids"><code>ads_natalia</code></div>
+    <p>Auto-claim the Natalia ad reward.</p>
   </div>
-  <div class="scn-mini scn-mini-rose">
-    <span class="scn-mini-icon">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 12V8a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h12"/><path d="M2 9h20"/><circle cx="19" cy="17" r="3"/><path d="m21.5 19.5 1.5 1.5"/></svg>
-    </span>
-    <div class="scn-mini-body">
-      <code>tap_ads_legend_transcend_pack</code>
-      <p>Legend Transcend Pack</p>
-    </div>
+  <div class="scn-card">
+    <div class="scn-card-ids"><code>tap_ads_legend_transcend_pack</code></div>
+    <p>Auto-claim the Legend Transcend Pack ad reward.</p>
   </div>
 </div>
 
@@ -317,14 +471,32 @@ Whiteout Survival has full scenario coverage today: daily loops, weekly events, 
 
 <h2 id="popups" class="scn-h scn-accent-amber">Popups & onboarding <span class="scn-count">6</span></h2>
 
-| Scenario | What it does |
-|:---------|:-------------|
-| `onboarding.click.skip_button` | Skip tutorial buttons |
-| `onboarding.click.button.tap_anywhere_to_exit` | Dismiss "tap anywhere" prompts |
-| `onboarding.click.{pointer}` | Dismiss tutorial hand-pointers |
-| `popup/dismiss_unknown_popup` | Catch-all dismisser for unrecognized popups |
-| `rewards/exit_rewards_popup` | Confirm / claim / close rewards popup |
-| `who_i_am` | "Where am I?" / identity-recovery prompt |
+<div class="not-content scn-cards scn-tint-amber">
+  <div class="scn-card">
+    <div class="scn-card-ids"><code>onboarding.click.skip_button</code></div>
+    <p>Skip tutorial buttons.</p>
+  </div>
+  <div class="scn-card">
+    <div class="scn-card-ids"><code>onboarding.click.button.tap_anywhere_to_exit</code></div>
+    <p>Dismiss "tap anywhere" prompts.</p>
+  </div>
+  <div class="scn-card">
+    <div class="scn-card-ids"><code>onboarding.click.&#123;pointer&#125;</code></div>
+    <p>Dismiss tutorial hand-pointers.</p>
+  </div>
+  <div class="scn-card">
+    <div class="scn-card-ids"><code>popup/dismiss_unknown_popup</code></div>
+    <p>Catch-all dismisser for unrecognized popups.</p>
+  </div>
+  <div class="scn-card">
+    <div class="scn-card-ids"><code>rewards/exit_rewards_popup</code></div>
+    <p>Confirm / claim / close the rewards popup.</p>
+  </div>
+  <div class="scn-card">
+    <div class="scn-card-ids"><code>who_i_am</code></div>
+    <p>"Where am I?" / identity-recovery prompt.</p>
+  </div>
+</div>
 
 </div>
 
@@ -369,16 +541,22 @@ Game-agnostic infrastructure used by every scenario above.
     var nav = document.getElementById('scenario-jump');
     if (!container || !nav) return;
 
-    // Build per-section index: heading + content blocks + leaf items.
+    // Turn each multi-card grid into a swipeable stack (progressive enhancement).
+    var stackMap = initStacks(container);
+
+    // Build per-section index: heading + content blocks + leaf items / stack.
     var headings = container.querySelectorAll('h2.scn-h');
     var sections = [];
     headings.forEach(function (h2) {
       var blocks = [];
       var items = [];
+      var stack = null;
       var node = h2.nextElementSibling;
       while (node && node.tagName !== 'H2') {
         blocks.push(node);
-        if (node.tagName === 'TABLE') {
+        if (stackMap.has(node)) {
+          stack = stackMap.get(node);
+        } else if (node.tagName === 'TABLE') {
           node.querySelectorAll('tbody tr').forEach(function (tr) { items.push(tr); });
         } else {
           var children = node.children;
@@ -386,9 +564,11 @@ Game-agnostic infrastructure used by every scenario above.
         }
         node = node.nextElementSibling;
       }
-      sections.push({ heading: h2, blocks: blocks, items: items });
+      sections.push({ heading: h2, blocks: blocks, items: items, stack: stack });
     });
-    var totalItems = sections.reduce(function (n, s) { return n + s.items.length; }, 0);
+    var totalItems = sections.reduce(function (n, s) {
+      return n + (s.stack ? s.stack.total() : s.items.length);
+    }, 0);
 
     initFilter(sections, totalItems);
     initScrollSpy(sections, nav);
@@ -531,6 +711,76 @@ Game-agnostic infrastructure used by every scenario above.
     if (reduceMotion) { render(); } else { restart(); }
   }
 
+  // ---- Scenario stacks (3D card decks that fan out on hover / focus / tap) ----
+  function initStacks(container) {
+    var map = new Map();
+    var grids = container.querySelectorAll('.scn-cards');
+    Array.prototype.forEach.call(grids, function (grid) {
+      var cards = Array.prototype.filter.call(grid.children, function (c) {
+        return c.classList && c.classList.contains('scn-card');
+      });
+      // A single-card section stays a plain card — nothing to stack.
+      if (cards.length < 2) return;
+      map.set(grid, makeStack(grid, cards));
+    });
+    return map;
+  }
+
+  function makeStack(grid, cards) {
+    grid.classList.add('scn-stack');
+    grid.style.setProperty('--n', cards.length);
+    cards.forEach(function (card, i) { card.style.setProperty('--i', i + 1); });
+    grid.setAttribute('tabindex', '0');
+    grid.setAttribute('role', 'group');
+    grid.setAttribute('aria-label', 'Scenario deck — expand to see all ' + cards.length);
+    grid.setAttribute('aria-expanded', 'false');
+
+    // Paint the collapsed deck first, then enable transitions so only the
+    // hover/open fan animates (not the initial collapse). Double rAF defers
+    // until after the resting state has been committed to the screen.
+    requestAnimationFrame(function () {
+      requestAnimationFrame(function () { grid.classList.add('scn-ready'); });
+    });
+
+    function setOpen(open) {
+      grid.classList.toggle('is-open', open);
+      grid.setAttribute('aria-expanded', open ? 'true' : 'false');
+    }
+
+    // Tap toggles the deck; tapping a code-pill copies it and keeps it open.
+    grid.addEventListener('click', function (e) {
+      if (e.target.closest('code')) { setOpen(true); return; }
+      setOpen(!grid.classList.contains('is-open'));
+    });
+    grid.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        setOpen(!grid.classList.contains('is-open'));
+      }
+    });
+
+    function applyFilter(q) {
+      var visible = 0;
+      cards.forEach(function (card) {
+        clearMarks(card);
+        var match = !q || (card.textContent || '').toLowerCase().indexOf(q) !== -1;
+        card.classList.toggle('is-filtered-out', !match);
+        if (match) {
+          visible++;
+          if (q) markMatches(card, q);
+        }
+      });
+      // An active query expands the deck so every match is visible at once.
+      setOpen(!!q);
+      return visible;
+    }
+
+    return {
+      total: function () { return cards.length; },
+      applyFilter: applyFilter
+    };
+  }
+
   // ---- Toast (shared) ----
   var toastEl;
   function showToast(text) {
@@ -596,17 +846,24 @@ Game-agnostic infrastructure used by every scenario above.
       var q = input.value.trim().toLowerCase();
       var visibleTotal = 0;
       sections.forEach(function (s) {
-        var visible = 0;
-        s.items.forEach(function (el) {
-          clearMarks(el);
-          var match = !q || (el.textContent || '').toLowerCase().indexOf(q) !== -1;
-          el.hidden = !match;
-          if (match) {
-            visible++;
-            if (q) markMatches(el, q);
-          }
-        });
-        var sectionHidden = s.items.length > 0 && visible === 0;
+        var visible;
+        if (s.stack) {
+          // The stack owns its own cards (mark + narrow the deck to matches).
+          visible = s.stack.applyFilter(q);
+        } else {
+          visible = 0;
+          s.items.forEach(function (el) {
+            clearMarks(el);
+            var match = !q || (el.textContent || '').toLowerCase().indexOf(q) !== -1;
+            el.hidden = !match;
+            if (match) {
+              visible++;
+              if (q) markMatches(el, q);
+            }
+          });
+        }
+        var sectionTotal = s.stack ? s.stack.total() : s.items.length;
+        var sectionHidden = sectionTotal > 0 && visible === 0;
         s.heading.hidden = sectionHidden;
         s.blocks.forEach(function (b) { b.hidden = sectionHidden; });
         visibleTotal += visible;
@@ -649,7 +906,7 @@ Game-agnostic infrastructure used by every scenario above.
 
   // ---- Click-to-copy on scenario name pills ----
   function initClipboard(container) {
-    var codes = container.querySelectorAll('td:first-child code');
+    var codes = container.querySelectorAll('td:first-child code, .scn-card code, .scn-mini-body code');
     codes.forEach(function (c) {
       c.title = 'Click to copy';
       c.addEventListener('click', function () {

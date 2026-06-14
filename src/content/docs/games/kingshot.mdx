@@ -73,14 +73,36 @@ The autopilot engine is game-agnostic — scenarios, overlay rules, and the DSL 
 
 **In-game automation: basic development started.** Kingshot now has real ADB-captured references, region crops, navigation routes, analyzer rules, and DSL scenarios for the first everyday flows.
 
-Current authored modules include:
+Current authored modules — hover any deck to fan it open:
 
-- **Welcome back** — detects the offline-income welcome dialog and confirms it back to `main_city`.
-- **Main city** — navigation zones for conquest, heroes, backpack, shop, world, mail, governor profile, VIP, and event icon search.
-- **Mail** — tab red-dot detection, mail reward claiming, long-letter claim search with scroll retry, claim-all rewards popup handling, and delete confirmation.
-- **Rewards** — generic `Rewards` popup detection and tap-anywhere exit.
-- **VIP** — daily claim button, VIP chest/add red-dot triggers, Increase Level `Use` loop, and close/back routes.
-- **Fishing Tournament** — event entry and claim scenario ported into the Kingshot tree.
+<h2 id="authored-modules" class="scn-h scn-accent-emerald">Authored modules <span class="scn-count">6</span></h2>
+
+<div class="not-content scn-cards scn-tint-emerald">
+  <div class="scn-card">
+    <div class="scn-card-ids"><code>core/welcome_back</code></div>
+    <p>Confirms the offline-income welcome dialog back to main_city.</p>
+  </div>
+  <div class="scn-card">
+    <div class="scn-card-ids"><code>main_city/heartbeat</code></div>
+    <p>Navigation zones for conquest, heroes, shop, mail, VIP, world and more.</p>
+  </div>
+  <div class="scn-card">
+    <div class="scn-card-ids"><code>mail.claim.&#123;tab&#125;</code></div>
+    <p>Claim mail rewards: red-dot tabs, long-letter scroll, claim-all, delete.</p>
+  </div>
+  <div class="scn-card">
+    <div class="scn-card-ids"><code>rewards/exit_rewards_popup</code></div>
+    <p>Detect the generic Rewards popup and tap-anywhere to exit.</p>
+  </div>
+  <div class="scn-card">
+    <div class="scn-card-ids"><code>vip.daily</code></div>
+    <p>Daily claim, chest red-dots, Increase Level loop, close/back routes.</p>
+  </div>
+  <div class="scn-card">
+    <div class="scn-card-ids"><code>event.fishing_tournament</code></div>
+    <p>Event entry and reward claim, ported into the Kingshot tree.</p>
+  </div>
+</div>
 
 This is not full coverage yet. The next useful chunks are expanding daily loops, shop/deals, heroes, backpack usage, and more event modules from real Kingshot screens.
 
@@ -99,3 +121,80 @@ We have public docs for the full authoring flow already:
 We'll pair on the labeling pass and review your first scenarios. There is now enough Kingshot structure in the repo to copy patterns instead of starting from an empty game tree.
 
 The [Whiteout Survival coverage](/autopilot-page/games/whiteout-survival/) is still the template for what "fully covered" looks like — Kingshot is now on that path, just much earlier in the curve.
+
+{/* Card-deck enhancement: turn the .scn-cards grid into the same 3D stack used
+    on the Whiteout Survival page (hover / focus / tap to fan open). Self-contained
+    — reuses the global .scn-stack styles from src/styles/wos.css. */}
+<script is:inline>{`
+(function () {
+  function init() {
+    var grids = document.querySelectorAll('.scn-cards');
+    Array.prototype.forEach.call(grids, function (grid) {
+      var cards = Array.prototype.filter.call(grid.children, function (c) {
+        return c.classList && c.classList.contains('scn-card');
+      });
+      if (cards.length >= 2) makeStack(grid, cards);
+    });
+    initClipboard();
+  }
+
+  function makeStack(grid, cards) {
+    grid.classList.add('scn-stack');
+    grid.style.setProperty('--n', cards.length);
+    cards.forEach(function (card, i) { card.style.setProperty('--i', i + 1); });
+    grid.setAttribute('tabindex', '0');
+    grid.setAttribute('role', 'group');
+    grid.setAttribute('aria-label', 'Module deck — expand to see all ' + cards.length);
+    grid.setAttribute('aria-expanded', 'false');
+
+    requestAnimationFrame(function () {
+      requestAnimationFrame(function () { grid.classList.add('scn-ready'); });
+    });
+
+    function setOpen(open) {
+      grid.classList.toggle('is-open', open);
+      grid.setAttribute('aria-expanded', open ? 'true' : 'false');
+    }
+    grid.addEventListener('click', function (e) {
+      if (e.target.closest('code')) { setOpen(true); return; }
+      setOpen(!grid.classList.contains('is-open'));
+    });
+    grid.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        setOpen(!grid.classList.contains('is-open'));
+      }
+    });
+  }
+
+  var toastEl;
+  function showToast(text) {
+    if (!toastEl) {
+      toastEl = document.createElement('div');
+      toastEl.className = 'scn-toast';
+      toastEl.setAttribute('role', 'status');
+      document.body.appendChild(toastEl);
+    }
+    toastEl.textContent = text;
+    toastEl.classList.add('is-shown');
+    clearTimeout(toastEl._t);
+    toastEl._t = setTimeout(function () { toastEl.classList.remove('is-shown'); }, 1500);
+  }
+  function initClipboard() {
+    document.querySelectorAll('.scn-card code').forEach(function (c) {
+      c.title = 'Click to copy';
+      c.addEventListener('click', function () {
+        var t = (c.textContent || '').trim();
+        if (!t || !navigator.clipboard) return;
+        navigator.clipboard.writeText(t).then(function () { showToast('Copied ' + t); });
+      });
+    });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+})();
+`}</script>

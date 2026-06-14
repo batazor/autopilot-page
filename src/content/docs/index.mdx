@@ -21,7 +21,7 @@ hero:
       variant: minimal
 ---
 
-import { CardGrid, LinkCard } from '@astrojs/starlight/components';
+import { CardGrid, LinkCard, Card } from '@astrojs/starlight/components';
 
 {/* WebGL backdrop: parallax snowfall + a per-theme sky show behind the hero.
     Dark theme: aurora borealis + bright additive snow. Light theme: a soft
@@ -246,14 +246,34 @@ import { CardGrid, LinkCard } from '@astrojs/starlight/components';
 The operator UI is designed to recover from the common Docker + emulator failure modes without
 editing SQLite or shelling into Redis:
 
-- **Device management** can scan live ADB ports, add a device manually when scan misses it, remove
-  stale devices, and override capture/input backends per device.
-- **Bot control** reflects fleet workers running inside Docker, so the sidebar does not stay
-  "Stopped" when a worker is already alive.
-- **Click approvals** show captured frames, rolling screenshots, and live scrcpy video when the
-  device backend supports it.
-- **Mail scenarios** read tab badges from the mail tab strip, so messages hidden behind another tab
-  can push the right claim scenario.
+<CardGrid>
+  <Card title="Device management" icon="laptop">
+    Scan live ADB ports, add a device manually when the scan misses it, remove stale devices, and override capture/input backends per device.
+  </Card>
+  <Card title="Bot control" icon="rocket">
+    Reflects fleet workers running inside Docker, so the sidebar doesn't stay "Stopped" when a worker is already alive.
+  </Card>
+  <Card title="Click approvals" icon="approve-check">
+    Captured frames, rolling screenshots, and live scrcpy video when the device backend supports it.
+  </Card>
+  <Card title="Mail scenarios" icon="list-format">
+    Read tab badges from the mail tab strip, so messages hidden behind another tab still push the right claim scenario.
+  </Card>
+</CardGrid>
+
+## Plays the long game
+
+Most bots just repeat a daily checklist. Autopilot also plans around *when* things happen and
+*what* they cost:
+
+<CardGrid>
+  <Card title="Event-calendar look-ahead" icon="open-book">
+    Reads the in-game event calendar (what's live today and what's coming over the next few days) and plans around it — holding resources for tonight's event instead of burning them this afternoon. Events are identical for everyone on a state, so one bot reads the calendar and the whole fleet on that state reuses the result.
+  </Card>
+  <Card title="Stamina budgeting" icon="setting">
+    A per-account planner spreads regenerating stamina across competing uses (intel events, beast hunts, Joe bandit waves), reserves it for the highest-value event windows, and spends it down before the cap so none is wasted to overflow.
+  </Card>
+</CardGrid>
 
 ## Pick a game
 

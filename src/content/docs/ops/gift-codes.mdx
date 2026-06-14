@@ -7,6 +7,7 @@ sidebar:
 ---
 
 import { Image } from 'astro:assets';
+import { Card, CardGrid } from '@astrojs/starlight/components';
 import giftCodesScreenshot from '../../../assets/gift_codes.png';
 
 One of the most popular features. Autopilot keeps a game-scoped registry of Century Game promo codes in `db/state/state.db`, scrapes new ones from configured sources, and redeems them against every configured account. The dashboard page is your single view of "which codes succeeded for which accounts."
@@ -32,10 +33,20 @@ One of the most popular features. Autopilot keeps a game-scoped registry of Cent
 
 The Gift codes page has separate tabs for:
 
-- **Whiteout Survival** — public WOS code sources plus Century's WOS redeem API.
-- **Kingshot** — Kingshot code aggregator plus Century's Kingshot redeem API.
-- **WOS Beta** — code discovery from a Discord channel, stored under `wos_beta`; apply manually inside the beta game client for the currently logged-in player.
-- **Kingshot Beta** — code discovery from a Discord channel, stored under `kingshot_beta`; apply manually inside the beta game client for the currently logged-in player.
+<CardGrid>
+  <Card title="Whiteout Survival" icon="list-format">
+    Public WOS code sources plus Century's WOS redeem API.
+  </Card>
+  <Card title="Kingshot" icon="list-format">
+    Kingshot code aggregator plus Century's Kingshot redeem API.
+  </Card>
+  <Card title="WOS Beta" icon="magnifier">
+    Code discovery from a Discord channel, stored under `wos_beta`. Apply manually inside the beta game client for the logged-in player.
+  </Card>
+  <Card title="Kingshot Beta" icon="magnifier">
+    Code discovery from a Discord channel, stored under `kingshot_beta`. Apply manually inside the beta game client for the logged-in player.
+  </Card>
+</CardGrid>
 
 Beta tabs are discovery/manual-apply only. They still show discovered codes in the same table, but **Redeem now** and the external-account panel are hidden there because beta code application belongs to the in-game interface and only affects the current beta player.
 
@@ -82,7 +93,7 @@ Manual gift code redemption is the single biggest time sink for a Whiteout Survi
     Beyond the accounts the bot owns, the redeem loop can target any list of player IDs (FIDs) you paste in — alliance members, partner farms, secondary accounts on other servers, friends who don't run the bot themselves. Same matrix view, same per-code/per-account status, same retries.
   </p>
   <p class="m-0 text-sm text-[var(--sl-color-gray-3)]">
-    Bulk-paste accepts <code>fid</code> or <code>fid label</code>, one per line. Scope is per game — WOS and Kingshot have independent lists. License feature flag: <code>gift_codes.external_accounts</code>.
+    Bulk-paste accepts <code>fid</code> or <code>fid label</code>, one per line. Scope is per game — WOS and Kingshot have independent lists. Requires an <strong>R3</strong> or higher license.
   </p>
 </div>
 

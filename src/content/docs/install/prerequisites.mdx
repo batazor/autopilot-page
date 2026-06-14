@@ -37,27 +37,63 @@ The exact prerequisites depend on what you're running. Pick the platform you'll 
 
 <Tabs syncKey="os">
   <TabItem label="macOS">
-    | Requirement | Version | Notes |
-    |:------------|:--------|:------|
-    | [Docker Desktop](https://docs.docker.com/desktop/install/mac-install/) | latest | Toggle **Settings → Resources → Network → Enable host networking** (beta). Without this, the bot container can't talk to the host's `adb`. |
-    | [BlueStacks](https://www.bluestacks.com/) | `5` or newer | Apple-silicon and Intel both supported. |
-    | [Android Platform Tools](https://developer.android.com/tools/releases/platform-tools) (`adb`) | latest | `brew install --cask android-platform-tools` is fine. |
+    <CardGrid>
+      <LinkCard
+        title="Docker Desktop"
+        description="latest — enable Settings → Resources → Network → host networking (beta), or the bot container can't reach the host's adb."
+        href="https://docs.docker.com/desktop/install/mac-install/"
+      />
+      <LinkCard
+        title="BlueStacks 5+"
+        description="Apple-silicon and Intel both supported."
+        href="https://www.bluestacks.com/"
+      />
+      <LinkCard
+        title="Android Platform Tools (adb)"
+        description="latest — brew install --cask android-platform-tools is fine."
+        href="https://developer.android.com/tools/releases/platform-tools"
+      />
+    </CardGrid>
   </TabItem>
 
   <TabItem label="Linux">
-    | Requirement | Version | Notes |
-    |:------------|:--------|:------|
-    | [Docker Engine](https://docs.docker.com/engine/install/) + Compose v2 | latest | `network_mode: host` works out of the box, no extra toggles. |
-    | [BlueStacks](https://www.bluestacks.com/) | `5` or newer | Or any 720 × 1280 / 320 DPI Android emulator with ADB. |
-    | [Android Platform Tools](https://developer.android.com/tools/releases/platform-tools) (`adb`) | latest | Distro package (`apt install android-tools-adb` / `pacman -S android-tools`) is fine. |
+    <CardGrid>
+      <LinkCard
+        title="Docker Engine + Compose v2"
+        description="latest — network_mode: host works out of the box, no extra toggles."
+        href="https://docs.docker.com/engine/install/"
+      />
+      <LinkCard
+        title="BlueStacks 5+"
+        description="Or any 720 × 1280 / 320 DPI Android emulator with ADB."
+        href="https://www.bluestacks.com/"
+      />
+      <LinkCard
+        title="Android Platform Tools (adb)"
+        description="latest — apt install android-tools-adb / pacman -S android-tools."
+        href="https://developer.android.com/tools/releases/platform-tools"
+      />
+    </CardGrid>
   </TabItem>
 
   <TabItem label="Windows">
-    | Requirement | Version | Notes |
-    |:------------|:--------|:------|
-    | [Docker Desktop](https://docs.docker.com/desktop/install/windows-install/) | latest | Requires WSL2. Toggle **Settings → Resources → Network → Enable host networking** (beta). |
-    | [BlueStacks](https://www.bluestacks.com/) | `5` or newer | **Settings → Advanced → Android Debug Bridge → Enabled.** |
-    | [Android Platform Tools](https://developer.android.com/tools/releases/platform-tools) (`adb`) | latest | Unzip to e.g. `%LOCALAPPDATA%\Android\Sdk\platform-tools\`, then add to `PATH` (*System Properties → Environment Variables*). Some AVs flag `adb.exe` — whitelist the folder. |
+    <CardGrid>
+      <LinkCard
+        title="Docker Desktop"
+        description="latest — requires WSL2; enable Settings → Resources → Network → host networking (beta)."
+        href="https://docs.docker.com/desktop/install/windows-install/"
+      />
+      <LinkCard
+        title="BlueStacks 5+"
+        description="Settings → Advanced → Android Debug Bridge → Enabled."
+        href="https://www.bluestacks.com/"
+      />
+      <LinkCard
+        title="Android Platform Tools (adb)"
+        description="latest — unzip, add to PATH, and whitelist adb.exe if your AV flags it."
+        href="https://developer.android.com/tools/releases/platform-tools"
+      />
+    </CardGrid>
   </TabItem>
 </Tabs>
 

@@ -31,14 +31,7 @@ docker compose -f docker-compose.prod.yml --profile full up -d --pull always   #
 docker compose -f docker-compose.prod.yml up -d --pull always
 ```
 
-Public images are published as `latest` only. `WOS_IMAGE_TAG` is still available in the compose file
-for private forks that publish their own tags, but the official install path should stay on `latest`.
-
-### Using a fork's images
-
-```sh
-WOS_REGISTRY=ghcr.io/your-fork docker compose -f docker-compose.prod.yml up -d --pull always
-```
+Public images are published as `latest` only — keep your install on `latest`.
 
 ## How the container reaches the host's ADB
 

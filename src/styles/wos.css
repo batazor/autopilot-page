@@ -441,6 +441,209 @@ html { scroll-behavior: smooth; }
 /* A lone card describing a whole domain can stretch the full row. */
 .scn-mini-wide { grid-column: 1 / -1; }
 
+/* ---------------------------------------------------------------------------
+   Scenario cards (used on /games/whiteout-survival)
+
+   Compact card grid that replaces the dense per-domain tables. Each card is a
+   set of scenario code-pills + a description, with a colored left border keyed
+   to the section accent. More scannable than table rows and roomier for a
+   longer write-up when a scenario deserves one. Cards index into the page
+   filter exactly like the mini-cards (grid children = filterable items). Tint
+   classes (.scn-tint-*) mirror the section heading accents. */
+.scn-cards {
+  display: grid;
+  gap: 0.7rem;
+  grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
+  margin-block: 1rem 1.5rem;
+}
+
+.scn-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  padding: 0.8rem 0.95rem;
+  border: 1px solid var(--sl-color-hairline-shade);
+  border-left: 3px solid var(--scn-card-tint, var(--sl-color-accent));
+  border-radius: 10px;
+  background: var(--sl-color-bg-nav);
+  transition: transform var(--scn-spring-hover), box-shadow 0.25s ease, border-color 0.25s ease;
+}
+.scn-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.18);
+  border-color: var(--scn-card-tint, var(--sl-color-accent));
+}
+
+/* Identifier row — one or more code-pills, joined by a muted "+". */
+.scn-card-ids {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.3rem 0.35rem;
+}
+.scn-card-ids .scn-plus {
+  color: var(--sl-color-gray-4);
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+.scn-card code {
+  background: var(--sl-color-bg-inline-code);
+  border: 1px solid var(--sl-color-hairline-shade);
+  color: var(--sl-color-text-accent);
+  padding: 0.1rem 0.45rem;
+  border-radius: 6px;
+  font-size: 0.78rem;
+  font-family: var(--sl-font-system-mono);
+  overflow-wrap: anywhere;
+  cursor: pointer;
+  transition: border-color 0.2s ease, background 0.2s ease, transform var(--scn-spring-hover);
+}
+.scn-card code:hover {
+  border-color: var(--scn-card-tint, var(--sl-color-accent));
+  background: var(--sl-color-accent-low);
+  transform: translateY(-1px);
+}
+.scn-card p {
+  margin: 0;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  color: var(--sl-color-gray-3);
+}
+
+/* Per-section tints — keyed to the matching h2.scn-accent-* heading. */
+.scn-tint-sky     { --scn-card-tint: #0ea5e9; }
+.scn-tint-emerald { --scn-card-tint: #10b981; }
+.scn-tint-amber   { --scn-card-tint: #f59e0b; }
+.scn-tint-violet  { --scn-card-tint: #8b5cf6; }
+.scn-tint-pink    { --scn-card-tint: #ec4899; }
+.scn-tint-cyan    { --scn-card-tint: #06b6d4; }
+.scn-tint-rose    { --scn-card-tint: #f43f5e; }
+
+@media (prefers-reduced-motion: reduce) {
+  .scn-card:hover,
+  .scn-card code:hover {
+    transform: none;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Scenario stacks (used on /games/whiteout-survival)
+
+   3D card deck that fans out on hover / focus / tap. Progressive enhancement:
+   the page script adds .scn-stack to each multi-card grid, tags cards with --i
+   (1-based) and the container with --n. Collapsed, the top four cards form a
+   depth stack (front = first child; the rest recede in Z, drift down, blur and
+   dim) and everything past the fourth tucks fully behind, so the deck stays
+   compact for any count. Open, every card spreads into a flat, staggered list.
+   Without JS the .scn-cards grid simply renders as a normal grid.
+   --------------------------------------------------------------------------- */
+.scn-cards.scn-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  margin-block: 1rem 1.5rem;
+  perspective: 1000px;
+  transform-style: preserve-3d;
+  padding-bottom: 1.25rem; /* room for the cards peeking out below the front */
+  cursor: pointer;
+}
+.scn-cards.scn-stack:focus-visible {
+  outline: 2px solid var(--sl-color-accent);
+  outline-offset: 4px;
+  border-radius: 12px;
+}
+
+.scn-cards.scn-stack > .scn-card {
+  height: 5.25rem;
+  justify-content: center;
+  overflow: hidden;
+  transform-origin: center top;
+}
+/* Transitions are enabled only after the deck has painted its resting state
+   (the script adds .scn-ready on the next frame), so the collapse doesn't
+   animate on load — only the hover/open fan does. */
+.scn-cards.scn-stack.scn-ready {
+  transition: gap 0.5s ease;
+}
+.scn-cards.scn-stack.scn-ready > .scn-card {
+  transition: transform 0.5s, opacity 0.5s, filter 0.5s, margin-top 0.5s;
+  transition-delay: calc(var(--i, 0) * 35ms);
+}
+/* Clamp descriptions so every collapsed card is one tidy row height. */
+.scn-cards.scn-stack > .scn-card p {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+}
+
+/* Collapsed depth layers (front → back). */
+.scn-cards.scn-stack > .scn-card:nth-child(1) {
+  transform: translateZ(0) translateY(0);
+  opacity: 1;
+  filter: none;
+  z-index: 4;
+}
+.scn-cards.scn-stack > .scn-card:nth-child(2) {
+  margin-top: -3.85rem;
+  transform: translateZ(-45px) translateY(10px);
+  opacity: 0.8;
+  filter: blur(1px);
+  z-index: 3;
+}
+.scn-cards.scn-stack > .scn-card:nth-child(3) {
+  margin-top: -3.85rem;
+  transform: translateZ(-90px) translateY(20px);
+  opacity: 0.55;
+  filter: blur(2px);
+  z-index: 2;
+}
+.scn-cards.scn-stack > .scn-card:nth-child(4) {
+  margin-top: -3.85rem;
+  transform: translateZ(-135px) translateY(30px);
+  opacity: 0.32;
+  filter: blur(3px);
+  z-index: 1;
+}
+/* Everything past the fourth tucks fully behind (adds no height). */
+.scn-cards.scn-stack > .scn-card:nth-child(n + 5) {
+  margin-top: -5.25rem;
+  transform: translateZ(-165px) translateY(34px);
+  opacity: 0;
+  filter: blur(3px);
+  pointer-events: none;
+}
+
+/* Expanded — hover (desktop), keyboard focus, touch toggle, or active filter. */
+.scn-cards.scn-stack:hover,
+.scn-cards.scn-stack:focus-within,
+.scn-cards.scn-stack:focus-visible,
+.scn-cards.scn-stack.is-open {
+  gap: 0.7rem;
+}
+.scn-cards.scn-stack:hover > .scn-card,
+.scn-cards.scn-stack:focus-within > .scn-card,
+.scn-cards.scn-stack:focus-visible > .scn-card,
+.scn-cards.scn-stack.is-open > .scn-card {
+  margin-top: 0;
+  transform: none;
+  opacity: 1;
+  filter: none;
+  pointer-events: auto;
+}
+
+/* Filtered-out cards leave the flow so the open deck shows only matches. */
+.scn-card.is-filtered-out {
+  display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scn-cards.scn-stack,
+  .scn-cards.scn-stack > .scn-card {
+    transition: opacity 0.2s ease;
+  }
+}
+
 /* Filter substring highlight — wrapped by the page script. */
 .scenario-tables mark.scn-mark {
   background: var(--sl-color-accent-low);
