@@ -21,6 +21,23 @@ export default defineConfig({
       favicon: '/favicon.png',
       customCss: ['./src/styles/tailwind.css', './src/styles/wos.css'],
       head: [
+        // Google Analytics 4.
+        {
+          tag: 'script',
+          attrs: {
+            async: true,
+            src: 'https://www.googletagmanager.com/gtag/js?id=G-H94ZVP57ER',
+          },
+        },
+        {
+          tag: 'script',
+          content: `
+window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+gtag('js', new Date());
+gtag('config', 'G-H94ZVP57ER');
+`,
+        },
         // Google Search Console ownership verification (meta-tag method —
         // works on the project subpath, unlike a root robots.txt/HTML file).
         {
