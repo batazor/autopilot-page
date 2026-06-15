@@ -84,6 +84,28 @@ body {
 }
 
 /* ---------------------------------------------------------------------------
+   Brand logo framing
+
+   The logo artwork has a baked white background (its wordmark is dark blue, so
+   it needs a light backing to stay legible on the dark theme). Left raw it
+   reads as a hard white rectangle against the aurora hero. Frame it as a
+   deliberate rounded "logo card" — rounded corners + a soft drop shadow — so
+   it looks intentional in both themes.
+   --------------------------------------------------------------------------- */
+.hero img {
+  border-radius: 1rem;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.28);
+}
+:root[data-theme="light"] .hero img {
+  box-shadow: 0 6px 20px rgba(15, 23, 42, 0.12);
+}
+
+/* Small header logo: just soften the corners. */
+.site-title img {
+  border-radius: 8px;
+}
+
+/* ---------------------------------------------------------------------------
    WebGL aurora + snowfall backdrop (landing page, see index.mdx)
 
    Fixed full-viewport canvas behind the content. Dark theme shows aurora +
