@@ -202,7 +202,7 @@ What's happening:
 
 1. **From the dashboard** — open the debug runner at <http://127.0.0.1:3000/debug-run>, pick your scenario from the dropdown, click **Run**. You see step-by-step decisions and which `match` / `cond` evaluated to what.
 2. **From the queue** — push it onto an instance's queue (sidebar → instance → push scenario). Better for testing the cron path.
-3. **Loader & startup validation** — `uv run pytest tests/test_scenario_loader_declarative.py tests/test_startup_validation.py -q` catches stale region references and schema errors before a live run.
+3. **Schema & startup validation** — `uv run pytest tests/tasks/test_dsl_schema.py tests/test_startup_validation.py -q` catches stale region references and schema errors before a live run.
 
 ## When something doesn't fire
 

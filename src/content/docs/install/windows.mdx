@@ -7,18 +7,43 @@ sidebar:
 ---
 
 import { Steps, Aside } from '@astrojs/starlight/components';
+import { Image } from 'astro:assets';
+import dockerHostNetworking from '../../../assets/docker-host-networking.png';
 
 :::note[One-time setup]
-1. **Docker Desktop** → **Settings → Resources → Network** → check **Enable host
-   networking** (beta), then **Apply & restart**. Required so the bot container
-   can reach the host's `adb` server on `127.0.0.1:5037`. (Docker Desktop needs
-   **WSL2**.)
+1. Install **Docker Desktop** with **WSL2**, then enable Host networking below.
 2. Install [Android Platform Tools](https://developer.android.com/tools/releases/platform-tools),
    unzip to e.g. `%LOCALAPPDATA%\Android\Sdk\platform-tools\`, and add that
    folder to your `PATH` (*System Properties → Environment Variables*).
 3. In **BlueStacks**: **Settings → Advanced → Android Debug Bridge** →
    **Enabled**.
 :::
+
+<details open class="screenshot-details">
+<summary>Docker Desktop — Settings → Resources → Network</summary>
+
+<Steps>
+
+1. Open **Docker Desktop → Settings**.
+
+2. Go to **Resources → Network**.
+
+3. Tick **Enable host networking** (beta), then **Apply & restart**.
+
+</Steps>
+
+The bot container needs this toggle to reach the host's `adb` server on
+`127.0.0.1:5037`.
+
+<figure class="screenshot-figure">
+  <Image
+    src={dockerHostNetworking}
+    alt="Docker Desktop settings with the Resources section and the Enable host networking checkbox on the Network tab."
+  />
+  <figcaption>Settings → Resources → Network → Enable host networking</figcaption>
+</figure>
+
+</details>
 
 ## 1. Verify the tools
 

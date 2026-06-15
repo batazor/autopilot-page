@@ -1046,3 +1046,25 @@ html { scroll-behavior: smooth; }
 @media (prefers-reduced-motion: reduce) {
   .sl-markdown-content .starlight-aside { transition: none; }
 }
+
+/* Framed screenshot with caption — e.g. the Docker host-networking guide.
+   Rounded border + soft shadow so annotated screenshots read as a figure,
+   not an inline image. */
+.sl-markdown-content .screenshot-figure {
+  margin: 1.75rem 0;
+}
+.sl-markdown-content .screenshot-figure img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border: 1px solid var(--sl-color-hairline);
+  border-radius: 8px;
+  box-shadow: 0 10px 30px -14px rgba(2, 6, 23, 0.55);
+  background: var(--sl-color-bg-nav);
+}
+.sl-markdown-content .screenshot-figure figcaption {
+  margin-top: 0.65rem;
+  text-align: center;
+  font-size: var(--sl-text-sm);
+  color: var(--sl-color-gray-3);
+}

@@ -7,12 +7,37 @@ sidebar:
 ---
 
 import { Steps, Tabs, TabItem, Aside } from '@astrojs/starlight/components';
+import { Image } from 'astro:assets';
+import dockerHostNetworking from '../../../assets/docker-host-networking.png';
 
 :::note[One-time setup — Host networking]
-Docker Desktop → **Settings → Resources → Network** → check **Enable host
-networking** (beta), then **Apply & restart**. Without it the bot container
-can't reach the host's `adb` server on `127.0.0.1:5037`.
+The bot container reaches the host's `adb` server through **host networking**.
+Turn it on once in Docker Desktop — without it the bot can't see the emulator on
+`127.0.0.1:5037`.
 :::
+
+<details open class="screenshot-details">
+<summary>Show me where to click — Settings → Resources → Network</summary>
+
+<Steps>
+
+1. Open **Settings** — the ⚙️ gear icon in Docker Desktop's top bar.
+
+2. Go to **Resources → Network**.
+
+3. Tick **Enable host networking**, then **Apply & restart**.
+
+</Steps>
+
+<figure class="screenshot-figure">
+  <Image
+    src={dockerHostNetworking}
+    alt="Docker Desktop settings with three marked steps: 1 the gear icon in the top bar, 2 the Resources section in the sidebar, 3 the Enable host networking checkbox on the Network tab."
+  />
+  <figcaption>Settings → Resources → Network → Enable host networking</figcaption>
+</figure>
+
+</details>
 
 ## 1. Install Docker Desktop + ADB
 
