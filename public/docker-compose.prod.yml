@@ -195,8 +195,10 @@ services:
       api:
         condition: service_healthy
     environment:
+      # Next bakes the /api proxy target into the image at build time
+      # (Dockerfile.web ARG WOS_API_URL → 127.0.0.1:8765 for host networking);
+      # the runtime env is never re-read, so there's no WOS_API_URL here.
       HOSTNAME: 127.0.0.1
-      WOS_API_URL: http://127.0.0.1:8765
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/overview').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
