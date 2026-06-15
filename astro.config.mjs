@@ -114,14 +114,13 @@ gtag('config', 'G-H94ZVP57ER');
           href: 'https://discord.gg/62twnzKG9',
         },
         {
-          icon: 'github',
-          label: 'GitHub',
-          href: 'https://github.com/batazor/autopilot-page',
+          // No public source repo — point at the docs site's setup section
+          // instead of the private GitHub repo.
+          icon: 'external',
+          label: 'Get started',
+          href: 'https://batazor.github.io/autopilot-page/install/prerequisites/',
         },
       ],
-      editLink: {
-        baseUrl: 'https://github.com/batazor/autopilot-page/edit/main/',
-      },
       sidebar: [
         {
           label: 'Start here',
