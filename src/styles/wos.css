@@ -1,0 +1,1059 @@
+/* Map the WhiteOut dashboard palette (web/app/styles/tokens.css) onto Starlight
+   tokens, so docs and the operator UI share a visual identity. Light/dark are
+   handled by Starlight's built-in toggle; dark is the default. */
+
+:root {
+  --sl-color-accent-low: #0c4a6e;
+  --sl-color-accent: #0ea5e9;
+  --sl-color-accent-high: #bae6fd;
+
+  --sl-color-white: #ffffff;
+  --sl-color-gray-1: #f3f6fa;
+  --sl-color-gray-2: #c8d4e4;
+  --sl-color-gray-3: #9eb0c8;
+  --sl-color-gray-4: #5c7290;
+  --sl-color-gray-5: #4d617a;
+  --sl-color-gray-6: #38465c;
+  --sl-color-gray-7: #2f3b4f;
+  --sl-color-black: #1c2433;
+
+  --sl-color-bg: #1c2433;
+  --sl-color-bg-nav: #171e2c;
+  --sl-color-bg-sidebar: #171e2c;
+  --sl-color-bg-inline-code: #222d3f;
+  --sl-color-bg-accent: #0ea5e9;
+
+  --sl-color-text: #f3f6fa;
+  --sl-color-text-accent: #7dd3fc;
+  --sl-color-text-invert: #1c2433;
+
+  --sl-color-hairline-light: #3f5269;
+  --sl-color-hairline: #4d617a;
+  --sl-color-hairline-shade: #2f3b4f;
+
+  --sl-font: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --sl-font-system-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+    monospace;
+}
+
+:root[data-theme="light"] {
+  --sl-color-accent-low: #e0f2fe;
+  --sl-color-accent: #0284c7;
+  --sl-color-accent-high: #0c4a6e;
+
+  --sl-color-white: #0f172a;
+  --sl-color-gray-1: #0f172a;
+  --sl-color-gray-2: #334155;
+  --sl-color-gray-3: #64748b;
+  --sl-color-gray-4: #94a3b8;
+  --sl-color-gray-5: #cbd5e1;
+  --sl-color-gray-6: #e2e8f0;
+  --sl-color-gray-7: #f1f5f9;
+  --sl-color-black: #ffffff;
+
+  --sl-color-bg: #f1f5f9;
+  --sl-color-bg-nav: #ffffff;
+  --sl-color-bg-sidebar: #ffffff;
+  --sl-color-bg-inline-code: #f8fafc;
+  --sl-color-bg-accent: #0284c7;
+
+  --sl-color-text: #0f172a;
+  --sl-color-text-accent: #0369a1;
+  --sl-color-text-invert: #ffffff;
+
+  --sl-color-hairline-light: #e2e8f0;
+  --sl-color-hairline: #cbd5e1;
+  --sl-color-hairline-shade: #f1f5f9;
+}
+
+/* Body background gradient inspired by the dashboard's --wos-body-grad-* tokens.
+   Subtle on dark, almost invisible on light — matches the operator UI tone. */
+:root {
+  --wos-body-grad-top: #222c3d;
+  --wos-body-grad-glow: rgba(56, 132, 220, 0.14);
+}
+:root[data-theme="light"] {
+  --wos-body-grad-top: #f8fafc;
+  --wos-body-grad-glow: rgba(14, 165, 233, 0.1);
+}
+
+body {
+  background:
+    radial-gradient(circle at 50% -10%, var(--wos-body-grad-glow), transparent 55%),
+    linear-gradient(180deg, var(--wos-body-grad-top), var(--sl-color-bg) 35%);
+}
+
+/* ---------------------------------------------------------------------------
+   Brand logo framing
+
+   The logo artwork has a baked white background (its wordmark is dark blue, so
+   it needs a light backing to stay legible on the dark theme). Left raw it
+   reads as a hard white rectangle against the aurora hero. Frame it as a
+   deliberate rounded "logo card" — rounded corners + a soft drop shadow — so
+   it looks intentional in both themes.
+   --------------------------------------------------------------------------- */
+.hero img {
+  border-radius: 1rem;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.28);
+}
+:root[data-theme="light"] .hero img {
+  box-shadow: 0 6px 20px rgba(15, 23, 42, 0.12);
+}
+
+/* Small header logo: just soften the corners. */
+.site-title img {
+  border-radius: 8px;
+}
+
+/* ---------------------------------------------------------------------------
+   WebGL aurora + snowfall backdrop (landing page, see index.mdx)
+
+   Fixed full-viewport canvas behind the content. Dark theme shows aurora +
+   bright snow; light theme crossfades (in-shader, u_lt uniform) to slate
+   daytime flakes with no aurora. Without WebGL the canvas is removed and
+   the body gradient below stays as-is.
+   --------------------------------------------------------------------------- */
+#wos-aurora {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 1.4s ease;
+}
+#wos-aurora.is-on {
+  opacity: 1;
+}
+
+/* Header theme toggle — small screens only (injected from astro.config head
+   script, appended to the site header next to search). Desktop keeps
+   Starlight's built-in select in the same header. */
+#wos-theme-fab {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 999px;
+  border: 1px solid var(--sl-color-hairline);
+  background: var(--sl-color-bg-nav);
+  color: var(--sl-color-text-accent);
+  cursor: pointer;
+  transition: transform var(--scn-spring-hover), border-color 0.2s ease;
+}
+#wos-theme-fab:hover {
+  border-color: var(--sl-color-accent);
+}
+#wos-theme-fab:active {
+  transform: scale(0.9);
+}
+#wos-theme-fab:focus-visible {
+  outline: 2px solid var(--sl-color-accent);
+  outline-offset: 2px;
+}
+@media (max-width: 50rem) {
+  #wos-theme-fab {
+    display: inline-flex;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Motion springs (https://motion.dev/docs/css)
+
+   Pre-generated with Motion's spring() → native CSS `<duration> linear(...)`
+   pairs, usable directly in transition/animation shorthands:
+     node -e "const {spring}=require('motion'); console.log(spring(0.3, 0.4))"
+   hover  = spring(0.3, 0.4)  — snappy, small overshoot (hover lifts, dots)
+   slide  = spring(0.45, 0.15) — calm settle (slideshow transforms)
+   --------------------------------------------------------------------------- */
+:root {
+  --scn-spring-hover: 650ms linear(0, 0.1162, 0.3622, 0.6245, 0.8404, 0.9868,
+    1.0661, 1.0937, 1.0885, 1.0672, 1.042, 1.02, 1.0043, 0.9952, 0.9914,
+    0.9913, 0.993, 0.9954, 0.9976, 0.9993, 1.0003, 1);
+  --scn-spring-slide: 800ms linear(0, 0.0523, 0.1708, 0.314, 0.4571, 0.5866,
+    0.6963, 0.7848, 0.8534, 0.9047, 0.9416, 0.9673, 0.9843, 0.9951, 1.0014,
+    1.0047, 1.0061, 1.0062, 1.0057, 1.0049, 1.004, 1.0031, 1.0023, 1.0017,
+    1.0012, 1.0008, 1);
+}
+
+/* Scroll-driven reveal — fade-up as the element enters the viewport.
+   Pure CSS (animation-timeline: view()); browsers without support, and
+   readers preferring reduced motion, simply see the content in place.
+   Apply only to containers WITHOUT their own hover transform (a filling
+   animation would override transition-driven hover lifts). */
+@media (prefers-reduced-motion: no-preference) {
+  @supports (animation-timeline: view()) {
+    .scn-reveal,
+    .scenario-tables table,
+    .scn-minis,
+    .sl-markdown-content .card-grid {
+      animation: scn-reveal both;
+      animation-timeline: view();
+      /* Length-based end: tall tables finish revealing after 200px of entry
+         instead of staying translucent until fully scrolled into view. */
+      animation-range: cover 0% cover 200px;
+    }
+  }
+}
+
+@keyframes scn-reveal {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Hover states
+
+   Shared vocabulary across the docs: cards lift on a spring, their icon chip
+   tilts, numbers pop. Hairline borders warm up to the accent color.
+   --------------------------------------------------------------------------- */
+
+/* Stats strip — lift the tile, pop the headline number. */
+.scn-stat {
+  transition: transform var(--scn-spring-hover), border-color 0.25s ease, box-shadow 0.25s ease;
+}
+.scn-stat > div:first-child {
+  transition: transform var(--scn-spring-hover);
+}
+.scn-stat:hover {
+  transform: translateY(-2px);
+  border-color: var(--sl-color-accent);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.14);
+}
+.scn-stat:hover > div:first-child {
+  transform: scale(1.12);
+}
+
+/* Mini-card icon chip tilts toward the reader when the card lifts. */
+.scn-mini .scn-mini-icon {
+  transition: transform var(--scn-spring-hover);
+}
+.scn-mini:hover .scn-mini-icon {
+  transform: scale(1.12) rotate(-6deg);
+}
+
+/* Starlight Card icon gets the same treatment (Engine capabilities). */
+.sl-markdown-content .card .icon {
+  transition: transform var(--scn-spring-hover);
+}
+.sl-markdown-content .card:hover .icon {
+  transform: scale(1.12) rotate(-6deg);
+}
+
+/* Scenario tables — accent tick slides in at the row's left edge. */
+.scenario-tables table td:first-child {
+  box-shadow: inset 0 0 0 var(--sl-color-accent);
+  transition: box-shadow 0.2s ease;
+}
+.scenario-tables table tbody tr:hover td:first-child {
+  box-shadow: inset 3px 0 0 var(--sl-color-accent);
+}
+
+/* Copyable scenario pills — fill with accent tint, nudge up. */
+.scenario-tables td:first-child code {
+  transition: border-color 0.2s ease, background 0.2s ease, transform var(--scn-spring-hover);
+}
+.scenario-tables td:first-child code:hover {
+  background: var(--sl-color-accent-low);
+  transform: translateY(-1px);
+}
+
+/* Jump-nav chips — slight lift to match the cards. */
+#scenario-jump a {
+  transition: transform var(--scn-spring-hover), border-color 0.2s ease, background 0.2s ease;
+}
+#scenario-jump a:hover {
+  transform: translateY(-1px);
+}
+
+/* Slideshow: inactive dots wake up under the cursor; arrows press down. */
+.scn-slideshow .scn-slideshow-dot:not(.is-active):hover {
+  transform: scale(1.5);
+  background: var(--sl-color-accent);
+}
+.scn-slideshow .scn-slideshow-arrow:active {
+  transform: scale(0.9);
+}
+
+/* Active slide glows a touch while the reader is on it (autoplay is paused). */
+.scn-slideshow .scn-slide.is-active {
+  box-shadow: 0 0 0 rgba(0, 0, 0, 0);
+}
+.scn-slideshow:hover .scn-slide.is-active {
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scn-stat:hover,
+  .scn-stat:hover > div:first-child,
+  .scn-mini:hover .scn-mini-icon,
+  .sl-markdown-content .card:hover .icon,
+  #scenario-jump a:hover,
+  .scenario-tables td:first-child code:hover {
+    transform: none;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Scenario tables (used on /games/whiteout-survival)
+
+   The page is a stack of "scenario | what it does" tables grouped by domain.
+   The default Starlight table is functional but visually dense — this gives
+   each section an accent bar, turns rows into a soft card, and renders the
+   scenario column as code-pills so the names read as identifiers.
+   --------------------------------------------------------------------------- */
+
+.scenario-tables h2,
+h2.scn-h {
+  position: relative;
+  padding-left: 0.85rem;
+  border-left: 3px solid var(--sl-color-accent);
+  margin-top: 2.5rem;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  scroll-margin-top: calc(var(--sl-nav-height, 4rem) + 4.5rem);
+}
+
+/* Count chip next to each section heading — "Daily loops · 6". */
+.scn-h .scn-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.75rem;
+  height: 1.5rem;
+  padding: 0 0.55rem;
+  border-radius: 999px;
+  background: var(--sl-color-bg-inline-code);
+  border: 1px solid var(--sl-color-hairline-shade);
+  color: var(--sl-color-text-accent);
+  font-size: 0.75rem;
+  font-weight: 600;
+  font-family: var(--sl-font-system-mono);
+  line-height: 1;
+}
+
+/* Per-section accent on the heading left bar — sky / emerald / amber / violet
+   / pink / cyan / rose. Adds rhythm without recoloring the whole table. */
+h2.scn-accent-sky     { border-left-color: #0ea5e9; }
+h2.scn-accent-emerald { border-left-color: #10b981; }
+h2.scn-accent-amber   { border-left-color: #f59e0b; }
+h2.scn-accent-violet  { border-left-color: #8b5cf6; }
+h2.scn-accent-pink    { border-left-color: #ec4899; }
+h2.scn-accent-cyan    { border-left-color: #06b6d4; }
+h2.scn-accent-rose    { border-left-color: #f43f5e; }
+
+/* Active chip in the sticky jump-nav (set by scroll-spy in the page script). */
+#scenario-jump a.scn-chip-active {
+  border-color: var(--sl-color-accent);
+  background: var(--sl-color-accent-low);
+  color: var(--sl-color-text);
+}
+
+/* Hide horizontal-scroll bar on the mobile jump-nav (chips already snap). */
+#scenario-jump { scrollbar-width: none; }
+#scenario-jump::-webkit-scrollbar { display: none; }
+
+/* Smooth scroll for in-page anchors (chips, h2 hash links). */
+html { scroll-behavior: smooth; }
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+}
+
+/* Hover-lift on Starlight Card components (Engine capabilities etc.). */
+.sl-markdown-content .card {
+  transition: transform var(--scn-spring-hover), box-shadow 0.25s ease, border-color 0.25s ease;
+}
+.sl-markdown-content .card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.18);
+  border-color: var(--sl-color-accent);
+}
+
+/* Mini-cards for small scenario sections (Ads / Alliance / Backpack) —
+   tinted icon chip + scenario code-pill + one-line description. Tint classes
+   mirror the section heading accents (rose / sky / emerald). */
+.scn-minis {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+  margin-block: 1rem 1.5rem;
+}
+
+.scn-mini {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.85rem;
+  padding: 0.9rem 1rem;
+  border: 1px solid var(--sl-color-hairline-shade);
+  border-radius: 12px;
+  background: var(--sl-color-bg-nav);
+  transition: transform var(--scn-spring-hover), box-shadow 0.25s ease, border-color 0.25s ease;
+}
+.scn-mini:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.18);
+  border-color: var(--scn-mini-tint, var(--sl-color-accent));
+}
+
+.scn-mini-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  flex: none;
+  border-radius: 10px;
+  color: var(--scn-mini-tint, var(--sl-color-accent));
+  background: color-mix(in srgb, var(--scn-mini-tint, var(--sl-color-accent)) 14%, transparent);
+  border: 1px solid color-mix(in srgb, var(--scn-mini-tint, var(--sl-color-accent)) 30%, transparent);
+}
+.scn-mini-icon svg {
+  width: 1.15rem;
+  height: 1.15rem;
+}
+
+.scn-mini-body {
+  min-width: 0;
+}
+.scn-mini-body code {
+  display: inline-block;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  background: var(--sl-color-bg-inline-code);
+  border: 1px solid var(--sl-color-hairline-shade);
+  color: var(--sl-color-text-accent);
+  padding: 0.1rem 0.45rem;
+  border-radius: 6px;
+  font-size: 0.78rem;
+  font-family: var(--sl-font-system-mono);
+}
+.scn-mini-body p {
+  margin: 0.35rem 0 0;
+  font-size: 0.85rem;
+  line-height: 1.45;
+  color: var(--sl-color-gray-3);
+}
+
+.scn-mini-rose    { --scn-mini-tint: #f43f5e; }
+.scn-mini-sky     { --scn-mini-tint: #0ea5e9; }
+.scn-mini-emerald { --scn-mini-tint: #10b981; }
+
+/* A lone card describing a whole domain can stretch the full row. */
+.scn-mini-wide { grid-column: 1 / -1; }
+
+/* ---------------------------------------------------------------------------
+   Scenario cards (used on /games/whiteout-survival)
+
+   Compact card grid that replaces the dense per-domain tables. Each card is a
+   set of scenario code-pills + a description, with a colored left border keyed
+   to the section accent. More scannable than table rows and roomier for a
+   longer write-up when a scenario deserves one. Cards index into the page
+   filter exactly like the mini-cards (grid children = filterable items). Tint
+   classes (.scn-tint-*) mirror the section heading accents. */
+.scn-cards {
+  display: grid;
+  gap: 0.7rem;
+  grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
+  margin-block: 1rem 1.5rem;
+}
+
+.scn-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  padding: 0.8rem 0.95rem;
+  border: 1px solid var(--sl-color-hairline-shade);
+  border-left: 3px solid var(--scn-card-tint, var(--sl-color-accent));
+  border-radius: 10px;
+  background: var(--sl-color-bg-nav);
+  transition: transform var(--scn-spring-hover), box-shadow 0.25s ease, border-color 0.25s ease;
+}
+.scn-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.18);
+  border-color: var(--scn-card-tint, var(--sl-color-accent));
+}
+
+/* Identifier row — one or more code-pills, joined by a muted "+". */
+.scn-card-ids {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.3rem 0.35rem;
+}
+.scn-card-ids .scn-plus {
+  color: var(--sl-color-gray-4);
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+.scn-card code {
+  background: var(--sl-color-bg-inline-code);
+  border: 1px solid var(--sl-color-hairline-shade);
+  color: var(--sl-color-text-accent);
+  padding: 0.1rem 0.45rem;
+  border-radius: 6px;
+  font-size: 0.78rem;
+  font-family: var(--sl-font-system-mono);
+  overflow-wrap: anywhere;
+  cursor: pointer;
+  transition: border-color 0.2s ease, background 0.2s ease, transform var(--scn-spring-hover);
+}
+.scn-card code:hover {
+  border-color: var(--scn-card-tint, var(--sl-color-accent));
+  background: var(--sl-color-accent-low);
+  transform: translateY(-1px);
+}
+.scn-card p {
+  margin: 0;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  color: var(--sl-color-gray-3);
+}
+
+/* Per-section tints — keyed to the matching h2.scn-accent-* heading. */
+.scn-tint-sky     { --scn-card-tint: #0ea5e9; }
+.scn-tint-emerald { --scn-card-tint: #10b981; }
+.scn-tint-amber   { --scn-card-tint: #f59e0b; }
+.scn-tint-violet  { --scn-card-tint: #8b5cf6; }
+.scn-tint-pink    { --scn-card-tint: #ec4899; }
+.scn-tint-cyan    { --scn-card-tint: #06b6d4; }
+.scn-tint-rose    { --scn-card-tint: #f43f5e; }
+
+@media (prefers-reduced-motion: reduce) {
+  .scn-card:hover,
+  .scn-card code:hover {
+    transform: none;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Scenario stacks (used on /games/whiteout-survival)
+
+   3D card deck that fans out on hover / focus / tap. Progressive enhancement:
+   the page script adds .scn-stack to each multi-card grid, tags cards with --i
+   (1-based) and the container with --n. Collapsed, the top four cards form a
+   depth stack (front = first child; the rest recede in Z, drift down, blur and
+   dim) and everything past the fourth tucks fully behind, so the deck stays
+   compact for any count. Open, every card spreads into a flat, staggered list.
+   Without JS the .scn-cards grid simply renders as a normal grid.
+   --------------------------------------------------------------------------- */
+.scn-cards.scn-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  margin-block: 1rem 1.5rem;
+  perspective: 1000px;
+  transform-style: preserve-3d;
+  padding-bottom: 1.25rem; /* room for the cards peeking out below the front */
+  cursor: pointer;
+}
+.scn-cards.scn-stack:focus-visible {
+  outline: 2px solid var(--sl-color-accent);
+  outline-offset: 4px;
+  border-radius: 12px;
+}
+
+.scn-cards.scn-stack > .scn-card {
+  height: 5.25rem;
+  justify-content: center;
+  overflow: hidden;
+  transform-origin: center top;
+}
+/* Transitions are enabled only after the deck has painted its resting state
+   (the script adds .scn-ready on the next frame), so the collapse doesn't
+   animate on load — only the hover/open fan does. */
+.scn-cards.scn-stack.scn-ready {
+  transition: gap 0.5s ease;
+}
+.scn-cards.scn-stack.scn-ready > .scn-card {
+  transition: transform 0.5s, opacity 0.5s, filter 0.5s, margin-top 0.5s;
+  transition-delay: calc(var(--i, 0) * 35ms);
+}
+/* Clamp descriptions so every collapsed card is one tidy row height. */
+.scn-cards.scn-stack > .scn-card p {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+}
+
+/* Collapsed depth layers (front → back). */
+.scn-cards.scn-stack > .scn-card:nth-child(1) {
+  transform: translateZ(0) translateY(0);
+  opacity: 1;
+  filter: none;
+  z-index: 4;
+}
+.scn-cards.scn-stack > .scn-card:nth-child(2) {
+  margin-top: -3.85rem;
+  transform: translateZ(-45px) translateY(10px);
+  opacity: 0.8;
+  filter: blur(1px);
+  z-index: 3;
+}
+.scn-cards.scn-stack > .scn-card:nth-child(3) {
+  margin-top: -3.85rem;
+  transform: translateZ(-90px) translateY(20px);
+  opacity: 0.55;
+  filter: blur(2px);
+  z-index: 2;
+}
+.scn-cards.scn-stack > .scn-card:nth-child(4) {
+  margin-top: -3.85rem;
+  transform: translateZ(-135px) translateY(30px);
+  opacity: 0.32;
+  filter: blur(3px);
+  z-index: 1;
+}
+/* Everything past the fourth tucks fully behind (adds no height). */
+.scn-cards.scn-stack > .scn-card:nth-child(n + 5) {
+  margin-top: -5.25rem;
+  transform: translateZ(-165px) translateY(34px);
+  opacity: 0;
+  filter: blur(3px);
+  pointer-events: none;
+}
+
+/* Expanded — hover (desktop), keyboard focus, touch toggle, or active filter. */
+.scn-cards.scn-stack:hover,
+.scn-cards.scn-stack:focus-within,
+.scn-cards.scn-stack:focus-visible,
+.scn-cards.scn-stack.is-open {
+  gap: 0.7rem;
+}
+.scn-cards.scn-stack:hover > .scn-card,
+.scn-cards.scn-stack:focus-within > .scn-card,
+.scn-cards.scn-stack:focus-visible > .scn-card,
+.scn-cards.scn-stack.is-open > .scn-card {
+  margin-top: 0;
+  transform: none;
+  opacity: 1;
+  filter: none;
+  pointer-events: auto;
+}
+
+/* Filtered-out cards leave the flow so the open deck shows only matches. */
+.scn-card.is-filtered-out {
+  display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scn-cards.scn-stack,
+  .scn-cards.scn-stack > .scn-card {
+    transition: opacity 0.2s ease;
+  }
+}
+
+/* Filter substring highlight — wrapped by the page script. */
+.scenario-tables mark.scn-mark {
+  background: var(--sl-color-accent-low);
+  color: var(--sl-color-text);
+  padding: 0 0.15em;
+  border-radius: 3px;
+}
+
+/* Click-to-copy affordance on scenario-name code pills. */
+.scenario-tables td:first-child code {
+  cursor: pointer;
+}
+.scenario-tables td:first-child code:hover {
+  border-color: var(--sl-color-accent);
+}
+
+/* Hash-link revealed on h2 hover. */
+.scenario-tables h2 .scn-anchor {
+  opacity: 0;
+  margin-left: 0.25rem;
+  color: var(--sl-color-gray-3);
+  font-weight: 500;
+  text-decoration: none;
+  transition: opacity 0.15s ease, color 0.15s ease;
+}
+.scenario-tables h2:hover .scn-anchor,
+.scenario-tables h2:focus-within .scn-anchor,
+.scenario-tables h2 .scn-anchor:focus-visible {
+  opacity: 1;
+}
+.scenario-tables h2 .scn-anchor:hover {
+  color: var(--sl-color-accent);
+}
+
+/* ---------------------------------------------------------------------------
+   Spotlight slideshow (used on /games/whiteout-survival)
+
+   Slides are grid-stacked in one cell so the container always sizes to the
+   tallest card (no JS height syncing). Inactive slides crossfade out with a
+   subtle lift; controls sit in a bottom bar inside the card padding.
+   --------------------------------------------------------------------------- */
+
+.scn-slideshow {
+  position: relative;
+  /* Horizontal pans are ours (swipe); vertical stays with the browser. */
+  touch-action: pan-y;
+}
+
+/* While a finger is down the slide must track it 1:1 — no easing lag.
+   The spring transition takes back over on release (snap or advance). */
+.scn-slideshow.is-dragging .scn-slide {
+  transition: none;
+}
+.scn-slideshow.is-dragging {
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.scn-slideshow .scn-slides {
+  display: grid;
+}
+
+.scn-slideshow .scn-slide {
+  grid-area: 1 / 1;
+  opacity: 0;
+  transform: translateY(10px) scale(0.985);
+  visibility: hidden;
+  pointer-events: none;
+  transition:
+    opacity 0.45s ease,
+    transform var(--scn-spring-slide),
+    visibility 0s linear 0.45s;
+}
+
+.scn-slideshow .scn-slide.is-active {
+  opacity: 1;
+  transform: none;
+  visibility: visible;
+  pointer-events: auto;
+  transition:
+    opacity 0.45s ease,
+    transform var(--scn-spring-slide),
+    box-shadow 0.3s ease,
+    visibility 0s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scn-slideshow .scn-slide,
+  .scn-slideshow .scn-slide.is-active {
+    transition: none;
+    transform: none;
+  }
+}
+
+/* Bottom control bar — arrows flanking the dot strip, inside the card. */
+.scn-slideshow .scn-slideshow-bar {
+  position: absolute;
+  bottom: 0.85rem;
+  left: 1.5rem;
+  right: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  pointer-events: none;
+}
+
+.scn-slideshow .scn-slideshow-arrow {
+  pointer-events: auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 999px;
+  border: 1px solid var(--sl-color-hairline-shade);
+  background: var(--sl-color-bg-nav);
+  color: var(--sl-color-gray-3);
+  cursor: pointer;
+  transition: color 0.15s ease, border-color 0.15s ease, transform var(--scn-spring-hover);
+}
+.scn-slideshow .scn-slideshow-arrow:hover {
+  color: var(--sl-color-text-accent);
+  border-color: var(--sl-color-accent);
+  transform: scale(1.08);
+}
+.scn-slideshow .scn-slideshow-arrow:focus-visible {
+  outline: 2px solid var(--sl-color-accent);
+  outline-offset: 2px;
+}
+
+.scn-slideshow .scn-slideshow-dots {
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Dots: inactive are small circles; the active one stretches into a pill that
+   doubles as an autoplay progress bar (inner span fills over the interval). */
+.scn-slideshow .scn-slideshow-dot {
+  position: relative;
+  width: 0.5rem;
+  height: 0.5rem;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: var(--sl-color-hairline);
+  cursor: pointer;
+  overflow: hidden;
+  transition: width var(--scn-spring-hover), background 0.3s ease;
+}
+.scn-slideshow .scn-slideshow-dot.is-active {
+  width: 2.25rem;
+  background: var(--sl-color-accent-low);
+}
+.scn-slideshow .scn-slideshow-dot:focus-visible {
+  outline: 2px solid var(--sl-color-accent);
+  outline-offset: 2px;
+}
+
+.scn-slideshow .scn-slideshow-dot span {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: var(--sl-color-accent);
+  transform: scaleX(0);
+  transform-origin: left;
+}
+.scn-slideshow .scn-slideshow-dot.is-active span {
+  transform: scaleX(1);
+}
+.scn-slideshow .scn-slideshow-dot.is-active.is-ticking span {
+  animation: scn-dot-fill var(--scn-autoplay-ms, 8000ms) linear forwards;
+}
+
+@keyframes scn-dot-fill {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scn-slideshow .scn-slideshow-dot.is-active.is-ticking span {
+    animation: none;
+    transform: scaleX(1);
+  }
+}
+
+/* Reading-progress bar pinned to the very top of the viewport. */
+.scn-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 2px;
+  width: 0;
+  background: var(--sl-color-accent);
+  z-index: 100;
+  transition: width 0.1s ease;
+  pointer-events: none;
+}
+
+/* Toast surfaced after copy actions. */
+.scn-toast {
+  position: fixed;
+  bottom: 1.5rem;
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: var(--sl-color-bg-nav);
+  border: 1px solid var(--sl-color-accent);
+  color: var(--sl-color-text);
+  padding: 0.5rem 1rem;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+  opacity: 0;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  z-index: 200;
+  pointer-events: none;
+}
+.scn-toast.is-shown {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+.scenario-tables table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  border: 1px solid var(--sl-color-hairline-shade);
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--sl-color-bg-nav);
+  margin-block: 1rem 1.5rem;
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.04);
+}
+
+.scenario-tables table thead th {
+  background: var(--sl-color-bg-inline-code);
+  font-weight: 600;
+  font-size: 0.75rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--sl-color-text-accent);
+  padding: 0.6rem 1rem;
+  border-bottom: 1px solid var(--sl-color-hairline-shade);
+  text-align: left;
+}
+
+.scenario-tables table tbody tr {
+  transition: background 0.12s ease;
+}
+
+.scenario-tables table tbody tr:nth-child(even) td {
+  background: rgba(125, 211, 252, 0.025);
+}
+
+.scenario-tables table tbody tr:hover td {
+  background: var(--sl-color-accent-low);
+}
+
+.scenario-tables table td {
+  padding: 0.6rem 1rem;
+  border-bottom: 1px solid var(--sl-color-hairline-shade);
+  vertical-align: top;
+  line-height: 1.5;
+}
+
+.scenario-tables table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.scenario-tables table td:first-child {
+  width: 42%;
+  white-space: normal;
+}
+
+/* Render scenario identifiers as inline pills so they stand out from prose. */
+.scenario-tables table td:first-child code {
+  background: var(--sl-color-bg-inline-code);
+  border: 1px solid var(--sl-color-hairline-shade);
+  color: var(--sl-color-text-accent);
+  padding: 0.1rem 0.45rem;
+  border-radius: 6px;
+  font-size: 0.82em;
+  white-space: nowrap;
+}
+
+:root[data-theme="light"] .scenario-tables table tbody tr:nth-child(even) td {
+  background: rgba(2, 132, 199, 0.04);
+}
+
+@media (max-width: 50rem) {
+  .scenario-tables table td:first-child {
+    width: 50%;
+  }
+  .scenario-tables table td,
+  .scenario-tables table thead th {
+    padding: 0.5rem 0.65rem;
+  }
+  /* The table wrapper clips horizontal overflow (border-radius), so pills
+     must wrap on narrow screens or long scenario keys become unreadable. */
+  .scenario-tables table td:first-child code {
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+}
+
+/* Slideshow + mini-cards on narrow screens: tighter padding, smaller titles,
+   controls tucked closer to the card edge. */
+@media (max-width: 40rem) {
+  .scn-slideshow .scn-slide {
+    padding: 1.1rem 1.1rem 3.4rem;
+  }
+  .scn-slideshow .scn-slide h3 {
+    font-size: 1.05rem;
+    line-height: 1.35;
+  }
+  .scn-slideshow .scn-slideshow-bar {
+    bottom: 0.65rem;
+    left: 1.1rem;
+    right: 1.1rem;
+  }
+  .scn-mini {
+    padding: 0.75rem 0.85rem;
+  }
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+   Asides (:::tip / :::note / :::caution / :::danger)
+   Lift the default Starlight callout into the same card language as the rest
+   of the docs: full hairline border + accent edge, rounded corners, a soft
+   tinted fill, and an icon chip. Colours come from Starlight's per-variant
+   --sl-color-asides-* vars, so every aside type is themed automatically.
+   ────────────────────────────────────────────────────────────────────────── */
+.sl-markdown-content .starlight-aside {
+  --scn-aside: var(--sl-color-asides-border);
+  padding: 1rem 1.25rem;
+  border: 1px solid color-mix(in srgb, var(--scn-aside) 38%, transparent);
+  border-inline-start: 3px solid var(--scn-aside);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--scn-aside) 7%, var(--sl-color-bg-nav));
+  transition: border-color 0.25s ease, background 0.25s ease;
+}
+.sl-markdown-content .starlight-aside:hover {
+  border-color: color-mix(in srgb, var(--scn-aside) 55%, transparent);
+  background: color-mix(in srgb, var(--scn-aside) 11%, var(--sl-color-bg-nav));
+}
+.sl-markdown-content .starlight-aside__title {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  margin-bottom: 0.5rem;
+  font-size: 0.92rem;
+  font-weight: 600;
+  text-transform: none;
+  letter-spacing: 0;
+  color: var(--sl-color-asides-text-accent);
+}
+.sl-markdown-content .starlight-aside__icon {
+  box-sizing: content-box;
+  inline-size: 1rem;
+  block-size: 1rem;
+  padding: 0.32rem;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--scn-aside) 16%, transparent);
+  border: 1px solid color-mix(in srgb, var(--scn-aside) 30%, transparent);
+  color: var(--sl-color-asides-text-accent);
+  font-size: 1rem;
+}
+.sl-markdown-content .starlight-aside__content {
+  color: var(--sl-color-gray-1);
+}
+.sl-markdown-content .starlight-aside__content a {
+  color: var(--sl-color-asides-text-accent);
+  text-underline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sl-markdown-content .starlight-aside { transition: none; }
+}
+
+/* Framed screenshot with caption — e.g. the Docker host-networking guide.
+   Rounded border + soft shadow so annotated screenshots read as a figure,
+   not an inline image. */
+.sl-markdown-content .screenshot-figure {
+  margin: 1.75rem 0;
+}
+.sl-markdown-content .screenshot-figure img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border: 1px solid var(--sl-color-hairline);
+  border-radius: 8px;
+  box-shadow: 0 10px 30px -14px rgba(2, 6, 23, 0.55);
+  background: var(--sl-color-bg-nav);
+}
+.sl-markdown-content .screenshot-figure figcaption {
+  margin-top: 0.65rem;
+  text-align: center;
+  font-size: var(--sl-text-sm);
+  color: var(--sl-color-gray-3);
+}

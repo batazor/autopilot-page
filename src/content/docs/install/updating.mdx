@@ -1,0 +1,102 @@
+---
+title: Updating
+description: How to correctly pull a new release — refresh the compose file, recreate the containers, and avoid the stuck-container trap.
+sidebar:
+  order: 6
+  label: Updating
+---
+
+import { Steps } from '@astrojs/starlight/components';
+
+A release has **two** moving parts: the **images**
+(`ghcr.io/batazor/autopilot/bot:latest`, `web:latest`) and the
+**`docker-compose.prod.yml`** itself. Pulling only the images is the most common
+mistake — the compose file evolves too (health checks, services, env), and your
+copy is a static download that nothing refreshes for you.
+
+## The correct update
+
+<Steps>
+
+1. **Refresh the compose file.** It changes between releases, and your local copy
+   never updates itself:
+
+   ```sh
+   curl -fsSL https://batazor.github.io/autopilot-page/docker-compose.prod.yml -o docker-compose.prod.yml
+   ```
+
+2. **Pull the new images and recreate the containers:**
+
+   ```sh
+   docker compose -f docker-compose.prod.yml up -d --pull always
+   ```
+
+3. **Check everything is healthy:**
+
+   ```sh
+   docker compose -f docker-compose.prod.yml ps
+   ```
+
+</Steps>
+
+That's the happy path. If a container comes back **unhealthy** or looks stuck on
+the old version, read the next section — it's almost always this.
+
+## Trap: `--pull always` won't fix a stuck container
+
+:::caution[A re-run over a broken container fast-fails]
+`up --pull always` only recreates a container when the image **digest** actually
+changed. If an earlier run left a container **unhealthy**, Compose keeps it and
+`up` fast-fails almost instantly with *"dependency … is unhealthy"* — it does
+**not** rebuild the broken one. The classic symptom:
+
+```text
+✘ Container autopilot-api   Error   dependency failed to start
+dependency failed to start: container autopilot-api is unhealthy
+```
+:::
+
+Force a clean recreation with an explicit **`down`** first:
+
+```sh
+docker compose -f docker-compose.prod.yml down
+docker compose -f docker-compose.prod.yml up -d --pull always
+```
+
+`down` removes the containers and the network but **keeps all your data** — your
+accounts are untouched.
+
+## Start fresh
+
+Throw **everything** away — accounts, state, cache — and bring the stack
+back up empty:
+
+```sh
+docker compose -f docker-compose.prod.yml down -v
+docker compose -f docker-compose.prod.yml up -d --pull always
+```
+
+:::danger[`down -v` is irreversible]
+It deletes all your data for good. Afterwards you'll re-add your accounts — so
+use it only when you really want a clean start.
+:::
+
+## When something is still off
+
+<Steps>
+
+1. **Read the real error.** A failing health probe tells you nothing; the logs do:
+
+   ```sh
+   docker logs autopilot-api
+   docker logs autopilot-bot
+   ```
+
+2. **macOS / Windows — re-check Host networking.** If the API never reaches
+   healthy after an update, make sure **Host networking** is still enabled
+   (*Docker Desktop → Settings → Resources → Network*). The stack relies on it —
+   see [Images & networking](/autopilot-page/install/images/).
+
+</Steps>
+
+Still stuck? Head to [Troubleshooting](/autopilot-page/ops/troubleshooting/).

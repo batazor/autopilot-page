@@ -1,0 +1,15 @@
+/* Tailwind v4 entry point, wired for Starlight.
+
+   Starlight ships its own design tokens and base layer. The
+   @astrojs/starlight-tailwind shim disables Tailwind's preflight reset and maps
+   Starlight's CSS vars onto Tailwind's color tokens so utility classes like
+   text-accent-300, bg-bg, or border-hairline-shade match the docs theme in
+   both light and dark mode.
+
+   Layer order matters — keep `starlight` after `base` so the shim wins. */
+
+@layer base, starlight, theme, components, utilities;
+
+@import '@astrojs/starlight-tailwind';
+@import 'tailwindcss/theme.css' layer(theme);
+@import 'tailwindcss/utilities.css' layer(utilities);

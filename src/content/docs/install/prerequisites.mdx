@@ -1,0 +1,98 @@
+---
+title: Prerequisites
+description: Required tools and BlueStacks setup before running the Autopilot stack. Per-platform requirements for macOS, Linux, and Windows.
+sidebar:
+  order: 1
+---
+
+import { Tabs, TabItem, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+:::tip
+Pre-built images on GitHub Container Registry — no Python / uv install needed.
+:::
+
+## Required software
+
+<Tabs syncKey="os">
+  <TabItem label="macOS">
+    <CardGrid>
+      <LinkCard
+        title="Docker Desktop"
+        description="latest — enable Settings → Resources → Network → host networking (beta), or the bot container can't reach the host's adb."
+        href="https://docs.docker.com/desktop/install/mac-install/"
+      />
+      <LinkCard
+        title="BlueStacks 5+"
+        description="Apple-silicon and Intel both supported."
+        href="https://www.bluestacks.com/"
+      />
+      <LinkCard
+        title="Android Platform Tools (adb)"
+        description="latest — brew install --cask android-platform-tools is fine."
+        href="https://developer.android.com/tools/releases/platform-tools"
+      />
+    </CardGrid>
+  </TabItem>
+
+  <TabItem label="Linux">
+    <CardGrid>
+      <LinkCard
+        title="Docker Engine + Compose v2"
+        description="latest — network_mode: host works out of the box, no extra toggles."
+        href="https://docs.docker.com/engine/install/"
+      />
+      <LinkCard
+        title="BlueStacks 5+"
+        description="Or any 720 × 1280 / 320 DPI Android emulator with ADB."
+        href="https://www.bluestacks.com/"
+      />
+      <LinkCard
+        title="Android Platform Tools (adb)"
+        description="latest — apt install android-tools-adb / pacman -S android-tools."
+        href="https://developer.android.com/tools/releases/platform-tools"
+      />
+    </CardGrid>
+  </TabItem>
+
+  <TabItem label="Windows">
+    <CardGrid>
+      <LinkCard
+        title="Docker Desktop"
+        description="latest — requires WSL2; enable Settings → Resources → Network → host networking (beta)."
+        href="https://docs.docker.com/desktop/install/windows-install/"
+      />
+      <LinkCard
+        title="BlueStacks 5+"
+        description="Settings → Advanced → Android Debug Bridge → Enabled."
+        href="https://www.bluestacks.com/"
+      />
+      <LinkCard
+        title="Android Platform Tools (adb)"
+        description="latest — unzip, add to PATH, and whitelist adb.exe if your AV flags it."
+        href="https://developer.android.com/tools/releases/platform-tools"
+      />
+    </CardGrid>
+  </TabItem>
+</Tabs>
+
+:::caution[Emulator config]
+The emulator must run **720 × 1280, 320 DPI, English game language**. See [Emulator setup](/autopilot-page/config/emulator/) for the full settings list.
+:::
+
+## Get the compose file
+
+The autopilot bot is distributed as Docker images. You only need [`docker-compose.prod.yml`](/autopilot-page/docker-compose.prod.yml) to run it:
+
+```sh
+curl -fsSL https://batazor.github.io/autopilot-page/docker-compose.prod.yml -o docker-compose.prod.yml
+```
+
+Or save it manually from the link above.
+
+## Next: install on your platform
+
+<CardGrid>
+  <LinkCard title="Install on macOS" href="/autopilot-page/install/macos/" />
+  <LinkCard title="Install on Linux" href="/autopilot-page/install/linux/" />
+  <LinkCard title="Install on Windows" href="/autopilot-page/install/windows/" />
+</CardGrid>
