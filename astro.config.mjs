@@ -1,6 +1,7 @@
 // @ts-check
 import { defineConfig } from 'astro/config';
 import starlight from '@astrojs/starlight';
+import sitemap from '@astrojs/sitemap';
 import tailwindcss from '@tailwindcss/vite';
 
 export default defineConfig({
@@ -10,6 +11,7 @@ export default defineConfig({
     plugins: [tailwindcss()],
   },
   integrations: [
+    sitemap(),
     starlight({
       title: 'Autopilot',
       description:

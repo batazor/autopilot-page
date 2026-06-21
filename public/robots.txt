@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://batazor.github.io/autopilot-page/sitemap-index.xml
