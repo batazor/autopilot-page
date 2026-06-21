@@ -1,0 +1,981 @@
+---
+title: Whiteout Survival
+description: Full automation coverage for Whiteout Survival — daily loops, events, heroes, shop, deals, combat. 80+ scenarios in production.
+sidebar:
+  order: 1
+  label: Whiteout Survival
+hero:
+  image:
+    file: ../../../assets/wos.png
+  actions:
+    - text: Get started
+      link: /autopilot-page/install/prerequisites/
+      icon: right-arrow
+      variant: primary
+    - text: Beta (private server)
+      link: https://h5-res.wzqqe.com/land/index.html?invite=a1ia4w09
+      icon: external
+      variant: secondary
+template: doc
+tableOfContents: false
+---
+
+import { Card, CardGrid } from '@astrojs/starlight/components';
+
+{/* Reading-progress bar (driven by the inline script at the bottom). */}
+<div id="scn-progress" class="scn-progress" aria-hidden="true"></div>
+
+Whiteout Survival has full scenario coverage today: daily loops, weekly events, shop, deals, heroes, combat, popups, and a live Dreamscape Memory solver. The lists below mirror the actual scenario files under `games/wos/` — what you see here is what runs.
+
+{/* Stats strip — landing-style highlight band. */}
+<div class="not-content scn-reveal my-8 grid grid-cols-2 gap-3 sm:grid-cols-4">
+  <div class="scn-stat rounded-xl border border-[var(--sl-color-hairline-shade)] bg-[var(--sl-color-bg-nav)] p-4 text-center">
+    <div class="text-2xl font-bold text-[var(--sl-color-text-accent)]">80+</div>
+    <div class="mt-1 text-xs uppercase tracking-wider text-[var(--sl-color-gray-3)]">Scenarios</div>
+  </div>
+  <div class="scn-stat rounded-xl border border-[var(--sl-color-hairline-shade)] bg-[var(--sl-color-bg-nav)] p-4 text-center">
+    <div class="text-2xl font-bold text-[var(--sl-color-text-accent)]">10</div>
+    <div class="mt-1 text-xs uppercase tracking-wider text-[var(--sl-color-gray-3)]">Domains</div>
+  </div>
+  <div class="scn-stat rounded-xl border border-[var(--sl-color-hairline-shade)] bg-[var(--sl-color-bg-nav)] p-4 text-center">
+    <div class="text-2xl font-bold text-[var(--sl-color-text-accent)]">Multi</div>
+    <div class="mt-1 text-xs uppercase tracking-wider text-[var(--sl-color-gray-3)]">Accounts</div>
+  </div>
+</div>
+
+{/* Beta private-server callout — same card style as the gift-codes page. */}
+<div class="not-content scn-reveal my-6 rounded-2xl border border-[var(--sl-color-hairline-shade)] bg-[var(--sl-color-bg-sidebar)] p-6 shadow-sm">
+  <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
+    <div>
+      <p class="m-0 text-xs font-bold uppercase tracking-widest text-[var(--sl-color-gray-3)]">Beta access</p>
+      <h3 class="m-0 mt-1.5 text-lg font-bold text-[var(--sl-color-white)]">Whiteout Survival beta — web client</h3>
+    </div>
+    <span class="rounded-full border border-[var(--sl-color-hairline-shade)] px-3 py-1 text-xs font-semibold text-[var(--sl-color-gray-2)]">private server</span>
+  </div>
+  <p class="mt-0 mb-5 text-sm leading-relaxed text-[var(--sl-color-gray-2)]">
+    Runs on a private server, separate from the live game — its own accounts and progression. Playable right in the browser, no install needed.
+  </p>
+  <a class="mt-4 inline-flex items-center rounded-lg border border-[var(--sl-color-accent)] px-4 py-2 text-sm font-semibold text-[var(--sl-color-text-accent)] no-underline transition hover:bg-[var(--sl-color-accent-low)]" href="https://h5-res.wzqqe.com/land/index.html?invite=a1ia4w09" target="_blank" rel="noopener noreferrer">
+    Open the beta client
+  </a>
+</div>
+
+{/* Feature spotlight slideshow — crossfading carousel over the highlight cards.
+    Autoplay (paused on hover/focus/hidden tab), arrows, dots, swipe; driven by
+    initSpotlight() in the inline script below. Add slides by appending more
+    .scn-slide articles — controls and dots are generated from the DOM. */}
+<section
+  id="spotlight"
+  class="not-content scn-slideshow scn-reveal my-8"
+  aria-roledescription="carousel"
+  aria-label="Feature spotlights"
+>
+  <div class="scn-slides">
+    {/* Slide 1 — Pro: gift codes for any user ID. */}
+    <article class="scn-slide is-active rounded-2xl border border-[var(--sl-color-accent)] bg-gradient-to-br from-[var(--sl-color-accent-low)] to-transparent p-6 pb-14" aria-roledescription="slide" aria-label="1 of 2">
+      <div class="mb-3 flex flex-wrap items-center gap-3">
+        <span class="rounded-full bg-[var(--sl-color-accent)] px-3 py-1 text-xs font-bold uppercase tracking-widest text-white">Pro</span>
+        <h3 class="m-0 text-xl font-bold text-[var(--sl-color-text-accent)]">Gift codes for any Whiteout Survival user ID</h3>
+      </div>
+      <p class="mb-3 text-[var(--sl-color-gray-2)]">
+        Bot-owned accounts get gift codes automatically. <strong>External accounts</strong> extend the same redeem loop to arbitrary player IDs (FIDs) you paste in — alliance members, partner farms, accounts on other states, friends who don't run the bot themselves. The matrix view tracks each one alongside your own.
+      </p>
+      <ul class="mb-3 list-disc pl-5 text-sm text-[var(--sl-color-gray-2)]">
+        <li>Bulk paste: <code>fid</code> or <code>fid label</code>, one per line.</li>
+        <li>Works for accounts on any state — no emulator or login required.</li>
+        <li>Redeem a fresh code for the whole alliance in one pass.</li>
+      </ul>
+      <p class="m-0 text-xs text-[var(--sl-color-gray-3)]">
+        See <a href="/autopilot-page/ops/gift-codes/#external-accounts">Gift codes → External accounts</a>.
+      </p>
+    </article>
+
+    {/* Slide 2 — New module: Dreamscape Memory live solver. */}
+    <article class="scn-slide rounded-2xl border border-emerald-500/40 bg-emerald-500/10 p-6 pb-14" aria-roledescription="slide" aria-label="2 of 2">
+      <div class="mb-3 flex flex-wrap items-center gap-3">
+        <span class="rounded-full bg-emerald-500 px-3 py-1 text-xs font-bold uppercase tracking-widest text-emerald-950">New module</span>
+        <span class="rounded-full border border-[var(--sl-color-hairline-shade)] bg-[var(--sl-color-bg-inline-code)] px-3 py-1 text-xs font-semibold uppercase tracking-widest text-[var(--sl-color-text-accent)]">Live OCR</span>
+        <h3 class="m-0 text-xl font-bold text-[var(--sl-color-text-accent)]">Dreamscape Memory solves Recall Road live</h3>
+      </div>
+      <p class="mb-3 text-[var(--sl-color-gray-2)]">
+        Dreamscape is no longer a manual lookup chore. The module ships with scene data for Seasons 1-3, reads the live word buttons with OCR, picks the right room from the visible word set, and taps the matching item locations automatically.
+      </p>
+      <ul class="mb-3 list-disc pl-5 text-sm text-[var(--sl-color-gray-2)]">
+        <li>Solo and co-op modes: three-word and six-word layouts use the same fast solver loop.</li>
+        <li>Season-aware scene matching keeps reused room names pointed at the current event's coordinates.</li>
+        <li>If a word is missing, the dashboard captures it for the New tab so the item can be placed and reviewed manually.</li>
+      </ul>
+      <p class="m-0 text-xs text-[var(--sl-color-gray-3)]">
+        See <a href="/autopilot-page/games/dreamscape-memory/">Dreamscape Memory</a> for the module overview.
+      </p>
+    </article>
+  </div>
+
+  <div class="scn-slideshow-bar">
+    <button type="button" class="scn-slideshow-arrow" data-slide-prev aria-label="Previous slide">
+      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"></polyline></svg>
+    </button>
+    <div class="scn-slideshow-dots" role="tablist" aria-label="Choose slide"></div>
+    <button type="button" class="scn-slideshow-arrow" data-slide-next aria-label="Next slide">
+      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"></polyline></svg>
+    </button>
+  </div>
+</section>
+
+{/* Live filter — hides table rows / cards by substring match.
+    Right-side affordances: "/" kbd hint when empty, "Showing N of M" when typing. */}
+<div class="not-content my-4">
+  <label for="scenario-filter" class="sr-only">Filter scenarios</label>
+  <div class="relative">
+    <input
+      id="scenario-filter"
+      type="search"
+      placeholder="Filter scenarios — try 'hero', 'shop', 'event'… (press / to focus)"
+      autocomplete="off"
+      class="w-full rounded-lg border border-[var(--sl-color-hairline-shade)] bg-[var(--sl-color-bg-nav)] px-4 py-2 pr-28 text-base text-[var(--sl-color-text)] placeholder:text-[var(--sl-color-gray-4)] focus:border-[var(--sl-color-accent)] focus:outline-none focus:ring-2 focus:ring-[var(--sl-color-accent-low)]"
+    />
+    <kbd id="scenario-filter-kbd" class="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 rounded border border-[var(--sl-color-hairline-shade)] bg-[var(--sl-color-bg-inline-code)] px-1.5 py-0.5 font-mono text-xs text-[var(--sl-color-gray-3)]">/</kbd>
+    <span id="scenario-filter-count" hidden class="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs tabular-nums text-[var(--sl-color-gray-3)]"></span>
+  </div>
+  <p id="scenario-filter-empty" hidden class="mt-2 text-sm text-[var(--sl-color-gray-3)]">No scenarios match.</p>
+</div>
+
+{/* Sticky jump-nav. Lives below Starlight's top bar via --sl-nav-height.
+    On narrow screens chips fall into a single horizontally-scrollable strip. */}
+<nav
+  id="scenario-jump"
+  aria-label="Jump to scenario category"
+  class="not-content sticky top-[var(--sl-nav-height,4rem)] z-10 -mx-3 my-4 flex flex-wrap gap-2 border-y border-[var(--sl-color-hairline-shade)] bg-[var(--sl-color-bg)]/85 px-3 py-2 backdrop-blur max-md:flex-nowrap max-md:overflow-x-auto [&_a]:shrink-0 [&_a]:whitespace-nowrap [&_a]:rounded-full [&_a]:border [&_a]:border-[var(--sl-color-hairline-shade)] [&_a]:bg-[var(--sl-color-bg-inline-code)] [&_a]:px-3 [&_a]:py-1 [&_a]:text-sm [&_a]:text-[var(--sl-color-text-accent)] [&_a]:no-underline [&_a]:transition [&_a:hover]:border-[var(--sl-color-accent)] [&_a:hover]:bg-[var(--sl-color-accent-low)]"
+>
+  <a href="#daily-loops" data-jump="daily-loops">Daily loops</a>
+  <a href="#combat-events" data-jump="combat-events">Combat & events</a>
+  <a href="#city" data-jump="city">City</a>
+  <a href="#heroes" data-jump="heroes">Heroes</a>
+  <a href="#shop" data-jump="shop">Shop</a>
+  <a href="#deals" data-jump="deals">Deals</a>
+  <a href="#ads" data-jump="ads">Ads</a>
+  <a href="#alliance" data-jump="alliance">Alliance</a>
+  <a href="#backpack" data-jump="backpack">Backpack</a>
+  <a href="#popups" data-jump="popups">Popups</a>
+  <a href="#engine" data-jump="engine">Engine</a>
+</nav>
+
+<div class="scenario-tables">
+
+<h2 id="daily-loops" class="scn-h scn-accent-sky">Daily loops <span class="scn-count">6</span></h2>
+
+<div class="not-content scn-cards scn-tint-sky">
+  <div class="scn-card">
+    <div class="scn-card-ids"><code>vip.daily</code></div>
+    <p>Daily VIP login check.</p>
+  </div>
+  <div class="scn-card">
+    <div class="scn-card-ids"><code>mail.claim.&#123;tab&#125;</code></div>
+    <p>Read mail and claim attached gifts across all tabs.</p>
+  </div>
+  <div class="scn-card">
+    <div class="scn-card-ids"><code>redeem_gift_codes</code></div>
+    <p>Fetch and redeem the latest gift codes from the in-UI hub, per account.</p>
+  </div>
+  <div class="scn-card">
+    <div class="scn-card-ids"><code>chief_profile/sync_chief_profile</code></div>
+    <p>Sync chief profile data into local state.</p>
+  </div>
+  <div class="scn-card">
+    <div class="scn-card-ids"><code>claim_exploration_rewards</code></div>
+    <p>Claim exploration chests on a ~4h cadence.</p>
+  </div>
+  <div class="scn-card">
+    <div class="scn-card-ids"><code>free_recrutments_today</code></div>
+    <p>Daily claim of free advanced and normal recruits (~5h).</p>
+  </div>
+</div>
+
+<h2 id="combat-events" class="scn-h scn-accent-emerald">Combat & events <span class="scn-count">17</span></h2>
+
+<div class="not-content scn-cards scn-tint-emerald">
+  <div class="scn-card">
+    <div class="scn-card-ids"><code>squad_fight</code></div>
+    <p>12h cadence; re-deploys after every Victory until the squad finally loses.</p>
+  </div>
+  <div class="scn-card">
+    <div class="scn-card-ids"><code>event.trials</code><span class="scn-plus">+</span><code>claim_trials.&#123;day&#125;</code></div>
+    <p>Trial events and per-day reward claim.</p>
+  </div>
+  <div class="scn-card">
+    <div class="scn-card-ids"><code>event.7-day</code></div>
+    <p>7-day starter / login event.</p>
+  </div>
+  <div class="scn-card">
+    <div class="scn-card-ids"><code>event.alliance_championship</code></div>
+    <p>Alliance Championship.</p>
+  </div>
+  <div class="scn-card">
+    <div class="scn-card-ids"><code>event.armament_competition</code></div>
+    <p>Armament Competition.</p>
+  </div>
+  <div class="scn-card">
+    <div class="scn-card-ids"><code>event.bear_hunt</code></div>
+    <p>Bear Hunt.</p>
+  </div>
+  <div class="scn-card">
+    <div class="scn-card-ids"><code>event.castle_battle</code></div>
+    <p>Castle Battle.</p>
+  </div>
+  <div class="scn-card">
+    <div class="scn-card-ids"><code>event.fishing_tournament</code></div>
+    <p>Fishing Tournament.</p>
+  </div>
+  <div class="scn-card">
+    <div class="scn-card-ids"><code>dreamscape_memory</code><span class="scn-plus">+</span><code>dreamscape_memory_multiplayer</code></div>
+    <p>Dreamscape Memory Recall Road solver — solo/co-op OCR backed by a reviewed scene dictionary.</p>
+  </div>
+  <div class="scn-card">
+    <div class="scn-card-ids"><code>event.fortress_battles</code></div>
+    <p>Fortress Battles.</p>
+  </div>
+  <div class="scn-card">
+    <div class="scn-card-ids"><code>event.foundry_battle</code></div>
+    <p>Foundry Battle.</p>
+  </div>
+  <div class="scn-card">
+    <div class="scn-card-ids"><code>event.labyrinth</code></div>
+    <p>Labyrinth.</p>
+  </div>
+  <div class="scn-card">
+    <div class="scn-card-ids"><code>myriad_bazaar</code></div>
+    <p>Myriad Bazaar.</p>
+  </div>
+  <div class="scn-card">
+    <div class="scn-card-ids"><code>event.state_of_power</code></div>
+    <p>State of Power.</p>
+  </div>
+  <div class="scn-card">
+    <div class="scn-card-ids"><code>event.tundra_trade_route</code></div>
+    <p>Tundra Trade Route.</p>
+  </div>
+  <div class="scn-card">
+    <div class="scn-card-ids"><code>deals.vault_of_enigma</code></div>
+    <p>Vault of Enigma.</p>
+  </div>
+  <div class="scn-card">
+    <div class="scn-card-ids"><code>event.first_purchase</code></div>
+    <p>First Purchase event.</p>
+  </div>
+</div>
+
+<h2 id="city" class="scn-h scn-accent-amber">City management <span class="scn-count">5</span></h2>
+
+<div class="not-content scn-cards scn-tint-amber">
+  <div class="scn-card">
+    <div class="scn-card-ids"><code>building.upgrade</code><span class="scn-plus">+</span><code>tap_build_button</code><span class="scn-plus">+</span><code>tap_upgrade_big_button</code></div>
+    <p>Pick the next upgrade and queue it through the build loop.</p>
+  </div>
+  <div class="scn-card">
+    <div class="scn-card-ids"><code>tap_furnace_max_power</code></div>
+    <p>Auto-tap the Max Power furnace upgrade.</p>
+  </div>
+  <div class="scn-card">
+    <div class="scn-card-ids"><code>survivors/assign_worker</code></div>
+    <p>Auto-assign idle workers to open construction slots.</p>
+  </div>
+  <div class="scn-card">
+    <div class="scn-card-ids"><code>survivors/welcome_new_survivors</code><span class="scn-plus">+</span><code>survivors_intro</code></div>
+    <p>Welcome flow for new survivors.</p>
+  </div>
+  <div class="scn-card">
+    <div class="scn-card-ids"><code>main_city/check_main_city</code></div>
+    <p>Periodic main-city overview plus event-block tile scan (4 slots).</p>
+  </div>
+</div>
+
+<h2 id="heroes" class="scn-h scn-accent-violet">Heroes <span class="scn-count">8</span></h2>
+
+<div class="not-content scn-cards scn-tint-violet">
+  <div class="scn-card">
+    <div class="scn-card-ids"><code>click_heroes</code><span class="scn-plus">+</span><code>scan_heroes_grid</code></div>
+    <p>Drain every red dot on the heroes screen until clean.</p>
+  </div>
+  <div class="scn-card">
+    <div class="scn-card-ids"><code>hero.upgrade</code><span class="scn-plus">+</span><code>upgrade/level_up_&#123;hero&#125;</code></div>
+    <p>Auto-level heroes.</p>
+  </div>
+  <div class="scn-card">
+    <div class="scn-card-ids"><code>upgrade/skill_up_&#123;hero&#125;</code></div>
+    <p>Auto-skill heroes.</p>
+  </div>
+  <div class="scn-card">
+    <div class="scn-card-ids"><code>upgrade/star_tier_up_&#123;hero&#125;</code></div>
+    <p>Promote heroes by star tier.</p>
+  </div>
+  <div class="scn-card">
+    <div class="scn-card-ids"><code>&#123;hero&#125;.recruit</code></div>
+    <p>Per-hero recruitment flow.</p>
+  </div>
+  <div class="scn-card">
+    <div class="scn-card-ids"><code>read_hero_wiki</code><span class="scn-plus">+</span><code>heroes.&#123;hero&#125;.wiki</code></div>
+    <p>Sync hero metadata from the in-game wiki.</p>
+  </div>
+  <div class="scn-card">
+    <div class="scn-card-ids"><code>sync_hero_unit</code></div>
+    <p>Sync hero unit data into local state.</p>
+  </div>
+  <div class="scn-card">
+    <div class="scn-card-ids"><code>pets/pets.pet_skill</code></div>
+    <p>Pet skill upgrades.</p>
+  </div>
+</div>
+
+<h2 id="shop" class="scn-h scn-accent-pink">Shop · Daily and weekly <span class="scn-count">10</span></h2>
+
+<div class="not-content scn-cards scn-tint-pink">
+  <div class="scn-card">
+    <div class="scn-card-ids"><code>shop.daily_deals</code></div>
+    <p>Daily deals tab.</p>
+  </div>
+  <div class="scn-card">
+    <div class="scn-card-ids"><code>shop.weekly_monthly_cards</code></div>
+    <p>Weekly and monthly cards.</p>
+  </div>
+  <div class="scn-card">
+    <div class="scn-card-ids"><code>shop.artisans_trove</code></div>
+    <p>Artisans Trove.</p>
+  </div>
+  <div class="scn-card">
+    <div class="scn-card-ids"><code>shop.construction_queue</code></div>
+    <p>Construction Queue offers.</p>
+  </div>
+  <div class="scn-card">
+    <div class="scn-card-ids"><code>shop.dawn_fund</code><span class="scn-plus">+</span><code>shop.dawn_market</code></div>
+    <p>Dawn fund and Dawn market.</p>
+  </div>
+  <div class="scn-card">
+    <div class="scn-card-ids"><code>shop.event</code></div>
+    <p>Event shop.</p>
+  </div>
+  <div class="scn-card">
+    <div class="scn-card-ids"><code>shop.get_gems</code></div>
+    <p>Get-gems flow.</p>
+  </div>
+  <div class="scn-card">
+    <div class="scn-card-ids"><code>shop.mix_match</code></div>
+    <p>Mix &amp; Match.</p>
+  </div>
+  <div class="scn-card">
+    <div class="scn-card-ids"><code>shop.regular_pack</code></div>
+    <p>Regular packs.</p>
+  </div>
+  <div class="scn-card">
+    <div class="scn-card-ids"><code>shop.tab.advance</code></div>
+    <p>Advance tab navigation.</p>
+  </div>
+</div>
+
+<h2 id="deals" class="scn-h scn-accent-cyan">Deals · Limited-time <span class="scn-count">13</span></h2>
+
+<div class="not-content scn-cards scn-tint-cyan">
+  <div class="scn-card">
+    <div class="scn-card-ids"><code>deals.bank</code><span class="scn-plus">+</span><code>deals.bank.withdraw</code><span class="scn-plus">+</span><code>deals.bank.deposit</code></div>
+    <p>Bank automation: withdraw completed 5% deposits, reinvest the maximum amount, then schedule the next withdrawal after the 1-day storage duration.</p>
+  </div>
+  <div class="scn-card">
+    <div class="scn-card-ids"><code>deals.dead_shot</code></div>
+    <p>Dead Shot.</p>
+  </div>
+  <div class="scn-card">
+    <div class="scn-card-ids"><code>deals.deals</code></div>
+    <p>Generic deals tab.</p>
+  </div>
+  <div class="scn-card">
+    <div class="scn-card-ids"><code>deals.endless_wayfarer</code></div>
+    <p>Endless Wayfarer.</p>
+  </div>
+  <div class="scn-card">
+    <div class="scn-card-ids"><code>deals.first_purchase</code></div>
+    <p>First-purchase deal.</p>
+  </div>
+  <div class="scn-card">
+    <div class="scn-card-ids"><code>deals.hall_of_heroes</code><span class="scn-plus">+</span><code>hall_of_heroes.witness</code></div>
+    <p>Hall of Heroes.</p>
+  </div>
+  <div class="scn-card">
+    <div class="scn-card-ids"><code>deals.hero_rally</code></div>
+    <p>Hero Rally.</p>
+  </div>
+  <div class="scn-card">
+    <div class="scn-card-ids"><code>deals.home_and_beyond</code></div>
+    <p>Home and Beyond.</p>
+  </div>
+  <div class="scn-card">
+    <div class="scn-card-ids"><code>deals.journey_treasures</code></div>
+    <p>Journey Treasures.</p>
+  </div>
+  <div class="scn-card">
+    <div class="scn-card-ids"><code>deals.sign_in</code></div>
+    <p>Sign-in deal.</p>
+  </div>
+  <div class="scn-card">
+    <div class="scn-card-ids"><code>deals.tundra_trading_station</code></div>
+    <p>Tundra Trading Station.</p>
+  </div>
+</div>
+
+<h2 id="ads" class="scn-h scn-accent-rose">Ads · Auto-claim <span class="scn-count">3</span></h2>
+
+<div class="not-content scn-cards scn-tint-rose">
+  <div class="scn-card">
+    <div class="scn-card-ids"><code>ads_rookie_value_pack</code></div>
+    <p>Auto-claim the Rookie Value Pack ad reward.</p>
+  </div>
+  <div class="scn-card">
+    <div class="scn-card-ids"><code>ads_natalia</code></div>
+    <p>Auto-claim the Natalia ad reward.</p>
+  </div>
+  <div class="scn-card">
+    <div class="scn-card-ids"><code>tap_ads_legend_transcend_pack</code></div>
+    <p>Auto-claim the Legend Transcend Pack ad reward.</p>
+  </div>
+</div>
+
+<h2 id="alliance" class="scn-h scn-accent-sky">Alliance <span class="scn-count">1</span></h2>
+
+<div class="not-content scn-minis">
+  <div class="scn-mini scn-mini-sky">
+    <span class="scn-mini-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+    </span>
+    <div class="scn-mini-body">
+      <code>alliance/invite.new</code>
+      <p>Alliance invite handling</p>
+    </div>
+  </div>
+</div>
+
+<h2 id="backpack" class="scn-h scn-accent-emerald">Backpack <span class="scn-count">1</span></h2>
+
+<div class="not-content scn-minis">
+  <div class="scn-mini scn-mini-emerald scn-mini-wide">
+    <span class="scn-mini-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 10a4 4 0 0 1 4-4h8a4 4 0 0 1 4 4v9a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2Z"/><path d="M9 6V4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"/><path d="M8 21v-5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v5"/><path d="M8 10h8"/></svg>
+    </span>
+    <div class="scn-mini-body">
+      <code>backpack + backpack.tab.&#123;tab&#125;</code>
+      <p>Use resources, speedups, gear, bonuses on a schedule (all tabs)</p>
+    </div>
+  </div>
+</div>
+
+<h2 id="popups" class="scn-h scn-accent-amber">Popups & onboarding <span class="scn-count">6</span></h2>
+
+<div class="not-content scn-cards scn-tint-amber">
+  <div class="scn-card">
+    <div class="scn-card-ids"><code>onboarding.click.skip_button</code></div>
+    <p>Skip tutorial buttons.</p>
+  </div>
+  <div class="scn-card">
+    <div class="scn-card-ids"><code>onboarding.click.button.tap_anywhere_to_exit</code></div>
+    <p>Dismiss "tap anywhere" prompts.</p>
+  </div>
+  <div class="scn-card">
+    <div class="scn-card-ids"><code>onboarding.click.&#123;pointer&#125;</code></div>
+    <p>Dismiss tutorial hand-pointers.</p>
+  </div>
+  <div class="scn-card">
+    <div class="scn-card-ids"><code>popup/dismiss_unknown_popup</code></div>
+    <p>Catch-all dismisser for unrecognized popups.</p>
+  </div>
+  <div class="scn-card">
+    <div class="scn-card-ids"><code>rewards/exit_rewards_popup</code></div>
+    <p>Confirm / claim / close the rewards popup.</p>
+  </div>
+  <div class="scn-card">
+    <div class="scn-card-ids"><code>who_i_am</code></div>
+    <p>"Where am I?" / identity-recovery prompt.</p>
+  </div>
+</div>
+
+</div>
+
+<h2 id="engine" class="scn-h scn-accent-violet">Engine capabilities <span class="scn-count">8</span></h2>
+
+Game-agnostic infrastructure used by every scenario above.
+
+<CardGrid>
+  <Card title="Multi-instance" icon="rocket">
+    One worker per BlueStacks instance; accounts run in parallel, isolated by ADB serial.
+  </Card>
+  <Card title="YAML DSL" icon="seti:yml">
+    Declarative scenarios: `match`, `click`, `while_match`, `ocr`, `cond`, `push_scenario`.
+  </Card>
+  <Card title="Approval gate" icon="approve-check">
+    Every tap can be approved in the UI before it fires, with a preview snapshot.
+  </Card>
+  <Card title="Redis queue" icon="list-format">
+    Pending + history + state in Redis. Restart-safe, visible from the Web UI.
+  </Card>
+  <Card title="Overlay engine" icon="magnifier">
+    Template + OCR + red-dot + tab-active + white-border detectors with per-rule gates.
+  </Card>
+  <Card title="Web UI" icon="laptop">
+    Next.js dashboard + Konva labeling (prod Docker on `:3000`).
+  </Card>
+  <Card title="Tesseract OCR" icon="translate">
+    Screen text via local `eng.traineddata` Tesseract inside the bot process.
+  </Card>
+  <Card title="Cron scheduler" icon="setting">
+    Interval-driven scenarios publish immediately on boot, then throttle by interval.
+  </Card>
+</CardGrid>
+
+{/* Page enhancements (inline, no bundling): filter + count + highlight,
+    scroll-spy on chips, clipboard on code pills, heading hash-links, "/" hotkey,
+    reading-progress bar. */}
+<script is:inline>{`
+(function () {
+  function init() {
+    var container = document.querySelector('.scenario-tables');
+    var nav = document.getElementById('scenario-jump');
+    if (!container || !nav) return;
+
+    // Turn each multi-card grid into a swipeable stack (progressive enhancement).
+    var stackMap = initStacks(container);
+
+    // Build per-section index: heading + content blocks + leaf items / stack.
+    var headings = container.querySelectorAll('h2.scn-h');
+    var sections = [];
+    headings.forEach(function (h2) {
+      var blocks = [];
+      var items = [];
+      var stack = null;
+      var node = h2.nextElementSibling;
+      while (node && node.tagName !== 'H2') {
+        blocks.push(node);
+        if (stackMap.has(node)) {
+          stack = stackMap.get(node);
+        } else if (node.tagName === 'TABLE') {
+          node.querySelectorAll('tbody tr').forEach(function (tr) { items.push(tr); });
+        } else {
+          var children = node.children;
+          for (var i = 0; i < children.length; i++) items.push(children[i]);
+        }
+        node = node.nextElementSibling;
+      }
+      sections.push({ heading: h2, blocks: blocks, items: items, stack: stack });
+    });
+    var totalItems = sections.reduce(function (n, s) {
+      return n + (s.stack ? s.stack.total() : s.items.length);
+    }, 0);
+
+    initFilter(sections, totalItems);
+    initScrollSpy(sections, nav);
+    initClipboard(container);
+    initAnchorLinks(container);
+    initShortcut();
+    initProgressBar();
+    initSpotlight();
+  }
+
+  // ---- Spotlight slideshow (crossfade, autoplay, dots, arrows, swipe) ----
+  function initSpotlight() {
+    var root = document.getElementById('spotlight');
+    if (!root) return;
+    var slides = Array.prototype.slice.call(root.querySelectorAll('.scn-slide'));
+    if (slides.length < 2) return;
+
+    var dotsHost = root.querySelector('.scn-slideshow-dots');
+    var AUTOPLAY_MS = 8000;
+    var current = Math.max(0, slides.indexOf(root.querySelector('.scn-slide.is-active')));
+    var timer = null;
+    var paused = false;
+
+    var reduceMotion = window.matchMedia
+      && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    var dots = slides.map(function (_, i) {
+      var dot = document.createElement('button');
+      dot.type = 'button';
+      dot.className = 'scn-slideshow-dot';
+      dot.setAttribute('role', 'tab');
+      dot.setAttribute('aria-label', 'Slide ' + (i + 1) + ' of ' + slides.length);
+      dot.style.setProperty('--scn-autoplay-ms', AUTOPLAY_MS + 'ms');
+      dot.appendChild(document.createElement('span'));
+      dot.addEventListener('click', function () { goTo(i); restart(); });
+      dotsHost.appendChild(dot);
+      return dot;
+    });
+
+    function render() {
+      slides.forEach(function (slide, i) {
+        var active = i === current;
+        slide.classList.toggle('is-active', active);
+        slide.setAttribute('aria-hidden', active ? 'false' : 'true');
+        // Keep links in hidden slides out of the tab order.
+        slide.querySelectorAll('a').forEach(function (a) {
+          if (active) a.removeAttribute('tabindex'); else a.tabIndex = -1;
+        });
+      });
+      dots.forEach(function (dot, i) {
+        var active = i === current;
+        dot.classList.toggle('is-active', active);
+        dot.classList.toggle('is-ticking', active && !paused && !reduceMotion);
+        dot.setAttribute('aria-selected', active ? 'true' : 'false');
+      });
+    }
+
+    function goTo(i) {
+      current = (i + slides.length) % slides.length;
+      render();
+    }
+
+    function restart() {
+      clearInterval(timer);
+      timer = setInterval(function () { goTo(current + 1); }, AUTOPLAY_MS);
+      // Re-trigger the dot progress animation from zero.
+      dots.forEach(function (dot) { dot.classList.remove('is-ticking'); });
+      void dotsHost.offsetWidth;
+      render();
+    }
+
+    function setPaused(value) {
+      if (paused === value) return;
+      paused = value;
+      if (paused) clearInterval(timer); else restart();
+      render();
+    }
+
+    root.querySelector('[data-slide-prev]').addEventListener('click', function () { goTo(current - 1); restart(); });
+    root.querySelector('[data-slide-next]').addEventListener('click', function () { goTo(current + 1); restart(); });
+
+    // Autoplay pauses while the reader is engaging with the card (or tab hidden).
+    root.addEventListener('mouseenter', function () { setPaused(true); });
+    root.addEventListener('mouseleave', function () { setPaused(false); });
+    root.addEventListener('focusin', function () { setPaused(true); });
+    root.addEventListener('focusout', function (e) {
+      if (!root.contains(e.relatedTarget)) setPaused(false);
+    });
+    document.addEventListener('visibilitychange', function () {
+      if (document.hidden) { clearInterval(timer); }
+      else if (!paused) { restart(); }
+    });
+
+    // Keyboard arrows while the carousel has focus.
+    root.addEventListener('keydown', function (e) {
+      if (e.key === 'ArrowLeft') { e.preventDefault(); goTo(current - 1); restart(); }
+      if (e.key === 'ArrowRight') { e.preventDefault(); goTo(current + 1); restart(); }
+    });
+
+    // Touch swipe with drag feedback: the active slide follows the finger
+    // (touch-action: pan-y leaves vertical scrolling to the browser; a
+    // vertical pan fires pointercancel and we snap back). On release past
+    // the threshold the deck advances; otherwise the slide springs back.
+    var drag = { id: null, startX: 0, dx: 0 };
+    function activeSlide() { return slides[current]; }
+    function dragReset(advanceTo) {
+      root.classList.remove('is-dragging');
+      slides.forEach(function (s) { s.style.transform = ''; s.style.opacity = ''; });
+      drag.id = null;
+      if (advanceTo !== undefined) goTo(advanceTo);
+      restart();
+    }
+    root.addEventListener('pointerdown', function (e) {
+      if (e.pointerType === 'mouse' || drag.id !== null) return;
+      drag.id = e.pointerId;
+      drag.startX = e.clientX;
+      drag.dx = 0;
+      try { root.setPointerCapture(e.pointerId); } catch (err) { /* no-op */ }
+      clearInterval(timer);
+    });
+    root.addEventListener('pointermove', function (e) {
+      if (e.pointerId !== drag.id) return;
+      drag.dx = e.clientX - drag.startX;
+      if (Math.abs(drag.dx) > 8) root.classList.add('is-dragging');
+      var w = root.offsetWidth || 1;
+      var slide = activeSlide();
+      slide.style.transform = 'translateX(' + drag.dx + 'px)';
+      slide.style.opacity = String(Math.max(0.35, 1 - Math.abs(drag.dx) / w));
+    });
+    root.addEventListener('pointerup', function (e) {
+      if (e.pointerId !== drag.id) return;
+      var w = root.offsetWidth || 1;
+      var past = Math.abs(drag.dx) > Math.max(60, w * 0.15);
+      dragReset(past ? current + (drag.dx < 0 ? 1 : -1) : undefined);
+    });
+    root.addEventListener('pointercancel', function (e) {
+      if (e.pointerId === drag.id) dragReset();
+    });
+
+    if (reduceMotion) { render(); } else { restart(); }
+  }
+
+  // ---- Scenario stacks (3D card decks that fan out on hover / focus / tap) ----
+  function initStacks(container) {
+    var map = new Map();
+    var grids = container.querySelectorAll('.scn-cards');
+    Array.prototype.forEach.call(grids, function (grid) {
+      var cards = Array.prototype.filter.call(grid.children, function (c) {
+        return c.classList && c.classList.contains('scn-card');
+      });
+      // A single-card section stays a plain card — nothing to stack.
+      if (cards.length < 2) return;
+      map.set(grid, makeStack(grid, cards));
+    });
+    return map;
+  }
+
+  function makeStack(grid, cards) {
+    grid.classList.add('scn-stack');
+    grid.style.setProperty('--n', cards.length);
+    cards.forEach(function (card, i) { card.style.setProperty('--i', i + 1); });
+    grid.setAttribute('tabindex', '0');
+    grid.setAttribute('role', 'group');
+    grid.setAttribute('aria-label', 'Scenario deck — expand to see all ' + cards.length);
+    grid.setAttribute('aria-expanded', 'false');
+
+    // Paint the collapsed deck first, then enable transitions so only the
+    // hover/open fan animates (not the initial collapse). Double rAF defers
+    // until after the resting state has been committed to the screen.
+    requestAnimationFrame(function () {
+      requestAnimationFrame(function () { grid.classList.add('scn-ready'); });
+    });
+
+    function setOpen(open) {
+      grid.classList.toggle('is-open', open);
+      grid.setAttribute('aria-expanded', open ? 'true' : 'false');
+    }
+
+    // Tap toggles the deck; tapping a code-pill copies it and keeps it open.
+    grid.addEventListener('click', function (e) {
+      if (e.target.closest('code')) { setOpen(true); return; }
+      setOpen(!grid.classList.contains('is-open'));
+    });
+    grid.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        setOpen(!grid.classList.contains('is-open'));
+      }
+    });
+
+    function applyFilter(q) {
+      var visible = 0;
+      cards.forEach(function (card) {
+        clearMarks(card);
+        var match = !q || (card.textContent || '').toLowerCase().indexOf(q) !== -1;
+        card.classList.toggle('is-filtered-out', !match);
+        if (match) {
+          visible++;
+          if (q) markMatches(card, q);
+        }
+      });
+      // An active query expands the deck so every match is visible at once.
+      setOpen(!!q);
+      return visible;
+    }
+
+    return {
+      total: function () { return cards.length; },
+      applyFilter: applyFilter
+    };
+  }
+
+  // ---- Toast (shared) ----
+  var toastEl;
+  function showToast(text) {
+    if (!toastEl) {
+      toastEl = document.createElement('div');
+      toastEl.className = 'scn-toast';
+      toastEl.setAttribute('role', 'status');
+      toastEl.setAttribute('aria-live', 'polite');
+      document.body.appendChild(toastEl);
+    }
+    toastEl.textContent = text;
+    toastEl.classList.add('is-shown');
+    clearTimeout(toastEl._t);
+    toastEl._t = setTimeout(function () { toastEl.classList.remove('is-shown'); }, 1500);
+  }
+
+  // ---- Highlighting helpers ----
+  function clearMarks(el) {
+    var marks = el.querySelectorAll('mark.scn-mark');
+    marks.forEach(function (m) { m.replaceWith(document.createTextNode(m.textContent)); });
+    if (marks.length) el.normalize();
+  }
+  function markMatches(el, q) {
+    var walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT, {
+      acceptNode: function (n) {
+        if (!n.nodeValue || !n.nodeValue.trim()) return NodeFilter.FILTER_REJECT;
+        var p = n.parentElement;
+        if (!p || p.closest('script,style,mark,kbd')) return NodeFilter.FILTER_REJECT;
+        return n.nodeValue.toLowerCase().indexOf(q) !== -1
+          ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT;
+      }
+    });
+    var nodes = [];
+    while (walker.nextNode()) nodes.push(walker.currentNode);
+    nodes.forEach(function (node) {
+      var text = node.nodeValue;
+      var lower = text.toLowerCase();
+      var frag = document.createDocumentFragment();
+      var idx = lower.indexOf(q), last = 0;
+      while (idx !== -1) {
+        if (idx > last) frag.appendChild(document.createTextNode(text.slice(last, idx)));
+        var m = document.createElement('mark');
+        m.className = 'scn-mark';
+        m.textContent = text.slice(idx, idx + q.length);
+        frag.appendChild(m);
+        last = idx + q.length;
+        idx = lower.indexOf(q, last);
+      }
+      if (last < text.length) frag.appendChild(document.createTextNode(text.slice(last)));
+      node.parentNode.replaceChild(frag, node);
+    });
+  }
+
+  // ---- Filter (count + mark) ----
+  function initFilter(sections, totalItems) {
+    var input = document.getElementById('scenario-filter');
+    if (!input) return;
+    var empty = document.getElementById('scenario-filter-empty');
+    var count = document.getElementById('scenario-filter-count');
+    var kbd = document.getElementById('scenario-filter-kbd');
+
+    function apply() {
+      var q = input.value.trim().toLowerCase();
+      var visibleTotal = 0;
+      sections.forEach(function (s) {
+        var visible;
+        if (s.stack) {
+          // The stack owns its own cards (mark + narrow the deck to matches).
+          visible = s.stack.applyFilter(q);
+        } else {
+          visible = 0;
+          s.items.forEach(function (el) {
+            clearMarks(el);
+            var match = !q || (el.textContent || '').toLowerCase().indexOf(q) !== -1;
+            el.hidden = !match;
+            if (match) {
+              visible++;
+              if (q) markMatches(el, q);
+            }
+          });
+        }
+        var sectionTotal = s.stack ? s.stack.total() : s.items.length;
+        var sectionHidden = sectionTotal > 0 && visible === 0;
+        s.heading.hidden = sectionHidden;
+        s.blocks.forEach(function (b) { b.hidden = sectionHidden; });
+        visibleTotal += visible;
+      });
+      if (empty) empty.hidden = visibleTotal > 0 || !q;
+      if (count && kbd) {
+        if (q) {
+          count.textContent = 'Showing ' + visibleTotal + ' of ' + totalItems + ' items';
+          count.hidden = false;
+          kbd.hidden = true;
+        } else {
+          count.hidden = true;
+          kbd.hidden = false;
+        }
+      }
+    }
+    input.addEventListener('input', apply);
+  }
+
+  // ---- Scroll spy ----
+  function initScrollSpy(sections, nav) {
+    if (!('IntersectionObserver' in window)) return;
+    var chips = nav.querySelectorAll('a[data-jump]');
+    var setActive = function (id) {
+      chips.forEach(function (c) {
+        c.classList.toggle('scn-chip-active', c.getAttribute('data-jump') === id);
+      });
+    };
+    var visible = new Set();
+    var observer = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) {
+        if (e.isIntersecting) visible.add(e.target.id); else visible.delete(e.target.id);
+      });
+      for (var i = 0; i < sections.length; i++) {
+        if (visible.has(sections[i].heading.id)) { setActive(sections[i].heading.id); return; }
+      }
+    }, { rootMargin: '-20% 0px -65% 0px', threshold: 0 });
+    sections.forEach(function (s) { observer.observe(s.heading); });
+  }
+
+  // ---- Click-to-copy on scenario name pills ----
+  function initClipboard(container) {
+    var codes = container.querySelectorAll('td:first-child code, .scn-card code, .scn-mini-body code');
+    codes.forEach(function (c) {
+      c.title = 'Click to copy';
+      c.addEventListener('click', function () {
+        var text = (c.textContent || '').trim();
+        if (!text || !navigator.clipboard) return;
+        navigator.clipboard.writeText(text).then(function () {
+          showToast('Copied ' + text);
+        });
+      });
+    });
+  }
+
+  // ---- Hash-link icon shown on heading hover ----
+  function initAnchorLinks(container) {
+    var headings = container.querySelectorAll('h2[id]');
+    headings.forEach(function (h) {
+      if (h.querySelector('.scn-anchor')) return;
+      var a = document.createElement('a');
+      a.href = '#' + h.id;
+      a.className = 'scn-anchor';
+      a.textContent = '#';
+      a.setAttribute('aria-label', 'Copy link to ' + (h.textContent || '').trim());
+      a.addEventListener('click', function (e) {
+        e.preventDefault();
+        var url = location.origin + location.pathname + '#' + h.id;
+        history.replaceState(null, '', '#' + h.id);
+        h.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        if (navigator.clipboard) {
+          navigator.clipboard.writeText(url).then(function () { showToast('Link copied'); });
+        }
+      });
+      h.appendChild(a);
+    });
+  }
+
+  // ---- "/" focuses filter, Esc clears ----
+  function initShortcut() {
+    var input = document.getElementById('scenario-filter');
+    if (!input) return;
+    document.addEventListener('keydown', function (e) {
+      var ae = document.activeElement;
+      var inEditable = ae && (/^(input|textarea|select)$/i.test(ae.tagName) || ae.isContentEditable);
+      if (e.key === '/' && !inEditable && !e.metaKey && !e.ctrlKey && !e.altKey) {
+        e.preventDefault();
+        input.focus();
+        input.select();
+      } else if (e.key === 'Escape' && ae === input) {
+        input.value = '';
+        input.dispatchEvent(new Event('input'));
+        input.blur();
+      }
+    });
+  }
+
+  // ---- Reading-progress bar ----
+  function initProgressBar() {
+    var bar = document.getElementById('scn-progress');
+    if (!bar) return;
+    function update() {
+      var doc = document.documentElement;
+      var max = doc.scrollHeight - window.innerHeight;
+      var pct = max > 0 ? (window.scrollY / max) * 100 : 0;
+      bar.style.width = pct + '%';
+    }
+    window.addEventListener('scroll', update, { passive: true });
+    window.addEventListener('resize', update);
+    update();
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+})();
+`}</script>
