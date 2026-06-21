@@ -1,0 +1,31 @@
+---
+title: License & pricing
+description: Tiers R2 (free), R3 ($5) and R4 ($50) — what each unlocks, usage limits, and how to activate a license file.
+tableOfContents: false
+sidebar:
+  order: 5
+  label: License
+---
+
+import LicenseScene from '../../../components/LicenseScene.astro';
+
+<LicenseScene />
+
+The bot core is **free** (the R2 tier). A license file is still required — it carries your tier, expiry and usage limits (max devices, max players per device, external-account cap), and lets us rotate keys without releasing a new image.
+
+Tiers are named after in-game alliance ranks. **Features are cumulative** — a higher tier includes everything below it. Pick a tier above to see what it unlocks.
+
+:::tip[Free for contributors & testers]
+R3 / R4 keys are **free** for people helping the project — module development & debugging, labeling, and active testing of pre-release builds. DM a maintainer on [Discord](https://discord.gg/62twnzKG9) with your host fingerprint (shown on the dashboard's **License** page).
+:::
+
+Caps per tier (devices, players, external accounts, host binding) are shown on each tier card above. The paid key won't run on a different host — copy your fingerprint from the dashboard's **License** page when requesting one.
+
+## When the key expires
+
+Free keys rotate every so often. When yours stops working:
+
+1. Pull the latest `licence.jwt` from the `#install` channel on [Discord](https://discord.gg/62twnzKG9)
+2. Re-upload it through the same UI flow
+
+Paid keys are issued with their own expiry — DM a maintainer to renew.
