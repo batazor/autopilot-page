@@ -1,6 +1,6 @@
 ---
 title: Install on Windows
-description: Run the autopilot stack on Windows with Docker Desktop + WSL2 and BlueStacks ADB enabled — nothing to install on the host.
+description: Run the autopilot stack on Windows with Docker Desktop + WSL2 and BlueStacks ADB enabled. One double-click installer downloads docker-compose and starts everything.
 sidebar:
   order: 4
   label: Windows
@@ -10,10 +10,14 @@ import { Steps, Aside } from '@astrojs/starlight/components';
 import { Image } from 'astro:assets';
 import dockerHostNetworking from '../../../assets/docker-host-networking.png';
 
-:::note[One-time setup]
-1. Install **Docker Desktop** with **WSL2**, then enable Host networking below.
-2. In **BlueStacks**: **Settings → Advanced → Android Debug Bridge** →
-   **Enabled**.
+On Windows you don't type any commands. A small installer — [`install.bat`](/autopilot-page/install.bat) —
+downloads the compose file and starts the whole stack on a double-click. The only
+manual work is two one-time GUI toggles a script can't safely flip for you.
+
+:::note[One-time setup — two toggles]
+1. Install **Docker Desktop** (it requires **WSL2**), then enable **Host networking**
+   below.
+2. In **BlueStacks**: **Settings → Advanced → Android Debug Bridge → Enabled**.
 
 That's the whole list — you don't install `adb` or any Android tools on Windows.
 The bot container ships its own copy and connects to BlueStacks for you.
@@ -46,48 +50,48 @@ install or start by hand.
 
 </details>
 
-## 1. Check Docker
-
-Open **PowerShell** and confirm Docker ships Compose v2:
-
-```powershell
-docker compose version   # Compose v2.x
-```
-
-## 2. Run the stack
+## Install
 
 <Steps>
 
-1. **Fetch the compose file**
-
-   ```powershell
-   curl -fsSL https://batazor.github.io/autopilot-page/docker-compose.prod.yml -o docker-compose.prod.yml
-   ```
-
-2. **Set the emulator profile in BlueStacks** — **720 × 1280 @ 320 DPI**, game
+1. **Set the emulator profile in BlueStacks** — **720 × 1280 @ 320 DPI**, game
    language **English**. See [Emulator setup](/autopilot-page/config/emulator/);
    the dashboard warns you if the resolution or DPI is off, so you don't have to
    check it by hand.
 
-3. **Pull and start** redis + bot + api + web:
+2. **Download the installer:** [**`install.bat`**](/autopilot-page/install.bat)
+   (right-click → *Save link as…* if your browser opens it as text).
 
-   ```powershell
-   docker compose -f docker-compose.prod.yml up -d --pull always
-   ```
+3. **Double-click `install.bat`.** A console window opens and the script:
+   - checks that Docker Desktop is installed and running,
+   - downloads `docker-compose.prod.yml` into `%USERPROFILE%\autopilot`,
+   - pulls the images and starts **redis + bot + api + web**,
+   - opens the dashboard for you.
 
-4. **Open the dashboard**
-
-   ```powershell
-   start http://127.0.0.1:3000/overview
-   ```
+4. When it finishes, the dashboard is at
+   [`http://127.0.0.1:3000/overview`](http://127.0.0.1:3000/overview). Go to
+   **Devices (ADB)** — your BlueStacks emulator shows up ready to add.
 
 </Steps>
 
-:::note[First start]
-The bot service starts automatically — no activation step is needed. Open the
-dashboard, go to **Devices (ADB)**, and your BlueStacks emulator shows up ready
-to add.
+:::caution[“Windows protected your PC”]
+Because the installer is downloaded from the web, **SmartScreen** may show a blue
+warning the first time. Click **More info → Run anyway**. `install.bat` is plain
+text — open it in Notepad first if you'd like to read exactly what it runs.
 :::
+
+:::note[First start]
+The bot service starts automatically — no activation step is needed. The first
+`up` pulls a few hundred MB of images, so it can take a couple of minutes.
+:::
+
+## Updating
+
+To update to the latest release, just **run `install.bat` again**. It re-downloads
+the compose file and pulls the newer images (`--pull always`) before recreating the
+containers — your accounts and state in the Docker volumes are kept. See
+[Updating](/autopilot-page/install/updating/) if a container gets stuck on the old
+version.
 
 ## Troubleshooting
 
@@ -95,8 +99,7 @@ to add.
 Make sure **Host networking** is enabled in Docker Desktop and BlueStacks'
 **Android Debug Bridge** is turned on. Then open the dashboard's **Devices (ADB)**
 page and press **Rescan** — it re-discovers and connects to BlueStacks for you.
-If it still doesn't show up, restart BlueStacks and the stack with
-`docker compose -f docker-compose.prod.yml restart`.
+If it still doesn't show up, restart BlueStacks and re-run `install.bat`.
 </Aside>
 
 See [Troubleshooting](/autopilot-page/ops/troubleshooting/) for the full list.

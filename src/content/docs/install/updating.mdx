@@ -14,6 +14,12 @@ A release has **two** moving parts: the **images**
 mistake — the compose file evolves too (health checks, services, env), and your
 copy is a static download that nothing refreshes for you.
 
+:::tip[Windows]
+On Windows you don't need these commands — just **re-run [`install.bat`](/autopilot-page/install.bat)**.
+It refreshes the compose file and pulls the newer images for you. If a container
+gets stuck unhealthy, read the trap section below.
+:::
+
 ## The correct update
 
 <Steps>
