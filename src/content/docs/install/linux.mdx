@@ -10,23 +10,21 @@ import { Steps, Tabs, TabItem, Aside } from '@astrojs/starlight/components';
 
 :::tip[Native host networking]
 On Linux `network_mode: host` works out of the box — nothing to toggle (unlike
-Docker Desktop on macOS / Windows). The bot container shares the host loopback,
-so it reaches `adb` at `127.0.0.1:5037` directly.
+Docker Desktop on macOS / Windows). The bot container shares the host loopback
+and starts its **own** adb server on `127.0.0.1:5037`, so it reaches emulators on
+loopback directly — you don't install `adb` on the host.
 :::
 
-## 1. Install Docker Engine + ADB
+## 1. Install Docker Engine
 
-You need **Docker Engine** with the **Compose v2** plugin, plus **`adb`** on your
-`PATH`. Pick your distro:
+You need **Docker Engine** with the **Compose v2** plugin. No host `adb` — the
+bot container ships its own. Pick your distro:
 
 <Tabs syncKey="distro">
   <TabItem label="Debian / Ubuntu">
     ```sh
     # Docker Engine + Compose plugin (official convenience script)
     curl -fsSL https://get.docker.com | sudo sh
-
-    # Android platform tools (adb)
-    sudo apt update && sudo apt install -y android-tools-adb
     ```
   </TabItem>
 
@@ -35,26 +33,29 @@ You need **Docker Engine** with the **Compose v2** plugin, plus **`adb`** on you
     sudo dnf -y install dnf-plugins-core
     sudo dnf config-manager --add-repo https://download.docker.com/linux/fedora/docker-ce.repo
     sudo dnf -y install docker-ce docker-ce-cli containerd.io docker-compose-plugin
-
     sudo systemctl enable --now docker
-    sudo dnf -y install android-tools
     ```
   </TabItem>
 
   <TabItem label="Arch">
     ```sh
-    sudo pacman -S --needed docker docker-compose android-tools
+    sudo pacman -S --needed docker docker-compose
     sudo systemctl enable --now docker
     ```
   </TabItem>
 </Tabs>
 
-Verify both are ready:
+Verify it's ready:
 
 ```sh
 docker compose version   # Compose v2.x
-adb version
 ```
+
+:::note[Want `adb` on the host too?]
+Optional — only handy if you manage an AVD or Waydroid from a host shell. Install
+your distro's package (`android-tools-adb` on Debian/Ubuntu, `android-tools` on
+Fedora/Arch). The stack itself never needs it.
+:::
 
 :::tip[Run Docker without `sudo`]
 Add yourself to the `docker` group so you don't need `sudo` for every command —
@@ -68,13 +69,13 @@ sudo usermod -aG docker "$USER"
 ## Optional: emulator choices
 
 BlueStacks is the known-good default, but Linux can also run Autopilot against
-any Android target that shows up in `adb devices` and can be kept at
+any Android target reachable on the host loopback and kept at
 **720 × 1280 portrait, 320 DPI, English game language**.
 
 | Option | When to use it | Setup notes |
 |:-------|:---------------|:------------|
-| [Android Studio Emulator](https://developer.android.com/studio/run/managing-avds) | You want the official Android emulator and already have Android Studio / SDK tools installed. | Create a phone AVD with a custom 720 × 1280 portrait hardware profile, set density to 320 DPI, launch it, then confirm `adb devices` shows an `emulator-####` serial. |
-| [Waydroid](https://docs.waydro.id/) | You want a lightweight Linux-native Android container on a Wayland desktop. | Install and initialize Waydroid for your distro, start the session, connect ADB with `adb connect <waydroid-ip>:5555`, then verify it appears in `adb devices`. Waydroid is optional/advanced; test one account first before scaling. |
+| [Android Studio Emulator](https://developer.android.com/studio/run/managing-avds) | You want the official Android emulator and already have Android Studio / SDK tools installed. | Create a phone AVD with a custom 720 × 1280 portrait hardware profile, set density to 320 DPI, and launch it. It shows up on the dashboard's **Devices (ADB)** page. |
+| [Waydroid](https://docs.waydro.id/) | You want a lightweight Linux-native Android container on a Wayland desktop. | Install and initialize Waydroid, start the session, then point the bot's adb at it: `docker compose -f docker-compose.prod.yml exec bot adb connect <waydroid-ip>:5555`. It then appears on **Devices (ADB)**. Advanced; test one account first. |
 
 ## 2. Run the stack
 
@@ -86,30 +87,18 @@ any Android target that shows up in `adb devices` and can be kept at
    curl -fsSL https://batazor.github.io/autopilot-page/docker-compose.prod.yml -o docker-compose.prod.yml
    ```
 
-2. **Start ADB and confirm your emulator is visible**
+2. **Set the emulator profile** — **720 × 1280 @ 320 DPI**, game language
+   **English**, with **ADB enabled** in the emulator. See
+   [Emulator setup](/autopilot-page/config/emulator/); the dashboard warns you if
+   the resolution or DPI is off.
 
-   ```sh
-   adb start-server
-   adb devices        # your emulator/device should be listed as "device"
-   ```
-
-3. **Verify the display profile** — must be **720 × 1280 @ 320 DPI**:
-
-   ```sh
-   adb shell wm size
-   adb shell wm density
-   ```
-
-   Also open the game once and set its language to **English**. See
-   [Emulator setup](/autopilot-page/config/emulator/) for the full list.
-
-4. **Pull and start** redis + bot + api + web:
+3. **Pull and start** redis + bot + api + web:
 
    ```sh
    docker compose -f docker-compose.prod.yml up -d --pull always
    ```
 
-5. **Open the dashboard**
+4. **Open the dashboard**
 
    ```sh
    xdg-open http://127.0.0.1:3000/overview
@@ -119,18 +108,17 @@ any Android target that shows up in `adb devices` and can be kept at
 
 :::note[First start]
 The bot service starts automatically — no activation step is needed. Open the
-dashboard and you're ready to add a device and your accounts.
+dashboard, go to **Devices (ADB)**, and your emulator shows up ready to add.
 :::
 
 ## Troubleshooting
 
-<Aside type="caution" title="adb devices is empty inside the container">
-If `adb devices` works on the host but the bot can't see the emulator, the
-host's adb server may be bound somewhere the container can't reach. Restart it
-and re-check, then confirm the bot container shares the host network:
+<Aside type="caution" title="Bot can't see the emulator">
+Confirm the emulator is running with **ADB enabled** and listening on loopback.
+Open the dashboard's **Devices (ADB)** page and press **Rescan** — it discovers
+and connects for you. To check from inside the container directly:
 
 ```sh
-adb kill-server && adb start-server
 docker compose -f docker-compose.prod.yml exec bot adb devices
 ```
 </Aside>

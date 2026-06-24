@@ -18,18 +18,13 @@ Pre-built images on GitHub Container Registry — no Python / uv install needed.
     <CardGrid>
       <LinkCard
         title="Docker Desktop"
-        description="latest — enable Settings → Resources → Network → host networking (beta), or the bot container can't reach the host's adb."
+        description="latest — enable Settings → Resources → Network → host networking (beta), or the bot can't reach the emulator. No host adb needed — the bot ships its own."
         href="https://docs.docker.com/desktop/install/mac-install/"
       />
       <LinkCard
         title="BlueStacks 5+"
-        description="Apple-silicon and Intel both supported."
+        description="Apple-silicon and Intel both supported. Enable ADB in its settings."
         href="https://www.bluestacks.com/"
-      />
-      <LinkCard
-        title="Android Platform Tools (adb)"
-        description="latest — brew install --cask android-platform-tools is fine."
-        href="https://developer.android.com/tools/releases/platform-tools"
       />
     </CardGrid>
   </TabItem>
@@ -38,18 +33,13 @@ Pre-built images on GitHub Container Registry — no Python / uv install needed.
     <CardGrid>
       <LinkCard
         title="Docker Engine + Compose v2"
-        description="latest — network_mode: host works out of the box, no extra toggles."
+        description="latest — network_mode: host works out of the box, no extra toggles. The bot ships its own adb, so none on the host."
         href="https://docs.docker.com/engine/install/"
       />
       <LinkCard
         title="BlueStacks 5+"
-        description="Or any 720 × 1280 / 320 DPI Android emulator with ADB."
+        description="Or any 720 × 1280 / 320 DPI Android emulator with ADB enabled."
         href="https://www.bluestacks.com/"
-      />
-      <LinkCard
-        title="Android Platform Tools (adb)"
-        description="latest — apt install android-tools-adb / pacman -S android-tools."
-        href="https://developer.android.com/tools/releases/platform-tools"
       />
     </CardGrid>
   </TabItem>
@@ -58,18 +48,13 @@ Pre-built images on GitHub Container Registry — no Python / uv install needed.
     <CardGrid>
       <LinkCard
         title="Docker Desktop"
-        description="latest — requires WSL2; enable Settings → Resources → Network → host networking (beta)."
+        description="latest — requires WSL2; enable Settings → Resources → Network → host networking (beta). No host adb needed — the bot ships its own."
         href="https://docs.docker.com/desktop/install/windows-install/"
       />
       <LinkCard
         title="BlueStacks 5+"
         description="Settings → Advanced → Android Debug Bridge → Enabled."
         href="https://www.bluestacks.com/"
-      />
-      <LinkCard
-        title="Android Platform Tools (adb)"
-        description="latest — unzip, add to PATH, and whitelist adb.exe if your AV flags it."
-        href="https://developer.android.com/tools/releases/platform-tools"
       />
     </CardGrid>
   </TabItem>

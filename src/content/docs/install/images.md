@@ -31,11 +31,11 @@ Public images are published as `latest` only — keep your install on `latest`.
 Updating is more than `--pull always` (you also refresh the compose file, and a
 stuck container needs a `down` first) — see **[Updating](/autopilot-page/install/updating/)**.
 
-## How the container reaches the host's ADB
+## How the container reaches ADB
 
-`bot`, `api`, and `web` run in `network_mode: host` so the app **shares the host's loopback** — `adb start-server` stays bound to `127.0.0.1:5037` (safe, no LAN exposure) and both workers and the dashboard ADB scan talk to it as `127.0.0.1:5037` from inside their containers.
+`bot`, `api`, and `web` run in `network_mode: host` so the app **shares the host's loopback**. On boot the `bot` starts **its own** adb server (bundled in the image) on `127.0.0.1:5037`; because that port is the shared host loopback, the workers, the dashboard ADB scan, and any emulator on loopback all reach it. **You don't install `adb` on the host or run `adb start-server` yourself** — the container does it (`adb.ensure_adb_server`, idempotent). The server stays bound to loopback only (safe, no LAN exposure).
 
-No `adb -a`, no socat sidecar, no `host.docker.internal` indirection.
+No host adb, no `adb -a`, no socat sidecar, no `host.docker.internal` indirection.
 
 Side effect: app containers do not use Compose-internal DNS for `redis`. Instead, `bot` and `api` connect to Redis over a shared **Unix socket volume** (`redis_socket` → `/var/run/redis/redis.sock`), and `web` proxies `/api` to `127.0.0.1:8765`.
 
@@ -47,4 +47,4 @@ rolling screenshots used by the dashboard preview and Click approvals page.
 - **Linux** — fully supported out of the box.
 - **Docker Desktop (macOS / Windows)** — works only with the **Host networking** beta enabled
   (*Settings → Resources → Network → Enable host networking*). Without it, the app containers can
-  mount the Redis socket but **not** reliably reach the host's `adb` server.
+  mount the Redis socket but **not** reliably reach the emulator over the shared loopback.

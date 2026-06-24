@@ -1,6 +1,6 @@
 ---
 title: Install on Windows
-description: Run the autopilot stack on Windows with Docker Desktop + WSL2, Platform Tools on PATH, and BlueStacks ADB enabled.
+description: Run the autopilot stack on Windows with Docker Desktop + WSL2 and BlueStacks ADB enabled — nothing to install on the host.
 sidebar:
   order: 4
   label: Windows
@@ -12,11 +12,11 @@ import dockerHostNetworking from '../../../assets/docker-host-networking.png';
 
 :::note[One-time setup]
 1. Install **Docker Desktop** with **WSL2**, then enable Host networking below.
-2. Install [Android Platform Tools](https://developer.android.com/tools/releases/platform-tools),
-   unzip to e.g. `%LOCALAPPDATA%\Android\Sdk\platform-tools\`, and add that
-   folder to your `PATH` (*System Properties → Environment Variables*).
-3. In **BlueStacks**: **Settings → Advanced → Android Debug Bridge** →
+2. In **BlueStacks**: **Settings → Advanced → Android Debug Bridge** →
    **Enabled**.
+
+That's the whole list — you don't install `adb` or any Android tools on Windows.
+The bot container ships its own copy and connects to BlueStacks for you.
 :::
 
 <details open class="screenshot-details">
@@ -32,8 +32,9 @@ import dockerHostNetworking from '../../../assets/docker-host-networking.png';
 
 </Steps>
 
-The bot container needs this toggle to reach the host's `adb` server on
-`127.0.0.1:5037`.
+With host networking on, the containers share Windows' loopback — the bot starts
+its own adb bridge there and reaches BlueStacks, so there's nothing for you to
+install or start by hand.
 
 <figure class="screenshot-figure">
   <Image
@@ -45,17 +46,13 @@ The bot container needs this toggle to reach the host's `adb` server on
 
 </details>
 
-## 1. Verify the tools
+## 1. Check Docker
 
-Open **PowerShell** and confirm Docker (with Compose v2) and `adb` are ready:
+Open **PowerShell** and confirm Docker ships Compose v2:
 
 ```powershell
 docker compose version   # Compose v2.x
-adb version
 ```
-
-If `adb` isn't found, the `platform-tools` folder isn't on your `PATH` yet —
-re-check step 2 above and open a new terminal.
 
 ## 2. Run the stack
 
@@ -67,30 +64,18 @@ re-check step 2 above and open a new terminal.
    curl -fsSL https://batazor.github.io/autopilot-page/docker-compose.prod.yml -o docker-compose.prod.yml
    ```
 
-2. **Start ADB and confirm BlueStacks is visible**
+2. **Set the emulator profile in BlueStacks** — **720 × 1280 @ 320 DPI**, game
+   language **English**. See [Emulator setup](/autopilot-page/config/emulator/);
+   the dashboard warns you if the resolution or DPI is off, so you don't have to
+   check it by hand.
 
-   ```powershell
-   adb start-server
-   adb devices        # BlueStacks should be listed as "device"
-   ```
-
-3. **Verify the display profile** — must be **720 × 1280 @ 320 DPI**, game
-   language **English**:
-
-   ```powershell
-   adb shell wm size
-   adb shell wm density
-   ```
-
-   See [Emulator setup](/autopilot-page/config/emulator/) for the full list.
-
-4. **Pull and start** redis + bot + api + web:
+3. **Pull and start** redis + bot + api + web:
 
    ```powershell
    docker compose -f docker-compose.prod.yml up -d --pull always
    ```
 
-5. **Open the dashboard**
+4. **Open the dashboard**
 
    ```powershell
    start http://127.0.0.1:3000/overview
@@ -100,24 +85,18 @@ re-check step 2 above and open a new terminal.
 
 :::note[First start]
 The bot service starts automatically — no activation step is needed. Open the
-dashboard and you're ready to add a device and your accounts.
+dashboard, go to **Devices (ADB)**, and your BlueStacks emulator shows up ready
+to add.
 :::
 
 ## Troubleshooting
 
-<Aside type="caution" title="Antivirus flags adb.exe">
-ADB is a legitimate dev tool but can open root shells, so some scanners flag
-`adb.exe` as PUA. Whitelist the Android Platform Tools folder.
-</Aside>
-
 <Aside type="caution" title="Bot can't see the emulator">
-Check that **Host networking** is enabled in Docker Desktop and that BlueStacks
-**Android Debug Bridge** is on, then:
-
-```powershell
-adb kill-server; adb start-server
-docker compose -f docker-compose.prod.yml exec bot adb devices
-```
+Make sure **Host networking** is enabled in Docker Desktop and BlueStacks'
+**Android Debug Bridge** is turned on. Then open the dashboard's **Devices (ADB)**
+page and press **Rescan** — it re-discovers and connects to BlueStacks for you.
+If it still doesn't show up, restart BlueStacks and the stack with
+`docker compose -f docker-compose.prod.yml restart`.
 </Aside>
 
 See [Troubleshooting](/autopilot-page/ops/troubleshooting/) for the full list.

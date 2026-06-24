@@ -75,5 +75,6 @@ docker compose -f docker-compose.prod.yml logs --tail=200 api
 | OCR returns garbage / empty text | Wrong emulator resolution or DPI | Verify [Emulator setup](/autopilot-page/config/emulator/) — must be **720 × 1280 @ 320 DPI, English**. |
 | Startup blocked with `validation acknowledged via WOS_VALIDATION_ACK` | Mismatch between `area.json` / `analyze/*.yaml` / `scenarios/*.yaml` | The message names the file + key. Set `WOS_VALIDATION_ACK=1` only as a temporary unblock — fix the YAML, then remove the env var. |
 | Fish detect: `Inference unavailable: … HTTP 401 …` | Roboflow API key missing / invalid (optional [Fish detection](/autopilot-page/config/inference/)) | Set `ROBOFLOW_API_KEY` and restart the API. Only affects the Fishing Tournament detector. |
+| Inference widget shows **"Docker unavailable"** | In production the `api` container can't reach the Docker daemon | Either start the container from the CLI, or (trusted, loopback-only hosts) mount `/var/run/docker.sock` into `api` and use an image with the `docker` CLI — see [Fish detection](/autopilot-page/config/inference/). Local dev works out of the box. |
 
 </div>

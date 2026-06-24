@@ -98,9 +98,10 @@ services:
       # at the same path in this container; host-mode networking doesn't
       # affect bind mounts.
       WOS_REDIS_URL: unix:///var/run/redis/redis.sock?db=0
-      # Host's adb server, untouched (default loopback bind is fine because
-      # the container shares the host's lo).
-      ADB_SERVER_SOCKET: tcp:127.0.0.1:5037
+      # ADB: no ADB_SERVER_SOCKET on purpose. The bot starts its own adb server
+      # on boot (worker.supervisor → adb.ensure_adb_server); host networking
+      # means that server listens on 127.0.0.1:5037 for the whole host, so the
+      # user never installs adb or runs ``adb start-server`` themselves.
     volumes:
       - wos_state:/app/db/state
       - wos_temporal:/app/temporal
@@ -157,7 +158,8 @@ services:
       WOS_REDIS_URL: unix:///var/run/redis/redis.sock?db=0
       WOS_API_HOST: 127.0.0.1
       WOS_API_PORT: "8765"
-      ADB_SERVER_SOCKET: tcp:127.0.0.1:5037
+      # No ADB_SERVER_SOCKET — the API also ensures the adb server on startup and
+      # the bot owns it; on the shared host loopback both reach 127.0.0.1:5037.
       # Fish-detect debug page runs inference inside the API process; reach the
       # optional sidecar over the shared host loopback.
       WOS_INFERENCE_URL: http://127.0.0.1:9001
@@ -166,6 +168,17 @@ services:
       - wos_state:/app/db/state
       - wos_temporal:/app/temporal
       - redis_socket:/var/run/redis
+      # OPTIONAL — lets the dashboard's "Сервис распознавания" widget (Fish-detect
+      # page) pull/start/stop the inference container straight from the UI. The
+      # API shells out to ``docker`` against the host daemon over this socket.
+      #
+      # SECURITY: mounting docker.sock grants the API container root-equivalent
+      # control of the host. The dashboard binds host loopback only — keep it off
+      # any public interface before enabling this. Also note the published ``bot``
+      # image does not ship the ``docker`` CLI, so the widget reports "Docker
+      # недоступен" until you base the image on one that includes ``docker-ce-cli``
+      # (or bind-mount a static ``docker`` binary). Left commented by default.
+      # - /var/run/docker.sock:/var/run/docker.sock
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-fsS", "http://127.0.0.1:8765/health"]
