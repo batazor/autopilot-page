@@ -6,7 +6,7 @@ sidebar:
   label: Windows
 ---
 
-import { Steps, Aside } from '@astrojs/starlight/components';
+import { Steps, Aside, LinkCard } from '@astrojs/starlight/components';
 import { Image } from 'astro:assets';
 import dockerHostNetworking from '../../../assets/docker-host-networking.png';
 
@@ -52,6 +52,14 @@ install or start by hand.
 
 ## Install
 
+<LinkCard
+  title="⬇ Download install.bat"
+  description="The one-click Windows installer. It checks Docker, downloads docker-compose, starts the bot, and opens the dashboard — re-run it any time to update. If your browser shows it as text, right-click → Save link as…"
+  href="/autopilot-page/install.bat"
+/>
+
+Then:
+
 <Steps>
 
 1. **Set the emulator profile in BlueStacks** — **720 × 1280 @ 320 DPI**, game
@@ -59,16 +67,14 @@ install or start by hand.
    the dashboard warns you if the resolution or DPI is off, so you don't have to
    check it by hand.
 
-2. **Download the installer:** [**`install.bat`**](/autopilot-page/install.bat)
-   (right-click → *Save link as…* if your browser opens it as text).
-
-3. **Double-click `install.bat`.** A console window opens and the script:
+2. **Double-click the downloaded `install.bat`.** A console window opens and the
+   script:
    - checks that Docker Desktop is installed and running,
    - downloads `docker-compose.prod.yml` into `%USERPROFILE%\autopilot`,
    - pulls the images and starts **redis + bot + api + web**,
    - opens the dashboard for you.
 
-4. When it finishes, the dashboard is at
+3. When it finishes, the dashboard is at
    [`http://127.0.0.1:3000/overview`](http://127.0.0.1:3000/overview). Go to
    **Devices (ADB)** — your BlueStacks emulator shows up ready to add.
 
