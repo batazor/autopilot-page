@@ -14,6 +14,8 @@ npm run build
 
 ## Deploy
 
-Pushes to `main` trigger `.github/workflows/deploy.yml`, which builds the site
-and publishes to GitHub Pages. Enable Pages once in repo settings → Pages →
-Source: **GitHub Actions**.
+Pushing a version tag (`vX.Y.Z`) — or running the workflow manually from the
+**Actions** tab (`workflow_dispatch`) — triggers `.github/workflows/deploy.yml`,
+which builds the site and publishes to GitHub Pages. Plain pushes to `main` do
+**not** redeploy; cut a tag to ship a release. Enable Pages once in repo
+settings → Pages → Source: **GitHub Actions**.

@@ -15,7 +15,7 @@ mistake — the compose file evolves too (health checks, services, env), and you
 copy is a static download that nothing refreshes for you.
 
 :::tip[Windows]
-On Windows you don't need these commands — just **re-run [`install.bat`](/autopilot-page/install.bat)**.
+On Windows you don't need these commands — just **re-run [`install.bat`](/install.bat)**.
 It refreshes the compose file and pulls the newer images for you. If a container
 gets stuck unhealthy, read the trap section below.
 :::
@@ -101,8 +101,8 @@ use it only when you really want a clean start.
 2. **macOS / Windows — re-check Host networking.** If the API never reaches
    healthy after an update, make sure **Host networking** is still enabled
    (*Docker Desktop → Settings → Resources → Network*). The stack relies on it —
-   see [Images & networking](/autopilot-page/install/images/).
+   see [Images & networking](/install/images/).
 
 </Steps>
 
-Still stuck? Head to [Troubleshooting](/autopilot-page/ops/troubleshooting/).
+Still stuck? Head to [Troubleshooting](/ops/troubleshooting/).

@@ -61,12 +61,12 @@ Pre-built images on GitHub Container Registry — no Python / uv install needed.
 </Tabs>
 
 :::caution[Emulator config]
-The emulator must run **720 × 1280, 320 DPI, English game language**. See [Emulator setup](/autopilot-page/config/emulator/) for the full settings list.
+The emulator must run **720 × 1280, 320 DPI, English game language**. See [Emulator setup](/config/emulator/) for the full settings list.
 :::
 
 ## Get the compose file
 
-The autopilot bot is distributed as Docker images. You only need [`docker-compose.prod.yml`](/autopilot-page/docker-compose.prod.yml) to run it:
+The autopilot bot is distributed as Docker images. You only need [`docker-compose.prod.yml`](/docker-compose.prod.yml) to run it:
 
 ```sh
 curl -fsSL https://batazor.github.io/autopilot-page/docker-compose.prod.yml -o docker-compose.prod.yml
@@ -75,15 +75,15 @@ curl -fsSL https://batazor.github.io/autopilot-page/docker-compose.prod.yml -o d
 Or save it manually from the link above.
 
 :::tip[On Windows, skip this]
-Windows users don't fetch the compose file by hand — the [**`install.bat`**](/autopilot-page/install.bat)
+Windows users don't fetch the compose file by hand — the [**`install.bat`**](/install.bat)
 installer downloads it and starts the stack on a double-click. See
-[Install on Windows](/autopilot-page/install/windows/).
+[Install on Windows](/install/windows/).
 :::
 
 ## Next: install on your platform
 
 <CardGrid>
-  <LinkCard title="Install on macOS" href="/autopilot-page/install/macos/" />
-  <LinkCard title="Install on Linux" href="/autopilot-page/install/linux/" />
-  <LinkCard title="Install on Windows" href="/autopilot-page/install/windows/" />
+  <LinkCard title="Install on macOS" href="/install/macos/" />
+  <LinkCard title="Install on Linux" href="/install/linux/" />
+  <LinkCard title="Install on Windows" href="/install/windows/" />
 </CardGrid>

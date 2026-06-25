@@ -86,7 +86,7 @@ Whiteout Survival has full scenario coverage today: daily loops, weekly events, 
         <li>Redeem a fresh code for the whole alliance in one pass.</li>
       </ul>
       <p class="m-0 text-xs text-[var(--sl-color-gray-3)]">
-        See <a href="/autopilot-page/ops/gift-codes/#external-accounts">Gift codes → External accounts</a>.
+        See <a href="/ops/gift-codes/#external-accounts">Gift codes → External accounts</a>.
       </p>
     </article>
 
@@ -106,7 +106,7 @@ Whiteout Survival has full scenario coverage today: daily loops, weekly events, 
         <li>If a word is missing, the dashboard captures it for the New tab so the item can be placed and reviewed manually.</li>
       </ul>
       <p class="m-0 text-xs text-[var(--sl-color-gray-3)]">
-        See <a href="/autopilot-page/games/dreamscape-memory/">Dreamscape Memory</a> for the module overview.
+        See <a href="/games/dreamscape-memory/">Dreamscape Memory</a> for the module overview.
       </p>
     </article>
   </div>
@@ -722,14 +722,36 @@ Game-agnostic infrastructure used by every scenario above.
     return map;
   }
 
+  var stackSeq = 0;
+
   function makeStack(grid, cards) {
     grid.classList.add('scn-stack');
     grid.style.setProperty('--n', cards.length);
     cards.forEach(function (card, i) { card.style.setProperty('--i', i + 1); });
-    grid.setAttribute('tabindex', '0');
+
+    // A labelled group of cards. Crucially the open/closed state is NOT exposed
+    // on the grid: aria-expanded is invalid on role="group" and assistive tech
+    // silently drops it. A real <button> (below) owns the disclosure instead.
     grid.setAttribute('role', 'group');
-    grid.setAttribute('aria-label', 'Scenario deck — expand to see all ' + cards.length);
-    grid.setAttribute('aria-expanded', 'false');
+    grid.setAttribute('aria-label', 'Scenario deck (' + cards.length + ' scenarios)');
+
+    // Stable ids so the toggle can point at the cards via aria-controls and so
+    // collapsed cards can be removed from the a11y tree.
+    var deckId = 'scn-deck-' + (++stackSeq);
+    var ids = cards.map(function (card, i) {
+      if (!card.id) card.id = deckId + '-card-' + (i + 1);
+      return card.id;
+    });
+
+    // The disclosure control the visual fan was missing. It is screen-reader
+    // only until it takes keyboard focus (sighted mouse/touch users just tap
+    // the deck), so the design is untouched while AT and keyboard users get a
+    // genuine, announced expand/collapse button with valid aria-expanded.
+    var toggle = document.createElement('button');
+    toggle.type = 'button';
+    toggle.className = 'scn-stack-toggle';
+    toggle.setAttribute('aria-controls', ids.join(' '));
+    grid.appendChild(toggle); // last child → preserves the :nth-child depth CSS
 
     // Paint the collapsed deck first, then enable transitions so only the
     // hover/open fan animates (not the initial collapse). Double rAF defers
@@ -740,19 +762,27 @@ Game-agnostic infrastructure used by every scenario above.
 
     function setOpen(open) {
       grid.classList.toggle('is-open', open);
-      grid.setAttribute('aria-expanded', open ? 'true' : 'false');
+      toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+      toggle.textContent = open
+        ? 'Collapse scenario deck'
+        : 'Show all ' + cards.length + ' scenarios';
+      // Keep the a11y tree honest with the visual: a collapsed deck only shows
+      // its front card, so the ones tucked behind (including the opacity:0 tail)
+      // are hidden from assistive tech until the deck is expanded.
+      cards.forEach(function (card, i) {
+        if (open || i === 0) card.removeAttribute('aria-hidden');
+        else card.setAttribute('aria-hidden', 'true');
+      });
     }
+    setOpen(false);
 
     // Tap toggles the deck; tapping a code-pill copies it and keeps it open.
+    // The toggle button carries no own handler — its click (incl. native
+    // Enter/Space activation) bubbles here, so mouse, keyboard and touch all
+    // run through this single path.
     grid.addEventListener('click', function (e) {
       if (e.target.closest('code')) { setOpen(true); return; }
       setOpen(!grid.classList.contains('is-open'));
-    });
-    grid.addEventListener('keydown', function (e) {
-      if (e.key === 'Enter' || e.key === ' ') {
-        e.preventDefault();
-        setOpen(!grid.classList.contains('is-open'));
-      }
     });
 
     function applyFilter(q) {

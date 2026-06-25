@@ -6,7 +6,7 @@ sidebar:
   label: New module
 ---
 
-Every automation lives inside a **module** — a directory under `modules/` with a `module.yaml` manifest, overlay rules in `analyze/analyze.yaml`, and DSL scenarios in `scenarios/`. If your automation fits an existing module (e.g. a new hero scenario goes in `modules/heroes/`), skip this page and head straight to [Labeling](/autopilot-page/authoring/labeling/) and the [DSL primer](/autopilot-page/authoring/dsl/). Create a new module only when you're starting a new feature domain.
+Every automation lives inside a **module** — a directory under `modules/` with a `module.yaml` manifest, overlay rules in `analyze/analyze.yaml`, and DSL scenarios in `scenarios/`. If your automation fits an existing module (e.g. a new hero scenario goes in `modules/heroes/`), skip this page and head straight to [Labeling](/authoring/labeling/) and the [DSL primer](/authoring/dsl/). Create a new module only when you're starting a new feature domain.
 
 ## Scaffold from the dashboard
 
@@ -38,10 +38,10 @@ The newly created module row links to **`/edit-dsl?new=1`**, which jumps straigh
 
 1. Pick your module from the dropdown.
 2. Give the scenario a name and (optionally) a cron expression.
-3. Drop in `match` / `click` / `while_match` steps — see the [DSL primer](/autopilot-page/authoring/dsl/) for syntax.
+3. Drop in `match` / `click` / `while_match` steps — see the [DSL primer](/authoring/dsl/) for syntax.
 4. Save. The YAML file appears under `modules/<id>/scenarios/`.
 
-If your scenario references regions that don't exist yet, label them first via the [Labeling editor](/autopilot-page/authoring/labeling/).
+If your scenario references regions that don't exist yet, label them first via the [Labeling editor](/authoring/labeling/).
 
 ## Commit the new files
 

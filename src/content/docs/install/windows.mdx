@@ -10,7 +10,7 @@ import { Steps, Aside, LinkCard } from '@astrojs/starlight/components';
 import { Image } from 'astro:assets';
 import dockerHostNetworking from '../../../assets/docker-host-networking.png';
 
-On Windows you don't type any commands. A small installer — [`install.bat`](/autopilot-page/install.bat) —
+On Windows you don't type any commands. A small installer — [`install.bat`](/install.bat) —
 downloads the compose file and starts the whole stack on a double-click. The only
 manual work is two one-time GUI toggles a script can't safely flip for you.
 
@@ -55,7 +55,7 @@ install or start by hand.
 <LinkCard
   title="⬇ Download install.bat"
   description="The one-click Windows installer. It checks Docker, downloads docker-compose, starts the bot, and opens the dashboard — re-run it any time to update. If your browser shows it as text, right-click → Save link as…"
-  href="/autopilot-page/install.bat"
+  href="/install.bat"
 />
 
 Then:
@@ -63,7 +63,7 @@ Then:
 <Steps>
 
 1. **Set the emulator profile in BlueStacks** — **720 × 1280 @ 320 DPI**, game
-   language **English**. See [Emulator setup](/autopilot-page/config/emulator/);
+   language **English**. See [Emulator setup](/config/emulator/);
    the dashboard warns you if the resolution or DPI is off, so you don't have to
    check it by hand.
 
@@ -96,7 +96,7 @@ The bot service starts automatically — no activation step is needed. The first
 To update to the latest release, just **run `install.bat` again**. It re-downloads
 the compose file and pulls the newer images (`--pull always`) before recreating the
 containers — your accounts and state in the Docker volumes are kept. See
-[Updating](/autopilot-page/install/updating/) if a container gets stuck on the old
+[Updating](/install/updating/) if a container gets stuck on the old
 version.
 
 ## Troubleshooting
@@ -108,4 +108,4 @@ page and press **Rescan** — it re-discovers and connects to BlueStacks for you
 If it still doesn't show up, restart BlueStacks and re-run `install.bat`.
 </Aside>
 
-See [Troubleshooting](/autopilot-page/ops/troubleshooting/) for the full list.
+See [Troubleshooting](/ops/troubleshooting/) for the full list.

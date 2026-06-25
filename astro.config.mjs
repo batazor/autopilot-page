@@ -3,10 +3,59 @@ import { defineConfig } from 'astro/config';
 import starlight from '@astrojs/starlight';
 import sitemap from '@astrojs/sitemap';
 import tailwindcss from '@tailwindcss/vite';
+import { visit } from 'unist-util-visit';
+
+// Single source of truth for the GitHub Pages project subpath. Used both as
+// Astro's `base` and by the remark plugin below, so page content never has to
+// hard-code it — change it here to move the site.
+const base = '/autopilot-page';
+
+// Prefix root-relative in-page links/assets with `base` at build time, so MD/MDX
+// can use plain "/install/…" paths. Covers markdown links/images and raw/JSX
+// <a href> / <img src> (mdxJsxElement) attributes. Idempotent — already-based
+// and external (http, //, #, mailto, relative) URLs are left untouched.
+//
+// NOTE: this walks the MDAST body only. Starlight reads `hero.actions[].link`
+// from validated frontmatter (before remark runs), so those few hero links keep
+// the literal base prefix in the .mdx frontmatter — the one deliberate exception.
+function withBase(url) {
+  if (typeof url !== 'string' || !url.startsWith('/') || url.startsWith('//')) return url;
+  if (url === base || url.startsWith(base + '/')) return url;
+  return base + url;
+}
+function remarkBasePath() {
+  return (tree) => {
+    visit(tree, (node) => {
+      if (
+        (node.type === 'link' || node.type === 'image' || node.type === 'definition') &&
+        typeof node.url === 'string'
+      ) {
+        node.url = withBase(node.url);
+      } else if (
+        (node.type === 'mdxJsxFlowElement' || node.type === 'mdxJsxTextElement') &&
+        Array.isArray(node.attributes)
+      ) {
+        for (const attr of node.attributes) {
+          if (
+            attr &&
+            attr.type === 'mdxJsxAttribute' &&
+            (attr.name === 'href' || attr.name === 'src') &&
+            typeof attr.value === 'string'
+          ) {
+            attr.value = withBase(attr.value);
+          }
+        }
+      }
+    });
+  };
+}
 
 export default defineConfig({
   site: 'https://batazor.github.io',
-  base: '/autopilot-page',
+  base,
+  markdown: {
+    remarkPlugins: [remarkBasePath],
+  },
   vite: {
     plugins: [tailwindcss()],
   },

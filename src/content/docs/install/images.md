@@ -13,7 +13,7 @@ sidebar:
 | `api` | same `bot` image, `command: api` | FastAPI for the Web UI (`:8765`). |
 | `web` | `ghcr.io/batazor/autopilot/web:latest` | Next.js operator dashboard (`:3000`). Multi-arch. |
 | `redis` | `redis:alpine` | Queue + state. |
-| `inference` | `roboflow/roboflow-inference-server-cpu` | **Optional** — only with the `full` profile. Fishing Tournament fish detector ([Fish detection](/autopilot-page/config/inference/)). |
+| `inference` | `roboflow/roboflow-inference-server-cpu` | **Optional** — only with the `full` profile. Fishing Tournament fish detector ([Fish detection](/config/inference/)). |
 
 ### Default vs full stack (profiles)
 
@@ -29,7 +29,7 @@ docker compose -f docker-compose.prod.yml --profile full up -d --pull always   #
 
 Public images are published as `latest` only — keep your install on `latest`.
 Updating is more than `--pull always` (you also refresh the compose file, and a
-stuck container needs a `down` first) — see **[Updating](/autopilot-page/install/updating/)**.
+stuck container needs a `down` first) — see **[Updating](/install/updating/)**.
 
 ## How the container reaches ADB
 

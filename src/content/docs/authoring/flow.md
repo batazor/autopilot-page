@@ -8,7 +8,7 @@ sidebar:
 
 The engine is game-agnostic. Adding a new automation — whether it's a new daily loop for Whiteout Survival or the first scenarios for Kingshot — is the same loop:
 
-0. **(Optional) Create a module** if your automation doesn't fit an existing feature domain — scaffold it from the dashboard's `/modules` page (see [Creating a module](/autopilot-page/authoring/new-module/)).
+0. **(Optional) Create a module** if your automation doesn't fit an existing feature domain — scaffold it from the dashboard's `/modules` page (see [Creating a module](/authoring/new-module/)).
 1. **Capture** a screenshot of the game state you want to automate.
 2. **Label** the regions on that screenshot (buttons, badges, text areas) in the Labeling editor.
 3. **Save** — the editor writes the region coordinates into the module's `area.yaml` and stores cropped templates in `references/crop/`.
@@ -31,8 +31,8 @@ Most contributors author scenarios in YAML and use the UI runner to test them. T
 
 ## Next
 
-- [Creating a module](/autopilot-page/authoring/new-module/) — scaffold a new feature domain from the dashboard.
-- [Labeling regions](/autopilot-page/authoring/labeling/) — how to use the editor.
-- [Writing scenarios (DSL)](/autopilot-page/authoring/dsl/) — primer with a complete example.
+- [Creating a module](/authoring/new-module/) — scaffold a new feature domain from the dashboard.
+- [Labeling regions](/authoring/labeling/) — how to use the editor.
+- [Writing scenarios (DSL)](/authoring/dsl/) — primer with a complete example.
 
 When stuck, ping us in the `#install` channel on [Discord](https://discord.gg/62twnzKG9) — we review first PRs and can pair on the labeling pass.

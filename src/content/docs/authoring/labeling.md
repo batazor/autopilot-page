@@ -48,7 +48,7 @@ The `threshold` knob is exposed in the editor — lower values are more permissi
 
 - **Re-labeling the same region from a different screen** — region names are global. If `button.claim` exists in both `vip` and `mail`, scope it: `button.vip.claim` and `button.mail.claim`.
 - **Hand-editing `area.json`** — the editor reloads region cache on save; a hand-edit won't trigger the reload and your changes will be ignored until you bounce the bot.
-- **Capturing at the wrong resolution** — anything other than 720 × 1280 portrait and the coordinates drift. Verify your BlueStacks instance: see [Emulator setup](/autopilot-page/config/emulator/).
+- **Capturing at the wrong resolution** — anything other than 720 × 1280 portrait and the coordinates drift. Verify your BlueStacks instance: see [Emulator setup](/config/emulator/).
 - **Threshold too tight** — if `match` is failing on a screen that looks identical to you, drop the threshold by 5 points before assuming the labeling is wrong.
 
-When you're done labeling, head to [Writing scenarios (DSL)](/autopilot-page/authoring/dsl/) to wire the regions into an actual automation.
+When you're done labeling, head to [Writing scenarios (DSL)](/authoring/dsl/) to wire the regions into an actual automation.
