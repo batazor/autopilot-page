@@ -15,6 +15,25 @@ sidebar:
 | `redis` | `redis:alpine` | Queue + state. |
 | `inference` | `roboflow/roboflow-inference-server-cpu` | **Optional** — only with the `full` profile. Fishing Tournament fish detector ([Fish detection](/config/inference/)). |
 
+### Registry mirror (GitLab)
+
+The source repo is mirrored to
+[gitlab.com/batazor/autopilot](https://gitlab.com/batazor/autopilot), and its
+pipeline (`.gitlab-ci.yml`) publishes the **same multi-arch (amd64+arm64)**
+`bot` and `web` images to the GitLab Container Registry. If GHCR is slow or
+blocked for you, point the stack at the mirror with `WOS_REGISTRY` — nothing
+else changes:
+
+```sh
+WOS_REGISTRY=registry.gitlab.com/batazor/autopilot \
+  docker compose -f docker-compose.prod.yml up -d --pull always
+```
+
+| Service | GitHub Container Registry (default) | GitLab Container Registry (mirror) |
+|:--------|:------------------------------------|:-----------------------------------|
+| `bot` | `ghcr.io/batazor/autopilot/bot:latest` | `registry.gitlab.com/batazor/autopilot/bot:latest` |
+| `web` | `ghcr.io/batazor/autopilot/web:latest` | `registry.gitlab.com/batazor/autopilot/web:latest` |
+
 ### Default vs full stack (profiles)
 
 The `inference` image is **not pulled by default** — it sits behind a Compose

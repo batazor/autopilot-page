@@ -165,6 +165,11 @@ gtag('config', 'G-H94ZVP57ER');
           href: 'https://github.com/batazor/autopilot',
         },
         {
+          icon: 'gitlab',
+          label: 'GitLab (mirror)',
+          href: 'https://gitlab.com/batazor/autopilot',
+        },
+        {
           icon: 'discord',
           label: 'Discord',
           href: 'https://discord.gg/62twnzKG9',

@@ -2,6 +2,8 @@
 
 Documentation site for [Whiteout Survival Autopilot](https://github.com/batazor/autopilot), built with [Astro](https://astro.build/) + [Starlight](https://starlight.astro.build/).
 
+Source is mirrored to [gitlab.com/batazor/autopilot](https://gitlab.com/batazor/autopilot) (GitLab CI publishes the multi-arch Docker images).
+
 Live at <https://batazor.github.io/autopilot-page/>.
 
 ## Develop

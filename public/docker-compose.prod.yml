@@ -17,6 +17,10 @@
 # Using a fork's images:
 #     WOS_REGISTRY=ghcr.io/your-fork docker compose -f docker-compose.prod.yml up -d
 #
+# GitLab mirror (same multi-arch images, published by .gitlab-ci.yml from
+# https://gitlab.com/batazor/autopilot) — handy if GHCR is slow/blocked:
+#     WOS_REGISTRY=registry.gitlab.com/batazor/autopilot docker compose -f docker-compose.prod.yml up -d
+#
 # === ADB / network model ===
 # ``bot``, ``api``, and ``web`` run in ``network_mode: host`` so app containers
 # share the host's loopback. That way the host's ``adb start-server`` (bound to
