@@ -20,6 +20,12 @@ set "COMPOSE_URL=https://batazor.github.io/autopilot-page/docker-compose.prod.ym
 set "DASHBOARD_URL=http://127.0.0.1:3000/overview"
 set "WORKDIR=%USERPROFILE%\autopilot"
 
+REM Pull the pre-built images from the GitLab Container Registry mirror
+REM (published by .gitlab-ci.yml). docker compose reads WOS_REGISTRY from the
+REM environment. To use the GitHub registry instead, set this to
+REM ghcr.io/batazor/autopilot (or delete the line).
+set "WOS_REGISTRY=registry.gitlab.com/batazor/autopilot"
+
 echo.
 echo ==========================================================
 echo   Autopilot - install / update
@@ -55,7 +61,7 @@ echo [OK] Compose file saved.
 echo.
 
 REM --- 6. Pull images and start ------------------------------
-echo [..] Pulling images and starting the stack. This may take a few minutes ...
+echo [..] Pulling images from the GitLab mirror and starting the stack. This may take a few minutes ...
 docker compose -f docker-compose.prod.yml up -d --pull always
 if errorlevel 1 goto :no_start
 echo.

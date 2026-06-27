@@ -17,8 +17,12 @@ REM ============================================================
 set "REPO_TARBALL=https://github.com/batazor/autopilot/archive/refs/heads/main.tar.gz"
 set "COMPOSE_URL=https://batazor.github.io/autopilot-page/docker-compose.prod.yml"
 set "DASHBOARD_URL=http://127.0.0.1:3000/overview"
-set "BOT_IMAGE=ghcr.io/batazor/autopilot/bot:latest"
-set "WEB_IMAGE=ghcr.io/batazor/autopilot/web:latest"
+REM Tag the locally-built images in the GitLab mirror namespace and export
+REM WOS_REGISTRY so docker compose resolves to the SAME refs (pull policy
+REM "missing" → it uses our local build and never pulls bot/web).
+set "WOS_REGISTRY=registry.gitlab.com/batazor/autopilot"
+set "BOT_IMAGE=%WOS_REGISTRY%/bot:latest"
+set "WEB_IMAGE=%WOS_REGISTRY%/web:latest"
 set "ROOT=%USERPROFILE%\autopilot"
 set "SRC=%ROOT%\build-src"
 set "CTX=%SRC%\autopilot-main"

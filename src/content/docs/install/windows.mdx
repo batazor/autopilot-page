@@ -71,7 +71,8 @@ Then:
    script:
    - checks that Docker Desktop is installed and running,
    - downloads `docker-compose.prod.yml` into `%USERPROFILE%\autopilot`,
-   - pulls the images and starts **redis + bot + api + web**,
+   - pulls the images from the **GitLab Container Registry mirror**
+     (`registry.gitlab.com/batazor/autopilot`) and starts **redis + bot + api + web**,
    - opens the dashboard for you.
 
 3. When it finishes, the dashboard is at
