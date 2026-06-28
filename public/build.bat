@@ -159,8 +159,23 @@ echo [X] Could not download docker-compose.prod.yml. Check your internet connect
 goto :fail
 
 :no_start
-echo [X] The stack did not start cleanly. See the error above, or run:
-echo         docker compose -f "%ROOT%\docker-compose.prod.yml" logs
+echo [X] The stack did not start cleanly. See the error above.
+set "LOGFILE=%ROOT%\autopilot-logs.txt"
+echo [..] Collecting diagnostics into: %LOGFILE%
+> "%LOGFILE%" echo Autopilot diagnostics - %DATE% %TIME%
+>> "%LOGFILE%" echo ===== docker version =====
+docker version >> "%LOGFILE%" 2>&1
+>> "%LOGFILE%" echo ===== docker compose ps =====
+docker compose -f "%ROOT%\docker-compose.prod.yml" ps -a >> "%LOGFILE%" 2>&1
+>> "%LOGFILE%" echo ===== autopilot-api health =====
+docker inspect --format "{{json .State.Health}}" autopilot-api >> "%LOGFILE%" 2>&1
+>> "%LOGFILE%" echo ===== autopilot-api logs =====
+docker logs --tail 300 autopilot-api >> "%LOGFILE%" 2>&1
+>> "%LOGFILE%" echo ===== all service logs =====
+docker compose -f "%ROOT%\docker-compose.prod.yml" logs --no-color --tail 300 >> "%LOGFILE%" 2>&1
+echo [OK] Diagnostics saved. Please share this file for help:
+echo      %LOGFILE%
+start "" notepad "%LOGFILE%"
 goto :fail
 
 :fail
