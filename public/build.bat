@@ -96,6 +96,9 @@ REM  and only absent images (redis) are pulled. So nothing
 REM  overwrites the local build.
 echo [..] Starting the stack with the local images ...
 pushd "%ROOT%"
+REM  Clear any previous (possibly unhealthy) containers first so ``up``
+REM  recreates cleanly. No ``-v`` → named volumes (your data) are kept.
+docker compose -f docker-compose.prod.yml down --remove-orphans
 docker compose -f docker-compose.prod.yml up -d
 set "RC=%ERRORLEVEL%"
 popd

@@ -60,7 +60,17 @@ if errorlevel 1 goto :no_download
 echo [OK] Compose file saved.
 echo.
 
-REM --- 6. Pull images and start ------------------------------
+REM --- 6. Clear any previous containers ----------------------
+REM  A re-run over a container an earlier failed start left
+REM  unhealthy makes ``up`` fast-fail ("dependency ... is
+REM  unhealthy") without recreating it. ``down`` removes the old
+REM  containers + network first. It does NOT pass ``-v``, so your
+REM  named volumes (accounts, state, redis) are kept. On a first
+REM  install there's nothing to remove and this is a no-op.
+echo [..] Clearing any previous containers (your data is kept) ...
+docker compose -f docker-compose.prod.yml down --remove-orphans
+
+REM --- 7. Pull images and start ------------------------------
 echo [..] Pulling images from the GitLab mirror and starting the stack. This may take a few minutes ...
 docker compose -f docker-compose.prod.yml up -d --pull always
 if errorlevel 1 goto :no_start
