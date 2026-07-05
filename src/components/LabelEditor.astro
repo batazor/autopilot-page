@@ -1,0 +1,768 @@
+---
+// Client-side zone/point labeling editor. The image never leaves the browser:
+// users drop a screenshot, place labeled points (Dreamscape scenes) or drag
+// labeled rectangles (area.yaml-style regions), and export a JSON file with
+// percentage coordinates that maintainers can import directly.
+---
+
+<div id="lbl-editor" class="not-content">
+  <div class="lbl-toolbar">
+    <div class="lbl-mode" role="group" aria-label="Editor mode">
+      <button type="button" data-mode="points" class="lbl-mode-btn active">Points (Dreamscape scene)</button>
+      <button type="button" data-mode="zones" class="lbl-mode-btn">Zones (screen regions)</button>
+    </div>
+    <div class="lbl-actions">
+      <label class="lbl-btn">
+        Load image
+        <input id="lbl-file" type="file" accept="image/*" hidden />
+      </label>
+      <label class="lbl-btn">
+        Import JSON
+        <input id="lbl-import" type="file" accept="application/json,.json" hidden />
+      </label>
+      <button type="button" id="lbl-export" class="lbl-btn primary">Download JSON</button>
+      <button type="button" id="lbl-copy" class="lbl-btn">Copy JSON</button>
+      <button type="button" id="lbl-clear" class="lbl-btn danger">Clear</button>
+    </div>
+  </div>
+
+  <div class="lbl-meta" id="lbl-meta-points">
+    <label>slug <input id="lbl-slug" type="text" placeholder="frost-harbor" spellcheck="false" /></label>
+    <label>title <input id="lbl-title" type="text" placeholder="Frost Harbor" /></label>
+    <label>season <input id="lbl-season" type="number" min="1" step="1" value="1" /></label>
+  </div>
+  <div class="lbl-meta" id="lbl-meta-zones" hidden>
+    <label>screen <input id="lbl-screen" type="text" placeholder="hero_detail" spellcheck="false" /></label>
+  </div>
+
+  <div class="lbl-body">
+    <div class="lbl-stage" id="lbl-stage">
+      <div class="lbl-drop" id="lbl-drop">
+        <p><strong>Drop a screenshot here</strong>, paste it (Ctrl/Cmd+V), or use “Load image”.</p>
+        <p class="lbl-hint">The image stays on your device — only the JSON with coordinates is exported.</p>
+      </div>
+      <div class="lbl-canvas" id="lbl-canvas" hidden>
+        <img id="lbl-img" alt="Screenshot being labeled" draggable="false" />
+        <div class="lbl-overlay" id="lbl-overlay"></div>
+      </div>
+    </div>
+    <div class="lbl-side">
+      <div class="lbl-side-head">
+        <span id="lbl-count">0 items</span>
+        <span class="lbl-hint" id="lbl-tip">Click on the image to add a point.</span>
+      </div>
+      <ol class="lbl-list" id="lbl-list"></ol>
+    </div>
+  </div>
+
+  <details class="lbl-json">
+    <summary>JSON preview</summary>
+    <pre><code id="lbl-json-out">{}</code></pre>
+  </details>
+</div>
+
+<script>
+  type Pt = { n: number; name: string; xPct: number; yPct: number };
+  type Zn = { name: string; bbox: [number, number, number, number] };
+
+  const root = document.getElementById('lbl-editor');
+  if (root) init(root);
+
+  function init(root: HTMLElement) {
+    const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
+    const overlay = $('lbl-overlay');
+    const canvas = $('lbl-canvas');
+    const drop = $('lbl-drop');
+    const stage = $('lbl-stage');
+    const img = $('lbl-img') as unknown as HTMLImageElement;
+    const list = $('lbl-list');
+    const jsonOut = $('lbl-json-out');
+    const tip = $('lbl-tip');
+
+    let mode: 'points' | 'zones' = 'points';
+    let points: Pt[] = [];
+    let zones: Zn[] = [];
+    let imageName = '';
+    let selected = -1;
+
+    const LS_KEY = 'autopilot-label-editor';
+
+    const r2 = (v: number) => Math.round(v * 100) / 100;
+    const clampPct = (v: number) => Math.min(100, Math.max(0, v));
+    const capture = (el: Element, id: number) => {
+      try {
+        el.setPointerCapture(id);
+      } catch {
+        /* synthetic/stale pointer — drag still works while the cursor stays on the element */
+      }
+    };
+
+    function pctFromEvent(ev: PointerEvent): { x: number; y: number } {
+      const r = overlay.getBoundingClientRect();
+      return {
+        x: clampPct(((ev.clientX - r.left) / r.width) * 100),
+        y: clampPct(((ev.clientY - r.top) / r.height) * 100),
+      };
+    }
+
+    function payload(): Record<string, unknown> {
+      if (mode === 'points') {
+        return {
+          type: 'dreamscape_scene',
+          slug: ($('lbl-slug') as HTMLInputElement).value.trim(),
+          title: ($('lbl-title') as HTMLInputElement).value.trim(),
+          season: parseInt(($('lbl-season') as HTMLInputElement).value, 10) || 1,
+          image: imageName,
+          points: [...points].sort((a, b) => a.n - b.n),
+        };
+      }
+      return {
+        type: 'regions',
+        screen: ($('lbl-screen') as HTMLInputElement).value.trim(),
+        image: imageName,
+        regions: zones.map((z) => ({ name: z.name, bbox: z.bbox.map(r2) })),
+      };
+    }
+
+    function save() {
+      try {
+        localStorage.setItem(
+          LS_KEY,
+          JSON.stringify({ mode, imageName, points, zones, meta: metaValues() }),
+        );
+      } catch {
+        /* storage full / private mode — autosave is best-effort */
+      }
+    }
+
+    function metaValues() {
+      return {
+        slug: ($('lbl-slug') as HTMLInputElement).value,
+        title: ($('lbl-title') as HTMLInputElement).value,
+        season: ($('lbl-season') as HTMLInputElement).value,
+        screen: ($('lbl-screen') as HTMLInputElement).value,
+      };
+    }
+
+    function restore() {
+      try {
+        const raw = localStorage.getItem(LS_KEY);
+        if (!raw) return;
+        const s = JSON.parse(raw);
+        if (Array.isArray(s.points)) points = s.points;
+        if (Array.isArray(s.zones)) zones = s.zones;
+        if (s.mode === 'zones' || s.mode === 'points') setMode(s.mode, false);
+        if (s.imageName) imageName = s.imageName;
+        const m = s.meta || {};
+        ($('lbl-slug') as HTMLInputElement).value = m.slug || '';
+        ($('lbl-title') as HTMLInputElement).value = m.title || '';
+        ($('lbl-season') as HTMLInputElement).value = m.season || '1';
+        ($('lbl-screen') as HTMLInputElement).value = m.screen || '';
+      } catch {
+        /* corrupt autosave — start clean */
+      }
+    }
+
+    function render() {
+      overlay.innerHTML = '';
+      list.innerHTML = '';
+      const items = mode === 'points' ? points : zones;
+      $('lbl-count').textContent = `${items.length} item${items.length === 1 ? '' : 's'}`;
+      tip.textContent =
+        mode === 'points'
+          ? 'Click on the image to add a point. Drag pins to adjust.'
+          : 'Drag on the image to draw a zone. Drag to move, corner to resize.';
+
+      if (mode === 'points') {
+        points.forEach((p, i) => {
+          const pin = document.createElement('div');
+          pin.className = 'lbl-pin' + (i === selected ? ' sel' : '');
+          pin.style.left = p.xPct + '%';
+          pin.style.top = p.yPct + '%';
+          pin.textContent = String(p.n);
+          pin.title = p.name || `#${p.n}`;
+          attachPinDrag(pin, i);
+          overlay.appendChild(pin);
+          list.appendChild(rowFor(i, String(p.n), p.name, `${r2(p.xPct)}%, ${r2(p.yPct)}%`));
+        });
+      } else {
+        zones.forEach((z, i) => {
+          const el = document.createElement('div');
+          el.className = 'lbl-zone' + (i === selected ? ' sel' : '');
+          const [x, y, w, h] = z.bbox;
+          el.style.left = x + '%';
+          el.style.top = y + '%';
+          el.style.width = w + '%';
+          el.style.height = h + '%';
+          const tag = document.createElement('span');
+          tag.className = 'lbl-zone-tag';
+          tag.textContent = z.name || `zone ${i + 1}`;
+          el.appendChild(tag);
+          const handle = document.createElement('div');
+          handle.className = 'lbl-zone-handle';
+          el.appendChild(handle);
+          attachZoneDrag(el, handle, i);
+          overlay.appendChild(el);
+          list.appendChild(
+            rowFor(i, String(i + 1), z.name, `[${z.bbox.map(r2).join(', ')}]`),
+          );
+        });
+      }
+      jsonOut.textContent = JSON.stringify(payload(), null, 2);
+      save();
+    }
+
+    function rowFor(i: number, num: string, name: string, coords: string): HTMLLIElement {
+      const li = document.createElement('li');
+      li.className = i === selected ? 'sel' : '';
+      const numEl = document.createElement('span');
+      numEl.className = 'lbl-row-n';
+      numEl.textContent = num;
+      const nameEl = document.createElement('input');
+      nameEl.type = 'text';
+      nameEl.value = name;
+      nameEl.placeholder = mode === 'points' ? 'item name (e.g. Book)' : 'region name';
+      nameEl.addEventListener('input', () => {
+        if (mode === 'points') points[i].name = nameEl.value;
+        else zones[i].name = nameEl.value;
+        jsonOut.textContent = JSON.stringify(payload(), null, 2);
+        save();
+      });
+      const coordEl = document.createElement('span');
+      coordEl.className = 'lbl-row-coords';
+      coordEl.textContent = coords;
+      const del = document.createElement('button');
+      del.type = 'button';
+      del.className = 'lbl-row-del';
+      del.textContent = '×';
+      del.title = 'Delete';
+      del.addEventListener('click', () => {
+        if (mode === 'points') points.splice(i, 1);
+        else zones.splice(i, 1);
+        selected = -1;
+        render();
+      });
+      li.addEventListener('click', (e) => {
+        if (e.target === del || e.target === nameEl) return;
+        selected = i;
+        render();
+      });
+      li.append(numEl, nameEl, coordEl, del);
+      return li;
+    }
+
+    // --- pointer interactions -------------------------------------------------
+
+    function attachPinDrag(pin: HTMLDivElement, i: number) {
+      pin.addEventListener('pointerdown', (ev) => {
+        ev.stopPropagation();
+        ev.preventDefault();
+        selected = i;
+        capture(pin, ev.pointerId);
+        const move = (mv: PointerEvent) => {
+          const { x, y } = pctFromEvent(mv);
+          points[i].xPct = r2(x);
+          points[i].yPct = r2(y);
+          pin.style.left = points[i].xPct + '%';
+          pin.style.top = points[i].yPct + '%';
+        };
+        const up = () => {
+          pin.removeEventListener('pointermove', move);
+          pin.removeEventListener('pointerup', up);
+          render();
+        };
+        pin.addEventListener('pointermove', move);
+        pin.addEventListener('pointerup', up);
+      });
+    }
+
+    function attachZoneDrag(el: HTMLDivElement, handle: HTMLDivElement, i: number) {
+      // Move the whole zone.
+      el.addEventListener('pointerdown', (ev) => {
+        if (ev.target === handle) return;
+        ev.stopPropagation();
+        ev.preventDefault();
+        selected = i;
+        capture(el, ev.pointerId);
+        const start = pctFromEvent(ev);
+        const [bx, by] = [zones[i].bbox[0], zones[i].bbox[1]];
+        const move = (mv: PointerEvent) => {
+          const cur = pctFromEvent(mv);
+          const [, , w, h] = zones[i].bbox;
+          zones[i].bbox[0] = r2(Math.min(100 - w, Math.max(0, bx + cur.x - start.x)));
+          zones[i].bbox[1] = r2(Math.min(100 - h, Math.max(0, by + cur.y - start.y)));
+          el.style.left = zones[i].bbox[0] + '%';
+          el.style.top = zones[i].bbox[1] + '%';
+        };
+        const up = () => {
+          el.removeEventListener('pointermove', move);
+          el.removeEventListener('pointerup', up);
+          render();
+        };
+        el.addEventListener('pointermove', move);
+        el.addEventListener('pointerup', up);
+      });
+      // Resize from the bottom-right handle.
+      handle.addEventListener('pointerdown', (ev) => {
+        ev.stopPropagation();
+        ev.preventDefault();
+        selected = i;
+        capture(handle, ev.pointerId);
+        const move = (mv: PointerEvent) => {
+          const cur = pctFromEvent(mv);
+          const [x, y] = zones[i].bbox;
+          zones[i].bbox[2] = r2(Math.max(0.5, cur.x - x));
+          zones[i].bbox[3] = r2(Math.max(0.5, cur.y - y));
+          el.style.width = zones[i].bbox[2] + '%';
+          el.style.height = zones[i].bbox[3] + '%';
+        };
+        const up = () => {
+          handle.removeEventListener('pointermove', move);
+          handle.removeEventListener('pointerup', up);
+          render();
+        };
+        handle.addEventListener('pointermove', move);
+        handle.addEventListener('pointerup', up);
+      });
+    }
+
+    overlay.addEventListener('pointerdown', (ev) => {
+      if (ev.target !== overlay) return;
+      ev.preventDefault();
+      if (mode === 'points') {
+        const { x, y } = pctFromEvent(ev);
+        const n = points.reduce((m, p) => Math.max(m, p.n), 0) + 1;
+        points.push({ n, name: '', xPct: r2(x), yPct: r2(y) });
+        selected = points.length - 1;
+        render();
+        const inputs = list.querySelectorAll<HTMLInputElement>('input[type=text]');
+        inputs[inputs.length - 1]?.focus();
+      } else {
+        // Drag out a new zone.
+        capture(overlay, ev.pointerId);
+        const start = pctFromEvent(ev);
+        const ghost = document.createElement('div');
+        ghost.className = 'lbl-zone ghost';
+        overlay.appendChild(ghost);
+        const move = (mv: PointerEvent) => {
+          const cur = pctFromEvent(mv);
+          const x = Math.min(start.x, cur.x);
+          const y = Math.min(start.y, cur.y);
+          ghost.style.left = x + '%';
+          ghost.style.top = y + '%';
+          ghost.style.width = Math.abs(cur.x - start.x) + '%';
+          ghost.style.height = Math.abs(cur.y - start.y) + '%';
+        };
+        const up = (uv: PointerEvent) => {
+          overlay.removeEventListener('pointermove', move);
+          overlay.removeEventListener('pointerup', up);
+          ghost.remove();
+          const cur = pctFromEvent(uv);
+          const w = Math.abs(cur.x - start.x);
+          const h = Math.abs(cur.y - start.y);
+          if (w >= 0.5 && h >= 0.5) {
+            zones.push({
+              name: '',
+              bbox: [r2(Math.min(start.x, cur.x)), r2(Math.min(start.y, cur.y)), r2(w), r2(h)],
+            });
+            selected = zones.length - 1;
+            render();
+            const inputs = list.querySelectorAll<HTMLInputElement>('input[type=text]');
+            inputs[inputs.length - 1]?.focus();
+          }
+        };
+        overlay.addEventListener('pointermove', move);
+        overlay.addEventListener('pointerup', up);
+      }
+    });
+
+    // --- image loading ----------------------------------------------------------
+
+    function loadImage(file: File) {
+      if (!file.type.startsWith('image/')) return;
+      imageName = file.name;
+      const url = URL.createObjectURL(file);
+      img.onload = () => URL.revokeObjectURL(url);
+      img.src = url;
+      drop.hidden = true;
+      canvas.hidden = false;
+      render();
+    }
+
+    $('lbl-file').addEventListener('change', (e) => {
+      const f = (e.target as HTMLInputElement).files?.[0];
+      if (f) loadImage(f);
+    });
+    ['dragover', 'dragenter'].forEach((t) =>
+      stage.addEventListener(t, (e) => {
+        e.preventDefault();
+        stage.classList.add('over');
+      }),
+    );
+    ['dragleave', 'drop'].forEach((t) =>
+      stage.addEventListener(t, (e) => {
+        e.preventDefault();
+        stage.classList.remove('over');
+      }),
+    );
+    stage.addEventListener('drop', (e) => {
+      const f = (e as DragEvent).dataTransfer?.files?.[0];
+      if (f) loadImage(f);
+    });
+    document.addEventListener('paste', (e) => {
+      const item = Array.from(e.clipboardData?.items ?? []).find((i) =>
+        i.type.startsWith('image/'),
+      );
+      const f = item?.getAsFile();
+      if (f) loadImage(new File([f], f.name || 'pasted.png', { type: f.type }));
+    });
+
+    // --- mode / import / export ---------------------------------------------------
+
+    function setMode(m: 'points' | 'zones', rerender = true) {
+      mode = m;
+      selected = -1;
+      root.querySelectorAll<HTMLButtonElement>('.lbl-mode-btn').forEach((b) => {
+        b.classList.toggle('active', b.dataset.mode === m);
+      });
+      $('lbl-meta-points').hidden = m !== 'points';
+      $('lbl-meta-zones').hidden = m !== 'zones';
+      if (rerender) render();
+    }
+    root.querySelectorAll<HTMLButtonElement>('.lbl-mode-btn').forEach((b) => {
+      b.addEventListener('click', () => setMode(b.dataset.mode as 'points' | 'zones'));
+    });
+
+    $('lbl-import').addEventListener('change', async (e) => {
+      const f = (e.target as HTMLInputElement).files?.[0];
+      if (!f) return;
+      try {
+        const data = JSON.parse(await f.text());
+        if (data.type === 'regions' || Array.isArray(data.regions)) {
+          zones = (data.regions ?? []).map((r: Zn) => ({
+            name: String(r.name ?? ''),
+            bbox: [r.bbox?.[0] ?? 0, r.bbox?.[1] ?? 0, r.bbox?.[2] ?? 1, r.bbox?.[3] ?? 1],
+          }));
+          ($('lbl-screen') as HTMLInputElement).value = data.screen ?? '';
+          setMode('zones');
+        } else {
+          points = (data.points ?? []).map((p: Pt, idx: number) => ({
+            n: Number(p.n ?? idx + 1),
+            name: String(p.name ?? ''),
+            xPct: Number(p.xPct ?? 0),
+            yPct: Number(p.yPct ?? 0),
+          }));
+          ($('lbl-slug') as HTMLInputElement).value = data.slug ?? '';
+          ($('lbl-title') as HTMLInputElement).value = data.title ?? '';
+          ($('lbl-season') as HTMLInputElement).value = String(data.season ?? 1);
+          setMode('points');
+        }
+      } catch {
+        alert('Could not parse that file as editor JSON.');
+      }
+      (e.target as HTMLInputElement).value = '';
+    });
+
+    $('lbl-export').addEventListener('click', () => {
+      const data = payload();
+      const nameBase =
+        (mode === 'points'
+          ? (data as { slug?: string }).slug
+          : (data as { screen?: string }).screen) || 'labels';
+      const blob = new Blob([JSON.stringify(data, null, 2) + '\n'], {
+        type: 'application/json',
+      });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `${nameBase}.json`;
+      a.click();
+      URL.revokeObjectURL(a.href);
+    });
+
+    $('lbl-copy').addEventListener('click', async () => {
+      await navigator.clipboard.writeText(JSON.stringify(payload(), null, 2));
+      const btn = $('lbl-copy');
+      const old = btn.textContent;
+      btn.textContent = 'Copied!';
+      setTimeout(() => (btn.textContent = old), 1200);
+    });
+
+    $('lbl-clear').addEventListener('click', () => {
+      if (!confirm('Remove all points/zones for the current mode?')) return;
+      if (mode === 'points') points = [];
+      else zones = [];
+      selected = -1;
+      render();
+    });
+
+    ['lbl-slug', 'lbl-title', 'lbl-season', 'lbl-screen'].forEach((id) =>
+      $(id).addEventListener('input', () => {
+        jsonOut.textContent = JSON.stringify(payload(), null, 2);
+        save();
+      }),
+    );
+
+    restore();
+    render();
+  }
+</script>
+
+<style>
+  #lbl-editor {
+    margin: 1.5rem 0;
+    font-size: 0.9rem;
+  }
+  .lbl-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+  }
+  .lbl-mode {
+    display: inline-flex;
+    border: 1px solid var(--sl-color-hairline-shade);
+    border-radius: 0.5rem;
+    overflow: hidden;
+  }
+  .lbl-mode-btn {
+    border: 0;
+    background: var(--sl-color-bg-nav);
+    color: var(--sl-color-gray-2);
+    padding: 0.4rem 0.75rem;
+    cursor: pointer;
+  }
+  .lbl-mode-btn.active {
+    background: var(--sl-color-text-accent);
+    color: var(--sl-color-black);
+    font-weight: 600;
+  }
+  .lbl-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+  .lbl-btn {
+    display: inline-block;
+    border: 1px solid var(--sl-color-hairline-shade);
+    border-radius: 0.5rem;
+    background: var(--sl-color-bg-nav);
+    color: var(--sl-color-white);
+    padding: 0.4rem 0.75rem;
+    cursor: pointer;
+    font-size: 0.85rem;
+  }
+  .lbl-btn.primary {
+    background: var(--sl-color-text-accent);
+    color: var(--sl-color-black);
+    font-weight: 600;
+  }
+  .lbl-btn.danger {
+    color: #f87171;
+  }
+  .lbl-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
+  }
+  .lbl-meta[hidden] {
+    display: none;
+  }
+  .lbl-meta label {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    color: var(--sl-color-gray-3);
+  }
+  .lbl-meta input {
+    border: 1px solid var(--sl-color-hairline-shade);
+    border-radius: 0.4rem;
+    background: var(--sl-color-bg);
+    color: var(--sl-color-white);
+    padding: 0.3rem 0.5rem;
+    width: 11rem;
+  }
+  .lbl-meta input[type='number'] {
+    width: 4.5rem;
+  }
+  .lbl-body {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 310px;
+    gap: 0.75rem;
+  }
+  @media (max-width: 900px) {
+    .lbl-body {
+      grid-template-columns: 1fr;
+    }
+  }
+  .lbl-stage {
+    border: 1px dashed var(--sl-color-hairline-shade);
+    border-radius: 0.75rem;
+    background: var(--sl-color-bg-nav);
+    min-height: 18rem;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    overflow: auto;
+  }
+  .lbl-stage.over {
+    border-color: var(--sl-color-text-accent);
+  }
+  .lbl-drop {
+    align-self: center;
+    text-align: center;
+    padding: 2rem;
+    color: var(--sl-color-gray-3);
+  }
+  .lbl-hint {
+    font-size: 0.8rem;
+    color: var(--sl-color-gray-4);
+  }
+  .lbl-canvas {
+    position: relative;
+    margin: 0.5rem;
+  }
+  .lbl-canvas img {
+    display: block;
+    /* Viewport units, not 100%: the canvas is a shrink-to-fit flex item, so a
+       percentage max-width resolves circularly and collapses the image to 0. */
+    max-width: 86vw;
+    max-height: 78vh;
+    user-select: none;
+  }
+  .lbl-overlay {
+    position: absolute;
+    inset: 0;
+    cursor: crosshair;
+    touch-action: none;
+  }
+  .lbl-pin {
+    position: absolute;
+    transform: translate(-50%, -50%);
+    min-width: 1.35rem;
+    height: 1.35rem;
+    padding: 0 0.2rem;
+    border-radius: 999px;
+    background: var(--sl-color-text-accent);
+    color: var(--sl-color-black);
+    font-size: 0.72rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: grab;
+    box-shadow: 0 0 0 2px var(--sl-color-black), 0 1px 4px rgb(0 0 0 / 0.5);
+  }
+  .lbl-pin.sel {
+    outline: 2px solid #f87171;
+  }
+  .lbl-zone {
+    position: absolute;
+    border: 2px solid var(--sl-color-text-accent);
+    background: color-mix(in srgb, var(--sl-color-text-accent) 15%, transparent);
+    cursor: move;
+  }
+  .lbl-zone.ghost {
+    pointer-events: none;
+    border-style: dashed;
+  }
+  .lbl-zone.sel {
+    border-color: #f87171;
+  }
+  .lbl-zone-tag {
+    position: absolute;
+    top: -1.3rem;
+    left: -2px;
+    font-size: 0.68rem;
+    background: var(--sl-color-text-accent);
+    color: var(--sl-color-black);
+    padding: 0 0.3rem;
+    border-radius: 0.25rem 0.25rem 0 0;
+    white-space: nowrap;
+  }
+  .lbl-zone-handle {
+    position: absolute;
+    right: -6px;
+    bottom: -6px;
+    width: 12px;
+    height: 12px;
+    background: var(--sl-color-text-accent);
+    border: 2px solid var(--sl-color-black);
+    border-radius: 3px;
+    cursor: nwse-resize;
+  }
+  .lbl-side {
+    border: 1px solid var(--sl-color-hairline-shade);
+    border-radius: 0.75rem;
+    background: var(--sl-color-bg-nav);
+    display: flex;
+    flex-direction: column;
+    max-height: 80vh;
+  }
+  .lbl-side-head {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    padding: 0.6rem 0.75rem;
+    border-bottom: 1px solid var(--sl-color-hairline-shade);
+    font-weight: 600;
+  }
+  .lbl-list {
+    list-style: none;
+    margin: 0;
+    padding: 0.25rem;
+    overflow: auto;
+  }
+  .lbl-list li {
+    display: grid;
+    grid-template-columns: 1.8rem minmax(0, 1fr) auto 1.4rem;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.25rem 0.35rem;
+    border-radius: 0.4rem;
+  }
+  .lbl-list li.sel {
+    background: color-mix(in srgb, var(--sl-color-text-accent) 18%, transparent);
+  }
+  .lbl-row-n {
+    text-align: right;
+    color: var(--sl-color-gray-3);
+    font-variant-numeric: tabular-nums;
+  }
+  .lbl-list input {
+    border: 1px solid var(--sl-color-hairline-shade);
+    border-radius: 0.35rem;
+    background: var(--sl-color-bg);
+    color: var(--sl-color-white);
+    padding: 0.2rem 0.4rem;
+    min-width: 0;
+  }
+  .lbl-row-coords {
+    font-size: 0.7rem;
+    color: var(--sl-color-gray-4);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+  .lbl-row-del {
+    border: 0;
+    background: transparent;
+    color: #f87171;
+    font-size: 1rem;
+    cursor: pointer;
+    line-height: 1;
+  }
+  .lbl-json {
+    margin-top: 0.75rem;
+  }
+  .lbl-json pre {
+    max-height: 20rem;
+    overflow: auto;
+    border: 1px solid var(--sl-color-hairline-shade);
+    border-radius: 0.5rem;
+    padding: 0.75rem;
+    background: var(--sl-color-bg-nav);
+    font-size: 0.75rem;
+  }
+</style>

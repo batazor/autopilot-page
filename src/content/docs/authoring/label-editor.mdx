@@ -1,0 +1,52 @@
+---
+title: Online label editor
+description: Label Dreamscape scenes or screen regions right in the browser — drop a screenshot, place points or zones, and export JSON with percentage coordinates. Nothing is uploaded.
+sidebar:
+  order: 4
+  label: Online label editor
+template: doc
+tableOfContents: false
+---
+
+import LabelEditor from '../../../components/LabelEditor.astro';
+
+Help grow the scene and region catalog without installing anything. Drop a
+screenshot below, label it, and share the exported JSON — **the image never
+leaves your browser**; only the JSON with percentage coordinates is produced.
+
+Two modes:
+
+- **Points (Dreamscape scene)** — for [Dreamscape Memory](/games/dreamscape-memory/)
+  maps. Click each item on the scene, give it the exact in-game word
+  (e.g. `Book`, `Pocket Watch`), and fill in `slug` / `title` / `season`.
+  This is the most useful contribution: every new season ships new rooms.
+- **Zones (screen regions)** — for general UI labeling
+  (see [Labeling regions](/authoring/labeling/)). Drag rectangles over buttons,
+  counters, or OCR areas and name them; coordinates export as
+  `[x, y, width, height]` percentages, the same `bbox` format `area.yaml` uses.
+
+<LabelEditor />
+
+## How to submit
+
+1. Press **Download JSON** (or **Copy JSON**).
+2. Post it together with the original screenshot in the
+   [Discord](https://discord.gg/62twnzKG9) or open a
+   [GitHub issue](https://github.com/batazor/autopilot/issues/new) titled
+   `scene: <slug>` / `regions: <screen>` with both files attached.
+
+Dreamscape scene JSONs are imported verbatim — maintainers run
+`uv run python games/wos/events/dreamscape_memory/tools/import_scene_json.py your-file.json --image your-screenshot.png`
+and the scene lands in the solver database.
+
+## Tips for good labels
+
+- Use the **English in-game words** exactly as the word buttons show them —
+  the solver matches OCR output against these names.
+- Take screenshots at the emulator's native **720 × 1280** resolution when
+  possible; coordinates are percentages, so other sizes work too, as long as
+  the screenshot is uncropped.
+- Place each point on the **center of the item**, not on its number badge in
+  community guide images.
+- Your work autosaves locally: reload the page and re-drop the same
+  screenshot to continue where you left off.

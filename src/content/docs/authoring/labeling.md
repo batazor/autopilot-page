@@ -8,6 +8,11 @@ sidebar:
 
 The Labeling editor is the only supported way to populate `area.json` and `references/`. Do not hand-edit those files — the editor keeps them in sync (region coordinates → JSON, crop bitmaps → PNGs), and a manual change will drift.
 
+Don't run the bot but want to help with labeling? Use the
+[online label editor](/authoring/label-editor/) — it runs entirely in your
+browser and exports a JSON with percentage coordinates that maintainers can
+apply.
+
 ## Open the editor
 
 Once the dashboard is running (`docker compose up -d` or `uv run play`), open <http://127.0.0.1:3000/labeling>. The page proxies through to the FastAPI backend and reads/writes `area.json` + `references/` on disk.

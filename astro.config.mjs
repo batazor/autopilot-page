@@ -220,6 +220,7 @@ gtag('config', 'G-H94ZVP57ER');
             { label: 'Flow', slug: 'authoring/flow' },
             { label: 'New module', slug: 'authoring/new-module' },
             { label: 'Labeling regions', slug: 'authoring/labeling' },
+            { label: 'Online label editor', slug: 'authoring/label-editor' },
             { label: 'DSL primer', slug: 'authoring/dsl' },
           ],
         },
