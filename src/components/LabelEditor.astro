@@ -1,8 +1,13 @@
 ---
 // Client-side zone/point labeling editor. The image never leaves the browser:
 // users drop a screenshot, place labeled points (Dreamscape scenes) or drag
-// labeled rectangles (area.yaml-style regions), and export a JSON file with
+// labeled rectangles (area.yaml-style regions), and export a JSON with
 // percentage coordinates that maintainers can import directly.
+//
+// The points surface mirrors the dashboard's ScenePointEditor
+// (web/components/dreamscape/ScenePointEditor.tsx): full-width image, numbered
+// pin buttons, hover highlight synced with the list, click-to-select, drag
+// with a 3px threshold so a plain click still selects.
 ---
 
 <div id="lbl-editor" class="not-content">
@@ -36,21 +41,22 @@
   </div>
 
   <div class="lbl-body">
-    <div class="lbl-stage" id="lbl-stage">
-      <div class="lbl-drop" id="lbl-drop">
-        <p><strong>Drop a screenshot here</strong>, paste it (Ctrl/Cmd+V), or use “Load image”.</p>
-        <p class="lbl-hint">The image stays on your device — only the JSON with coordinates is exported.</p>
+    <div>
+      <div class="lbl-tip" id="lbl-tip">Click on the image to add a point.</div>
+      <div class="lbl-stage" id="lbl-stage">
+        <div class="lbl-drop" id="lbl-drop">
+          <p><strong>Drop a screenshot here</strong>, paste it (Ctrl/Cmd+V), or use “Load image”.</p>
+          <p class="lbl-hint">The image stays on your device — only the JSON with coordinates is exported.</p>
+        </div>
+        <div class="lbl-canvas" id="lbl-canvas" hidden>
+          <img id="lbl-img" alt="Screenshot being labeled" draggable="false" />
+          <div class="lbl-overlay" id="lbl-overlay"></div>
+        </div>
       </div>
-      <div class="lbl-canvas" id="lbl-canvas" hidden>
-        <img id="lbl-img" alt="Screenshot being labeled" draggable="false" />
-        <div class="lbl-overlay" id="lbl-overlay"></div>
-      </div>
+      <div class="lbl-badges" id="lbl-badges"></div>
     </div>
     <div class="lbl-side">
-      <div class="lbl-side-head">
-        <span id="lbl-count">0 items</span>
-        <span class="lbl-hint" id="lbl-tip">Click on the image to add a point.</span>
-      </div>
+      <div class="lbl-side-head" id="lbl-count">0 items</div>
       <ol class="lbl-list" id="lbl-list"></ol>
     </div>
   </div>
@@ -78,12 +84,16 @@
     const list = $('lbl-list');
     const jsonOut = $('lbl-json-out');
     const tip = $('lbl-tip');
+    const badges = $('lbl-badges');
 
     let mode: 'points' | 'zones' = 'points';
     let points: Pt[] = [];
     let zones: Zn[] = [];
     let imageName = '';
-    let selected = -1;
+    // Points are keyed by their number (like the dashboard editor); zones by index.
+    let selectedN: number | null = null;
+    let hoveredN: number | null = null;
+    let selectedZone = -1;
 
     const LS_KEY = 'autopilot-label-editor';
 
@@ -97,11 +107,11 @@
       }
     };
 
-    function pctFromEvent(ev: PointerEvent): { x: number; y: number } {
+    function pctFromClient(clientX: number, clientY: number): { x: number; y: number } {
       const r = overlay.getBoundingClientRect();
       return {
-        x: clampPct(((ev.clientX - r.left) / r.width) * 100),
-        y: clampPct(((ev.clientY - r.top) / r.height) * 100),
+        x: r2(clampPct(((clientX - r.left) / r.width) * 100)),
+        y: r2(clampPct(((clientY - r.top) / r.height) * 100)),
       };
     }
 
@@ -163,136 +173,200 @@
       }
     }
 
-    function render() {
-      overlay.innerHTML = '';
-      list.innerHTML = '';
-      const items = mode === 'points' ? points : zones;
-      $('lbl-count').textContent = `${items.length} item${items.length === 1 ? '' : 's'}`;
-      tip.textContent =
-        mode === 'points'
-          ? 'Click on the image to add a point. Drag pins to adjust.'
-          : 'Drag on the image to draw a zone. Drag to move, corner to resize.';
+    const highlightedN = () => hoveredN ?? selectedN;
 
-      if (mode === 'points') {
-        points.forEach((p, i) => {
-          const pin = document.createElement('div');
-          pin.className = 'lbl-pin' + (i === selected ? ' sel' : '');
-          pin.style.left = p.xPct + '%';
-          pin.style.top = p.yPct + '%';
-          pin.textContent = String(p.n);
-          pin.title = p.name || `#${p.n}`;
-          attachPinDrag(pin, i);
-          overlay.appendChild(pin);
-          list.appendChild(rowFor(i, String(p.n), p.name, `${r2(p.xPct)}%, ${r2(p.yPct)}%`));
-        });
-      } else {
-        zones.forEach((z, i) => {
-          const el = document.createElement('div');
-          el.className = 'lbl-zone' + (i === selected ? ' sel' : '');
-          const [x, y, w, h] = z.bbox;
-          el.style.left = x + '%';
-          el.style.top = y + '%';
-          el.style.width = w + '%';
-          el.style.height = h + '%';
-          const tag = document.createElement('span');
-          tag.className = 'lbl-zone-tag';
-          tag.textContent = z.name || `zone ${i + 1}`;
-          el.appendChild(tag);
-          const handle = document.createElement('div');
-          handle.className = 'lbl-zone-handle';
-          el.appendChild(handle);
-          attachZoneDrag(el, handle, i);
-          overlay.appendChild(el);
-          list.appendChild(
-            rowFor(i, String(i + 1), z.name, `[${z.bbox.map(r2).join(', ')}]`),
-          );
-        });
-      }
+    function refreshJson() {
       jsonOut.textContent = JSON.stringify(payload(), null, 2);
+      if (mode === 'points') updateBadges();
       save();
     }
 
-    function rowFor(i: number, num: string, name: string, coords: string): HTMLLIElement {
+    function updateBadges() {
+      badges.innerHTML = '';
+      const unnamed = points.filter((p) => !p.name.trim()).length;
+      if (unnamed) {
+        const b = document.createElement('span');
+        b.className = 'lbl-badge';
+        b.textContent = `${unnamed} unnamed`;
+        badges.appendChild(b);
+      }
+    }
+
+    function render() {
+      overlay.innerHTML = '';
+      list.innerHTML = '';
+      badges.innerHTML = '';
+      const count = mode === 'points' ? points.length : zones.length;
+      $('lbl-count').textContent = `${count} item${count === 1 ? '' : 's'}`;
+
+      if (mode === 'points') {
+        tip.textContent =
+          selectedN != null
+            ? `Pin #${selectedN} selected. Drag a pin to move it, or click empty space to add one`
+            : 'Drag a pin to move it, click to select, or click empty space to add one';
+        points.forEach((p) => {
+          overlay.appendChild(pinFor(p));
+          list.appendChild(pointRowFor(p));
+        });
+      } else {
+        tip.textContent =
+          'Drag on the image to draw a zone. Drag a zone to move it, corner to resize.';
+        zones.forEach((z, i) => {
+          overlay.appendChild(zoneFor(z, i));
+          list.appendChild(zoneRowFor(z, i));
+        });
+      }
+      refreshJson();
+    }
+
+    // Re-apply highlight classes without rebuilding the DOM (keeps hover cheap
+    // and inputs focused).
+    function paintHighlight() {
+      const h = highlightedN();
+      overlay.querySelectorAll<HTMLElement>('.lbl-pin').forEach((el) => {
+        el.classList.toggle('hl', Number(el.dataset.n) === h);
+      });
+      list.querySelectorAll<HTMLElement>('li[data-n]').forEach((el) => {
+        el.classList.toggle('hl', Number(el.dataset.n) === h);
+      });
+    }
+
+    function setHovered(n: number | null) {
+      hoveredN = n;
+      paintHighlight();
+    }
+    function setSelected(n: number | null) {
+      selectedN = n;
+      tip.textContent =
+        n != null
+          ? `Pin #${n} selected. Drag a pin to move it, or click empty space to add one`
+          : 'Drag a pin to move it, click to select, or click empty space to add one';
+      paintHighlight();
+    }
+
+    // --- points: pins + list rows (mirrors the dashboard ScenePointEditor) ---
+
+    function pinFor(p: Pt): HTMLButtonElement {
+      const pin = document.createElement('button');
+      pin.type = 'button';
+      pin.className = 'lbl-pin' + (highlightedN() === p.n ? ' hl' : '');
+      pin.dataset.n = String(p.n);
+      pin.style.left = p.xPct + '%';
+      pin.style.top = p.yPct + '%';
+      pin.textContent = String(p.n);
+      pin.title = `${p.n}. ${p.name || '(unnamed)'} — drag to move`;
+      pin.addEventListener('mouseenter', () => setHovered(p.n));
+      pin.addEventListener('mouseleave', () => setHovered(null));
+
+      let drag: { startX: number; startY: number; moved: boolean } | null = null;
+      pin.addEventListener('pointerdown', (ev) => {
+        ev.stopPropagation();
+        ev.preventDefault();
+        drag = { startX: ev.clientX, startY: ev.clientY, moved: false };
+        capture(pin, ev.pointerId);
+      });
+      pin.addEventListener('pointermove', (ev) => {
+        if (!drag) return;
+        // Ignore sub-threshold jitter so a plain click still selects.
+        if (!drag.moved && Math.hypot(ev.clientX - drag.startX, ev.clientY - drag.startY) < 3)
+          return;
+        drag.moved = true;
+        const { x, y } = pctFromClient(ev.clientX, ev.clientY);
+        p.xPct = x;
+        p.yPct = y;
+        pin.style.left = x + '%';
+        pin.style.top = y + '%';
+        const row = list.querySelector(`li[data-n="${p.n}"] .lbl-row-coords`);
+        if (row) row.textContent = `${x}%, ${y}%`;
+      });
+      pin.addEventListener('pointerup', () => {
+        if (!drag) return;
+        const wasDrag = drag.moved;
+        drag = null;
+        if (wasDrag) refreshJson();
+        else setSelected(selectedN === p.n ? null : p.n); // plain click → toggle selection
+      });
+      pin.addEventListener('pointercancel', () => (drag = null));
+      return pin;
+    }
+
+    function pointRowFor(p: Pt): HTMLLIElement {
       const li = document.createElement('li');
-      li.className = i === selected ? 'sel' : '';
-      const numEl = document.createElement('span');
+      li.dataset.n = String(p.n);
+      li.className = highlightedN() === p.n ? 'hl' : '';
+      li.addEventListener('mouseenter', () => setHovered(p.n));
+      li.addEventListener('mouseleave', () => setHovered(null));
+
+      const numEl = document.createElement('button');
+      numEl.type = 'button';
       numEl.className = 'lbl-row-n';
-      numEl.textContent = num;
+      numEl.textContent = String(p.n);
+      numEl.addEventListener('click', () => setSelected(selectedN === p.n ? null : p.n));
+
       const nameEl = document.createElement('input');
       nameEl.type = 'text';
-      nameEl.value = name;
-      nameEl.placeholder = mode === 'points' ? 'item name (e.g. Book)' : 'region name';
+      nameEl.value = p.name;
+      nameEl.placeholder = `Item ${p.n}`;
+      nameEl.addEventListener('focus', () => setHovered(p.n));
+      nameEl.addEventListener('blur', () => setHovered(null));
       nameEl.addEventListener('input', () => {
-        if (mode === 'points') points[i].name = nameEl.value;
-        else zones[i].name = nameEl.value;
-        jsonOut.textContent = JSON.stringify(payload(), null, 2);
-        save();
+        p.name = nameEl.value;
+        refreshJson();
       });
+
       const coordEl = document.createElement('span');
       coordEl.className = 'lbl-row-coords';
-      coordEl.textContent = coords;
+      coordEl.textContent = `${r2(p.xPct)}%, ${r2(p.yPct)}%`;
+
       const del = document.createElement('button');
       del.type = 'button';
       del.className = 'lbl-row-del';
-      del.textContent = '×';
-      del.title = 'Delete';
+      del.textContent = '✕';
+      del.title = 'Remove';
       del.addEventListener('click', () => {
-        if (mode === 'points') points.splice(i, 1);
-        else zones.splice(i, 1);
-        selected = -1;
+        points = points.filter((pp) => pp.n !== p.n);
+        if (selectedN === p.n) selectedN = null;
         render();
       });
-      li.addEventListener('click', (e) => {
-        if (e.target === del || e.target === nameEl) return;
-        selected = i;
-        render();
-      });
+
       li.append(numEl, nameEl, coordEl, del);
       return li;
     }
 
-    // --- pointer interactions -------------------------------------------------
+    // --- zones: rects + list rows ---
 
-    function attachPinDrag(pin: HTMLDivElement, i: number) {
-      pin.addEventListener('pointerdown', (ev) => {
-        ev.stopPropagation();
-        ev.preventDefault();
-        selected = i;
-        capture(pin, ev.pointerId);
-        const move = (mv: PointerEvent) => {
-          const { x, y } = pctFromEvent(mv);
-          points[i].xPct = r2(x);
-          points[i].yPct = r2(y);
-          pin.style.left = points[i].xPct + '%';
-          pin.style.top = points[i].yPct + '%';
-        };
-        const up = () => {
-          pin.removeEventListener('pointermove', move);
-          pin.removeEventListener('pointerup', up);
-          render();
-        };
-        pin.addEventListener('pointermove', move);
-        pin.addEventListener('pointerup', up);
-      });
-    }
+    function zoneFor(z: Zn, i: number): HTMLDivElement {
+      const el = document.createElement('div');
+      el.className = 'lbl-zone' + (i === selectedZone ? ' sel' : '');
+      const [x, y, w, h] = z.bbox;
+      el.style.left = x + '%';
+      el.style.top = y + '%';
+      el.style.width = w + '%';
+      el.style.height = h + '%';
+      const tag = document.createElement('span');
+      tag.className = 'lbl-zone-tag';
+      tag.textContent = z.name || `zone ${i + 1}`;
+      el.appendChild(tag);
+      const handle = document.createElement('div');
+      handle.className = 'lbl-zone-handle';
+      el.appendChild(handle);
 
-    function attachZoneDrag(el: HTMLDivElement, handle: HTMLDivElement, i: number) {
       // Move the whole zone.
       el.addEventListener('pointerdown', (ev) => {
         if (ev.target === handle) return;
         ev.stopPropagation();
         ev.preventDefault();
-        selected = i;
+        selectedZone = i;
         capture(el, ev.pointerId);
-        const start = pctFromEvent(ev);
-        const [bx, by] = [zones[i].bbox[0], zones[i].bbox[1]];
+        const start = pctFromClient(ev.clientX, ev.clientY);
+        const [bx, by] = [z.bbox[0], z.bbox[1]];
         const move = (mv: PointerEvent) => {
-          const cur = pctFromEvent(mv);
-          const [, , w, h] = zones[i].bbox;
-          zones[i].bbox[0] = r2(Math.min(100 - w, Math.max(0, bx + cur.x - start.x)));
-          zones[i].bbox[1] = r2(Math.min(100 - h, Math.max(0, by + cur.y - start.y)));
-          el.style.left = zones[i].bbox[0] + '%';
-          el.style.top = zones[i].bbox[1] + '%';
+          const cur = pctFromClient(mv.clientX, mv.clientY);
+          const [, , w2, h2] = z.bbox;
+          z.bbox[0] = r2(Math.min(100 - w2, Math.max(0, bx + cur.x - start.x)));
+          z.bbox[1] = r2(Math.min(100 - h2, Math.max(0, by + cur.y - start.y)));
+          el.style.left = z.bbox[0] + '%';
+          el.style.top = z.bbox[1] + '%';
         };
         const up = () => {
           el.removeEventListener('pointermove', move);
@@ -306,15 +380,15 @@
       handle.addEventListener('pointerdown', (ev) => {
         ev.stopPropagation();
         ev.preventDefault();
-        selected = i;
+        selectedZone = i;
         capture(handle, ev.pointerId);
         const move = (mv: PointerEvent) => {
-          const cur = pctFromEvent(mv);
-          const [x, y] = zones[i].bbox;
-          zones[i].bbox[2] = r2(Math.max(0.5, cur.x - x));
-          zones[i].bbox[3] = r2(Math.max(0.5, cur.y - y));
-          el.style.width = zones[i].bbox[2] + '%';
-          el.style.height = zones[i].bbox[3] + '%';
+          const cur = pctFromClient(mv.clientX, mv.clientY);
+          const [x2, y2] = z.bbox;
+          z.bbox[2] = r2(Math.max(0.5, cur.x - x2));
+          z.bbox[3] = r2(Math.max(0.5, cur.y - y2));
+          el.style.width = z.bbox[2] + '%';
+          el.style.height = z.bbox[3] + '%';
         };
         const up = () => {
           handle.removeEventListener('pointermove', move);
@@ -324,32 +398,72 @@
         handle.addEventListener('pointermove', move);
         handle.addEventListener('pointerup', up);
       });
+      return el;
     }
+
+    function zoneRowFor(z: Zn, i: number): HTMLLIElement {
+      const li = document.createElement('li');
+      li.className = i === selectedZone ? 'hl' : '';
+      const numEl = document.createElement('span');
+      numEl.className = 'lbl-row-n';
+      numEl.textContent = String(i + 1);
+      const nameEl = document.createElement('input');
+      nameEl.type = 'text';
+      nameEl.value = z.name;
+      nameEl.placeholder = 'region name';
+      nameEl.addEventListener('input', () => {
+        z.name = nameEl.value;
+        const tag = overlay.querySelectorAll('.lbl-zone-tag')[i];
+        if (tag) tag.textContent = z.name || `zone ${i + 1}`;
+        refreshJson();
+      });
+      const coordEl = document.createElement('span');
+      coordEl.className = 'lbl-row-coords';
+      coordEl.textContent = `[${z.bbox.map(r2).join(', ')}]`;
+      const del = document.createElement('button');
+      del.type = 'button';
+      del.className = 'lbl-row-del';
+      del.textContent = '✕';
+      del.title = 'Remove';
+      del.addEventListener('click', () => {
+        zones.splice(i, 1);
+        selectedZone = -1;
+        render();
+      });
+      li.addEventListener('click', (e) => {
+        if (e.target === del || e.target === nameEl) return;
+        selectedZone = i;
+        render();
+      });
+      li.append(numEl, nameEl, coordEl, del);
+      return li;
+    }
+
+    // --- empty-space interactions on the overlay ---
 
     overlay.addEventListener('pointerdown', (ev) => {
       if (ev.target !== overlay) return;
       ev.preventDefault();
       if (mode === 'points') {
-        const { x, y } = pctFromEvent(ev);
+        const { x, y } = pctFromClient(ev.clientX, ev.clientY);
+        // Add a new pin with the next free number.
         const n = points.reduce((m, p) => Math.max(m, p.n), 0) + 1;
-        points.push({ n, name: '', xPct: r2(x), yPct: r2(y) });
-        selected = points.length - 1;
+        points.push({ n, name: '', xPct: x, yPct: y });
+        selectedN = n;
         render();
-        const inputs = list.querySelectorAll<HTMLInputElement>('input[type=text]');
-        inputs[inputs.length - 1]?.focus();
+        const inp = list.querySelector<HTMLInputElement>(`li[data-n="${n}"] input[type=text]`);
+        inp?.focus();
       } else {
         // Drag out a new zone.
         capture(overlay, ev.pointerId);
-        const start = pctFromEvent(ev);
+        const start = pctFromClient(ev.clientX, ev.clientY);
         const ghost = document.createElement('div');
         ghost.className = 'lbl-zone ghost';
         overlay.appendChild(ghost);
         const move = (mv: PointerEvent) => {
-          const cur = pctFromEvent(mv);
-          const x = Math.min(start.x, cur.x);
-          const y = Math.min(start.y, cur.y);
-          ghost.style.left = x + '%';
-          ghost.style.top = y + '%';
+          const cur = pctFromClient(mv.clientX, mv.clientY);
+          ghost.style.left = Math.min(start.x, cur.x) + '%';
+          ghost.style.top = Math.min(start.y, cur.y) + '%';
           ghost.style.width = Math.abs(cur.x - start.x) + '%';
           ghost.style.height = Math.abs(cur.y - start.y) + '%';
         };
@@ -357,7 +471,7 @@
           overlay.removeEventListener('pointermove', move);
           overlay.removeEventListener('pointerup', up);
           ghost.remove();
-          const cur = pctFromEvent(uv);
+          const cur = pctFromClient(uv.clientX, uv.clientY);
           const w = Math.abs(cur.x - start.x);
           const h = Math.abs(cur.y - start.y);
           if (w >= 0.5 && h >= 0.5) {
@@ -365,7 +479,7 @@
               name: '',
               bbox: [r2(Math.min(start.x, cur.x)), r2(Math.min(start.y, cur.y)), r2(w), r2(h)],
             });
-            selected = zones.length - 1;
+            selectedZone = zones.length - 1;
             render();
             const inputs = list.querySelectorAll<HTMLInputElement>('input[type=text]');
             inputs[inputs.length - 1]?.focus();
@@ -376,7 +490,7 @@
       }
     });
 
-    // --- image loading ----------------------------------------------------------
+    // --- image loading ---
 
     function loadImage(file: File) {
       if (!file.type.startsWith('image/')) return;
@@ -417,11 +531,12 @@
       if (f) loadImage(new File([f], f.name || 'pasted.png', { type: f.type }));
     });
 
-    // --- mode / import / export ---------------------------------------------------
+    // --- mode / import / export ---
 
     function setMode(m: 'points' | 'zones', rerender = true) {
       mode = m;
-      selected = -1;
+      selectedN = null;
+      selectedZone = -1;
       root.querySelectorAll<HTMLButtonElement>('.lbl-mode-btn').forEach((b) => {
         b.classList.toggle('active', b.dataset.mode === m);
       });
@@ -491,15 +606,13 @@
       if (!confirm('Remove all points/zones for the current mode?')) return;
       if (mode === 'points') points = [];
       else zones = [];
-      selected = -1;
+      selectedN = null;
+      selectedZone = -1;
       render();
     });
 
     ['lbl-slug', 'lbl-title', 'lbl-season', 'lbl-screen'].forEach((id) =>
-      $(id).addEventListener('input', () => {
-        jsonOut.textContent = JSON.stringify(payload(), null, 2);
-        save();
-      }),
+      $(id).addEventListener('input', refreshJson),
     );
 
     restore();
@@ -507,7 +620,11 @@
   }
 </script>
 
-<style>
+{/* is:global — pins, zones, and list rows are created with document.createElement,
+   so they never receive Astro's scoped-style attribute; scoped rules would skip
+   them entirely (pins then pile up unpositioned in the top-left corner). All
+   selectors are namespaced with the lbl- prefix instead. */}
+<style is:global>
   #lbl-editor {
     margin: 1.5rem 0;
     font-size: 0.9rem;
@@ -589,31 +706,37 @@
   }
   .lbl-body {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) 310px;
-    gap: 0.75rem;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 1rem;
+    align-items: start;
   }
   @media (max-width: 900px) {
     .lbl-body {
       grid-template-columns: 1fr;
     }
   }
+  .lbl-tip {
+    margin-bottom: 0.5rem;
+    font-size: 0.78rem;
+    color: var(--sl-color-gray-3);
+    min-height: 1.2em;
+  }
+  /* Dashboard pattern: definite-width container, image fills it. No vh/vw
+     sizing — the container width comes from the grid column, so pins in %
+     always sit exactly where you click. */
   .lbl-stage {
     border: 1px dashed var(--sl-color-hairline-shade);
     border-radius: 0.75rem;
     background: var(--sl-color-bg-nav);
-    min-height: 18rem;
-    display: flex;
-    align-items: flex-start;
-    justify-content: center;
-    overflow: auto;
+    min-height: 14rem;
+    overflow: hidden;
   }
   .lbl-stage.over {
     border-color: var(--sl-color-text-accent);
   }
   .lbl-drop {
-    align-self: center;
     text-align: center;
-    padding: 2rem;
+    padding: 3rem 2rem;
     color: var(--sl-color-gray-3);
   }
   .lbl-hint {
@@ -622,41 +745,68 @@
   }
   .lbl-canvas {
     position: relative;
-    margin: 0.5rem;
+    width: 100%;
+    max-width: 28rem;
+    margin-inline: auto;
+    cursor: crosshair;
+    user-select: none;
   }
   .lbl-canvas img {
     display: block;
-    /* Viewport units, not 100%: the canvas is a shrink-to-fit flex item, so a
-       percentage max-width resolves circularly and collapses the image to 0. */
-    max-width: 86vw;
-    max-height: 78vh;
-    user-select: none;
+    width: 100%;
+    height: auto;
+    pointer-events: none;
   }
   .lbl-overlay {
     position: absolute;
     inset: 0;
-    cursor: crosshair;
     touch-action: none;
   }
+  /* Pins: dashboard look — translucent black disc, white border; highlighted =
+     accent + scale + soft ring. */
   .lbl-pin {
     position: absolute;
     transform: translate(-50%, -50%);
-    min-width: 1.35rem;
-    height: 1.35rem;
-    padding: 0 0.2rem;
+    width: 1.25rem;
+    height: 1.25rem;
+    padding: 0;
     border-radius: 999px;
-    background: var(--sl-color-text-accent);
-    color: var(--sl-color-black);
-    font-size: 0.72rem;
+    border: 1px solid rgb(255 255 255 / 0.8);
+    background: rgb(0 0 0 / 0.7);
+    color: #fff;
+    font-size: 0.65rem;
     font-weight: 700;
+    line-height: 1;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: grab;
-    box-shadow: 0 0 0 2px var(--sl-color-black), 0 1px 4px rgb(0 0 0 / 0.5);
+    transition: transform 0.1s;
   }
-  .lbl-pin.sel {
-    outline: 2px solid #f87171;
+  .lbl-pin:active {
+    cursor: grabbing;
+  }
+  .lbl-pin.hl {
+    z-index: 10;
+    transform: translate(-50%, -50%) scale(1.25);
+    border-color: #fff;
+    background: var(--sl-color-text-accent);
+    color: var(--sl-color-black);
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--sl-color-text-accent) 25%, transparent);
+  }
+  .lbl-badges {
+    margin-top: 0.5rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+  .lbl-badge {
+    border-radius: 0.35rem;
+    background: var(--sl-color-bg-nav);
+    border: 1px solid var(--sl-color-hairline-shade);
+    color: var(--sl-color-gray-3);
+    padding: 0.15rem 0.5rem;
+    font-size: 0.75rem;
   }
   .lbl-zone {
     position: absolute;
@@ -702,9 +852,6 @@
     max-height: 80vh;
   }
   .lbl-side-head {
-    display: flex;
-    flex-direction: column;
-    gap: 0.15rem;
     padding: 0.6rem 0.75rem;
     border-bottom: 1px solid var(--sl-color-hairline-shade);
     font-weight: 600;
@@ -717,19 +864,28 @@
   }
   .lbl-list li {
     display: grid;
-    grid-template-columns: 1.8rem minmax(0, 1fr) auto 1.4rem;
+    grid-template-columns: 1.8rem minmax(0, 1fr) auto 1.6rem;
     align-items: center;
     gap: 0.35rem;
     padding: 0.25rem 0.35rem;
     border-radius: 0.4rem;
+    transition: background 0.1s;
   }
-  .lbl-list li.sel {
+  .lbl-list li.hl {
     background: color-mix(in srgb, var(--sl-color-text-accent) 18%, transparent);
   }
   .lbl-row-n {
+    border: 0;
+    background: transparent;
     text-align: right;
     color: var(--sl-color-gray-3);
     font-variant-numeric: tabular-nums;
+    cursor: pointer;
+    padding: 0;
+  }
+  .lbl-list li.hl .lbl-row-n {
+    color: var(--sl-color-text-accent);
+    font-weight: 700;
   }
   .lbl-list input {
     border: 1px solid var(--sl-color-hairline-shade);
@@ -738,6 +894,10 @@
     color: var(--sl-color-white);
     padding: 0.2rem 0.4rem;
     min-width: 0;
+    transition: border-color 0.1s;
+  }
+  .lbl-list li.hl input {
+    border-color: var(--sl-color-text-accent);
   }
   .lbl-row-coords {
     font-size: 0.7rem;
@@ -748,10 +908,13 @@
   .lbl-row-del {
     border: 0;
     background: transparent;
-    color: #f87171;
-    font-size: 1rem;
+    color: var(--sl-color-gray-3);
+    font-size: 0.85rem;
     cursor: pointer;
     line-height: 1;
+  }
+  .lbl-row-del:hover {
+    color: #f87171;
   }
   .lbl-json {
     margin-top: 0.75rem;
