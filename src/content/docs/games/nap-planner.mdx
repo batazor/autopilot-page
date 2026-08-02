@@ -1,0 +1,26 @@
+---
+title: Sunfire NAP planner
+description: Divide the Sunfire Castle territory — citadels, fortresses, turrets and buff towers — between the alliances of your non-aggression pact, right in the browser. The plan autosaves locally and exports as a small JSON to share with other leads.
+sidebar:
+  order: 3
+  label: Sunfire NAP planner
+template: doc
+tableOfContents: false
+---
+
+import NapPlanner from '../../../components/NapPlanner.astro';
+
+Plan your server's **NAP (non-aggression pact)** for the Sunfire Castle season
+without spreadsheets: the map below shows the real territory layout — the
+castle, 4 turrets, 4 citadels (strongholds), 12 fortresses and all 74 buff
+towers at their actual kingdom-map coordinates (identical on every server).
+
+- **Add alliances** on the right (tag + color), select one, then **click
+  objects** on the map or in the list to assign them. Click again to unassign.
+- **Buff towers** are an optional layer — tower dots are colored by buff type
+  (see the legend); an assigned tower keeps its buff color as a ring.
+- Everything stays **in your browser** (autosaved locally). Use **Download
+  JSON** / **Copy JSON** to share the plan with other alliance leads — they
+  open this page and **Import JSON** to see and edit the same plan.
+
+<NapPlanner />

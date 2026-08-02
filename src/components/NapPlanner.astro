@@ -1,0 +1,865 @@
+---
+// Sunfire Castle NAP planner. Alliance leads divide the season territory —
+// citadels (strongholds), fortresses, turrets and buff towers — between
+// alliances of a non-aggression pact. Everything is client-side: the plan
+// autosaves to localStorage and is shared as a small JSON file (or via
+// clipboard), same flow as the label editor.
+//
+// Structure coordinates are game facts vendored from the main repo's
+// games/wos/db/sunfire_castle_territory.yaml (absolute [col,row] tiles on the
+// 1200x1200 kingdom map; identical on every server). IDs follow
+// games/wos/core/sunfire_castle/territory.py: castle, turret_N, stronghold_N,
+// fortress_N, <buff_type>_l<level>_<i>.
+---
+
+<div id="nap-planner" class="not-content">
+  <div class="nap-toolbar">
+    <label class="nap-season">
+      season / note
+      <input id="nap-season" type="text" placeholder="S2 · NAP-4" spellcheck="false" />
+    </label>
+    <label class="nap-check">
+      <input id="nap-towers" type="checkbox" checked />
+      Buff towers
+    </label>
+    <div class="nap-actions">
+      <label class="nap-btn">
+        Import JSON
+        <input id="nap-import" type="file" accept="application/json,.json" hidden />
+      </label>
+      <button type="button" id="nap-export" class="nap-btn primary">Download JSON</button>
+      <button type="button" id="nap-copy" class="nap-btn">Copy JSON</button>
+      <button type="button" id="nap-reset" class="nap-btn danger">Reset</button>
+    </div>
+  </div>
+
+  <div class="nap-body">
+    <div>
+      <div class="nap-tip" id="nap-tip">Add an alliance, select it, then click objects on the map.</div>
+      <div class="nap-map" id="nap-map"></div>
+      <div class="nap-legend" id="nap-legend"></div>
+    </div>
+    <div class="nap-side">
+      <div class="nap-side-head">
+        Alliances
+        <button type="button" id="nap-add" class="nap-btn small">+ Add</button>
+      </div>
+      <ul class="nap-alliances" id="nap-alliances"></ul>
+      <button type="button" id="nap-eraser" class="nap-eraser">Eraser — click an object to unassign</button>
+      <div class="nap-side-head">Objects</div>
+      <div class="nap-objects" id="nap-objects"></div>
+    </div>
+  </div>
+
+  <details class="nap-json">
+    <summary>JSON preview</summary>
+    <pre><code id="nap-json-out">{}</code></pre>
+  </details>
+</div>
+
+<script>
+  // --- vendored territory facts (see frontmatter note) -----------------------
+
+  type Buff = {
+    type: string;
+    label: string;
+    bonus: string;
+    color: string;
+    level: number;
+    booster: string;
+  };
+  type Structure = {
+    id: string;
+    kind: 'castle' | 'turret' | 'stronghold' | 'fortress' | 'tower';
+    label: string;
+    short: string;
+    x: number;
+    y: number;
+    buff?: Buff;
+  };
+
+  const TOWER_TYPES: {
+    type: string;
+    label: string;
+    bonus: string;
+    color: string;
+    levels: { level: number; booster: string; coords: [number, number][] }[];
+  }[] = [
+    {
+      type: 'construction', label: 'Construction', bonus: 'Construction Speed', color: '#42a5f5',
+      levels: [
+        { level: 1, booster: '+5%', coords: [[1068,138],[537,138],[138,138],[138,666],[138,1038],[666,1068],[1068,567],[1068,1068]] },
+        { level: 3, booster: '+8%', coords: [[486,327],[768,867],[867,567],[327,666]] },
+      ],
+    },
+    {
+      type: 'defense', label: 'Defense', bonus: 'Troop Defense', color: '#26c6da',
+      levels: [
+        { level: 2, booster: '+5%', coords: [[666,138],[438,267],[138,537],[237,768],[537,1038],[738,957],[1068,666],[957,438]] },
+        { level: 4, booster: '+8%', coords: [[816,717],[387,717],[588,327]] },
+      ],
+    },
+    {
+      type: 'tech', label: 'Tech', bonus: 'Research Speed', color: '#ffa726',
+      levels: [
+        { level: 1, booster: '+5%', coords: [[957,237],[666,267],[237,237],[267,537],[237,957],[537,936],[936,537],[957,957]] },
+        { level: 3, booster: '+8%', coords: [[867,327],[327,327],[327,867],[867,867]] },
+      ],
+    },
+    {
+      type: 'weapon', label: 'Weapons', bonus: 'Troop Attack', color: '#ef5350',
+      levels: [
+        { level: 2, booster: '+5%', coords: [[867,138],[366,138],[138,438],[138,867],[438,1068],[1068,327],[1068,867],[867,1068]] },
+        { level: 4, booster: '+8%', coords: [[816,486],[387,486],[588,867]] },
+      ],
+    },
+    {
+      type: 'gathering', label: 'Gathering', bonus: 'Gathering Speed', color: '#ab47bc',
+      levels: [
+        { level: 1, booster: '+5%', coords: [[957,138],[537,87],[138,237],[87,666],[267,1068],[636,1137],[1137,567],[1068,936]] },
+      ],
+    },
+    {
+      type: 'production', label: 'Production', bonus: 'RSS Gathering Speed', color: '#66bb6a',
+      levels: [
+        { level: 1, booster: '+5%', coords: [[1068,237],[768,138],[237,138],[138,327],[138,957],[327,1038],[1068,747],[957,1068]] },
+      ],
+    },
+    {
+      type: 'training', label: 'Training', bonus: 'Training Speed', color: '#ffee58',
+      levels: [
+        { level: 2, booster: '+5%', coords: [[237,486],[138,747],[486,957],[768,1038],[957,747],[1068,486],[486,138],[768,237]] },
+      ],
+    },
+    {
+      type: 'expedition', label: 'Expedition', bonus: 'March Speed', color: '#f48fb1',
+      levels: [
+        { level: 3, booster: '+15%', coords: [[768,327],[327,567],[486,867],[867,666]] },
+      ],
+    },
+  ];
+
+  const CASTLE = { x: 597, y: 597 };
+  const TURRETS: [number, number, string][] = [
+    [593, 593, 'North Turret'], [603, 593, 'East Turret'],
+    [603, 603, 'South Turret'], [593, 603, 'West Turret'],
+  ];
+  const STRONGHOLDS: [number, number][] = [[394, 597], [597, 794], [794, 597], [597, 394]];
+  const FORTRESSES: [number, number][] = [
+    [366, 957], [588, 957], [846, 957], [957, 828], [957, 606], [957, 348],
+    [846, 237], [588, 237], [366, 237], [237, 348], [237, 588], [237, 828],
+  ];
+  // Territory bands (inclusive bboxes) — background context only.
+  const ZONES: [number, number, number, number][] = [
+    [300, 300, 900, 900], // outer (fortresses band)
+    [450, 450, 750, 750], // inner ring (strongholds band)
+    [552, 552, 647, 647], // castle core
+  ];
+
+  const STRUCTURES: Structure[] = [];
+  STRUCTURES.push({ id: 'castle', kind: 'castle', label: 'Sunfire Castle', short: 'SC', x: CASTLE.x, y: CASTLE.y });
+  TURRETS.forEach(([x, y, label], i) => {
+    // Turrets hug the castle centre (±5 tiles) — exaggerate the display offset
+    // so they stay clickable; tooltips keep the real coordinates.
+    STRUCTURES.push({
+      id: `turret_${i + 1}`, kind: 'turret', label, short: `T${i + 1}`,
+      x: CASTLE.x + (x - CASTLE.x) * 9, y: CASTLE.y + (y - CASTLE.y) * 9,
+    });
+  });
+  STRONGHOLDS.forEach(([x, y], i) => {
+    STRUCTURES.push({
+      id: `stronghold_${i + 1}`, kind: 'stronghold',
+      label: `Citadel ${i + 1} (Stronghold ${i + 1})`, short: `C${i + 1}`, x, y,
+    });
+  });
+  FORTRESSES.forEach(([x, y], i) => {
+    STRUCTURES.push({ id: `fortress_${i + 1}`, kind: 'fortress', label: `Fortress ${i + 1}`, short: `F${i + 1}`, x, y });
+  });
+  for (const t of TOWER_TYPES) {
+    for (const lv of t.levels) {
+      lv.coords.forEach(([x, y], i) => {
+        STRUCTURES.push({
+          id: `${t.type}_l${lv.level}_${i + 1}`, kind: 'tower',
+          label: `${t.label} L${lv.level}`, short: '', x, y,
+          buff: { type: t.type, label: t.label, bonus: t.bonus, color: t.color, level: lv.level, booster: lv.booster },
+        });
+      });
+    }
+  }
+  const BY_ID = new Map(STRUCTURES.map((s) => [s.id, s]));
+
+  // --- editor ----------------------------------------------------------------
+
+  type Alliance = { id: string; name: string; color: string };
+
+  const root = document.getElementById('nap-planner');
+  if (root) init(root);
+
+  function init(root: HTMLElement) {
+    const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
+    const map = $('nap-map');
+    const legend = $('nap-legend');
+    const allianceList = $('nap-alliances');
+    const objects = $('nap-objects');
+    const tip = $('nap-tip');
+    const jsonOut = $('nap-json-out');
+    const eraserBtn = $('nap-eraser');
+    const towersCheck = $('nap-towers') as unknown as HTMLInputElement;
+
+    let alliances: Alliance[] = [];
+    let assignments: Record<string, string> = {};
+    let selectedId: string | null = null;
+    let eraser = false;
+    let showTowers = true;
+
+    const LS_KEY = 'autopilot-nap-planner';
+    const PALETTE = ['#f59e0b', '#3b82f6', '#10b981', '#ef4444', '#a855f7', '#14b8a6', '#f97316', '#84cc16'];
+    const esc = (s: string) =>
+      s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
+    function payload(): Record<string, unknown> {
+      return {
+        type: 'nap_plan',
+        version: 1,
+        season: ($('nap-season') as HTMLInputElement).value.trim(),
+        alliances,
+        assignments,
+      };
+    }
+
+    function save() {
+      try {
+        localStorage.setItem(
+          LS_KEY,
+          JSON.stringify({
+            alliances, assignments, selectedId, eraser, showTowers,
+            season: ($('nap-season') as HTMLInputElement).value,
+          }),
+        );
+      } catch {
+        /* storage full / private mode — autosave is best-effort */
+      }
+    }
+
+    function restore() {
+      try {
+        const raw = localStorage.getItem(LS_KEY);
+        if (!raw) return;
+        const s = JSON.parse(raw);
+        applyPlan(s);
+        if (typeof s.selectedId === 'string' && (s.alliances ?? []).some((a: Alliance) => a.id === s.selectedId))
+          selectedId = s.selectedId;
+        if (s.eraser === true) eraser = true;
+        if (s.showTowers === false) showTowers = false;
+        towersCheck.checked = showTowers;
+      } catch {
+        /* corrupt autosave — start clean */
+      }
+    }
+
+    // Shared by restore() and JSON import: coerce fields, drop assignments that
+    // point at unknown structures or unknown alliances.
+    function applyPlan(data: { alliances?: unknown; assignments?: unknown; season?: unknown }) {
+      alliances = (Array.isArray(data.alliances) ? data.alliances : []).map((a, i) => ({
+        id: String((a as Alliance).id ?? `a${i + 1}`),
+        name: String((a as Alliance).name ?? `Alliance ${i + 1}`),
+        color: /^#[0-9a-fA-F]{3,8}$/.test(String((a as Alliance).color)) ? String((a as Alliance).color) : PALETTE[i % PALETTE.length],
+      }));
+      assignments = {};
+      for (const [k, v] of Object.entries((data.assignments as Record<string, string>) ?? {})) {
+        if (BY_ID.has(k) && alliances.some((a) => a.id === String(v))) assignments[k] = String(v);
+      }
+      ($('nap-season') as HTMLInputElement).value = String(data.season ?? '');
+    }
+
+    const allianceById = (id: string | undefined) => alliances.find((a) => a.id === id);
+
+    function refreshJson() {
+      jsonOut.textContent = JSON.stringify(payload(), null, 2);
+      save();
+    }
+
+    // --- map (SVG rebuilt from state; one delegated click listener) ----------
+
+    function marker(s: Structure): string {
+      const a = allianceById(assignments[s.id]);
+      const fill = a ? a.color : '';
+      const tag = a ? ` — ${a.name}` : '';
+      if (s.kind === 'tower') {
+        const b = s.buff!;
+        const title = `<title>${esc(`${b.label} L${b.level} ${b.booster} ${b.bonus} (${s.x},${s.y})${tag}`)}</title>`;
+        // Assigned tower: alliance-coloured disc with a buff-coloured ring.
+        return `<circle data-id="${s.id}" class="nap-m nap-tower" cx="${s.x}" cy="${s.y}" r="11"
+          fill="${a ? fill : b.color}" stroke="${a ? b.color : 'rgba(0,0,0,.55)'}" stroke-width="${a ? 5 : 2}">${title}</circle>`;
+      }
+      const r = s.kind === 'stronghold' ? 36 : s.kind === 'fortress' ? 31 : s.kind === 'castle' ? 26 : 14;
+      const cls = a ? 'nap-m nap-fort assigned' : 'nap-m nap-fort';
+      const title = `<title>${esc(`${s.label} (${Math.round(s.x)},${Math.round(s.y)})${tag}`)}</title>`;
+      const style = a ? ` style="fill:${fill}"` : '';
+      const text =
+        s.kind === 'turret'
+          ? ''
+          : `<text class="nap-m-label" x="${s.x}" y="${s.y}" font-size="${s.kind === 'castle' ? 22 : 27}">${esc(s.short)}</text>`;
+      const name = a
+        ? `<text class="nap-m-tag" x="${s.x}" y="${s.y + r + 26}" font-size="24">${esc(a.name)}</text>`
+        : '';
+      return `<g data-id="${s.id}" class="${cls}">` +
+        `<circle cx="${s.x}" cy="${s.y}" r="${r}"${style} />${title}${text}${name}</g>`;
+    }
+
+    function renderMap() {
+      const zones = ZONES.map(
+        ([x0, y0, x1, y1], i) =>
+          `<rect class="nap-zone z${i}" x="${x0}" y="${y0}" width="${x1 - x0}" height="${y1 - y0}" rx="14" />`,
+      ).join('');
+      const towers = showTowers
+        ? STRUCTURES.filter((s) => s.kind === 'tower').map(marker).join('')
+        : '';
+      const forts = STRUCTURES.filter((s) => s.kind !== 'tower').map(marker).join('');
+      map.innerHTML =
+        `<svg viewBox="60 60 1080 1080" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Sunfire Castle territory map">` +
+        zones + towers + forts + `</svg>`;
+    }
+
+    map.addEventListener('click', (e) => {
+      const el = (e.target as Element).closest('[data-id]');
+      if (!el) return;
+      clickStructure((el as HTMLElement).dataset.id!);
+    });
+
+    function clickStructure(id: string) {
+      if (!BY_ID.has(id)) return;
+      if (eraser) {
+        delete assignments[id];
+        render();
+        return;
+      }
+      if (!selectedId) {
+        tip.classList.add('warn');
+        setTimeout(() => tip.classList.remove('warn'), 600);
+        return;
+      }
+      if (assignments[id] === selectedId) delete assignments[id];
+      else assignments[id] = selectedId;
+      render();
+    }
+
+    // --- legend + panel ------------------------------------------------------
+
+    function renderLegend() {
+      legend.innerHTML = '';
+      if (!showTowers) return;
+      for (const t of TOWER_TYPES) {
+        const n = t.levels.reduce((m, lv) => m + lv.coords.length, 0);
+        const span = document.createElement('span');
+        span.className = 'nap-legend-item';
+        const dot = document.createElement('i');
+        dot.style.background = t.color;
+        span.append(dot, `${t.label} ×${n}`);
+        legend.appendChild(span);
+      }
+    }
+
+    function summary(a: Alliance): string {
+      const ids = Object.keys(assignments).filter((k) => assignments[k] === a.id);
+      const n = (kind: Structure['kind']) => ids.filter((id) => BY_ID.get(id)!.kind === kind).length;
+      const parts: string[] = [];
+      if (n('castle')) parts.push('castle');
+      if (n('stronghold')) parts.push(`${n('stronghold')} citadel${n('stronghold') > 1 ? 's' : ''}`);
+      if (n('fortress')) parts.push(`${n('fortress')} fort${n('fortress') > 1 ? 's' : ''}`);
+      if (n('turret')) parts.push(`${n('turret')} turret${n('turret') > 1 ? 's' : ''}`);
+      if (n('tower')) parts.push(`${n('tower')} tower${n('tower') > 1 ? 's' : ''}`);
+      return parts.length ? parts.join(' · ') : 'nothing yet';
+    }
+
+    function allianceRow(a: Alliance): HTMLLIElement {
+      const li = document.createElement('li');
+      li.className = selectedId === a.id && !eraser ? 'sel' : '';
+
+      const swatch = document.createElement('input');
+      swatch.type = 'color';
+      swatch.value = a.color;
+      swatch.title = 'Alliance color';
+      swatch.addEventListener('input', () => {
+        a.color = swatch.value;
+        render();
+      });
+
+      const name = document.createElement('input');
+      name.type = 'text';
+      name.value = a.name;
+      name.placeholder = 'tag';
+      name.spellcheck = false;
+      name.addEventListener('focus', () => selectAlliance(a.id));
+      name.addEventListener('input', () => {
+        a.name = name.value;
+        renderMap();
+        renderObjects();
+        refreshJson();
+        sum.textContent = summary(a);
+      });
+
+      const sum = document.createElement('span');
+      sum.className = 'nap-sum';
+      sum.textContent = summary(a);
+
+      const del = document.createElement('button');
+      del.type = 'button';
+      del.className = 'nap-row-del';
+      del.textContent = '✕';
+      del.title = 'Remove alliance (unassigns its objects)';
+      del.addEventListener('click', (e) => {
+        e.stopPropagation();
+        alliances = alliances.filter((x) => x.id !== a.id);
+        for (const k of Object.keys(assignments)) if (assignments[k] === a.id) delete assignments[k];
+        if (selectedId === a.id) selectedId = null;
+        render();
+      });
+
+      li.addEventListener('click', (e) => {
+        if (e.target === swatch || e.target === name || e.target === del) return;
+        selectAlliance(a.id);
+      });
+      li.append(swatch, name, sum, del);
+      return li;
+    }
+
+    function selectAlliance(id: string) {
+      selectedId = id;
+      eraser = false;
+      paintSelection();
+      save();
+    }
+
+    // Selection changes only toggle classes — no rebuild, keeps inputs focused.
+    function paintSelection() {
+      eraserBtn.classList.toggle('active', eraser);
+      const rows = allianceList.querySelectorAll('li');
+      alliances.forEach((a, i) => rows[i]?.classList.toggle('sel', selectedId === a.id && !eraser));
+      tip.textContent = eraser
+        ? 'Eraser on — click an object to unassign it.'
+        : selectedId
+          ? `Painting as “${allianceById(selectedId)?.name}” — click objects to assign, click again to unassign.`
+          : 'Add an alliance, select it, then click objects on the map.';
+    }
+
+    function renderAlliances() {
+      allianceList.innerHTML = '';
+      alliances.forEach((a) => allianceList.appendChild(allianceRow(a)));
+    }
+
+    function objectChip(s: Structure): HTMLButtonElement {
+      const a = allianceById(assignments[s.id]);
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'nap-chip' + (a ? ' assigned' : '');
+      b.title = s.label;
+      if (a) b.style.setProperty('--chip', a.color);
+      const short = document.createElement('b');
+      short.textContent = s.short || s.label;
+      b.appendChild(short);
+      const owner = document.createElement('span');
+      owner.textContent = a ? a.name : '—';
+      b.appendChild(owner);
+      b.addEventListener('click', () => clickStructure(s.id));
+      return b;
+    }
+
+    function renderObjects() {
+      objects.innerHTML = '';
+      const groups: [string, Structure[]][] = [
+        ['Citadels', STRUCTURES.filter((s) => s.kind === 'stronghold')],
+        ['Fortresses', STRUCTURES.filter((s) => s.kind === 'fortress')],
+        ['Castle & turrets', STRUCTURES.filter((s) => s.kind === 'castle' || s.kind === 'turret')],
+      ];
+      for (const [label, items] of groups) {
+        const h = document.createElement('div');
+        h.className = 'nap-group';
+        h.textContent = label;
+        objects.appendChild(h);
+        const row = document.createElement('div');
+        row.className = 'nap-chips';
+        items.forEach((s) => row.appendChild(objectChip(s)));
+        objects.appendChild(row);
+      }
+    }
+
+    function render() {
+      renderMap();
+      renderLegend();
+      renderAlliances();
+      renderObjects();
+      paintSelection();
+      refreshJson();
+    }
+
+    // --- toolbar -------------------------------------------------------------
+
+    $('nap-add').addEventListener('click', () => {
+      const n = alliances.reduce((m, a) => Math.max(m, Number(a.id.replace(/\D/g, '')) || 0), 0) + 1;
+      const a: Alliance = { id: `a${n}`, name: `ALL${n}`, color: PALETTE[(n - 1) % PALETTE.length] };
+      alliances.push(a);
+      selectedId = a.id;
+      eraser = false;
+      render();
+      const inputs = allianceList.querySelectorAll<HTMLInputElement>('input[type=text]');
+      inputs[inputs.length - 1]?.select();
+    });
+
+    eraserBtn.addEventListener('click', () => {
+      eraser = !eraser;
+      paintSelection();
+      save();
+    });
+
+    towersCheck.addEventListener('change', () => {
+      showTowers = towersCheck.checked;
+      render();
+    });
+
+    $('nap-season').addEventListener('input', refreshJson);
+
+    $('nap-import').addEventListener('change', async (e) => {
+      const f = (e.target as HTMLInputElement).files?.[0];
+      if (!f) return;
+      try {
+        const data = JSON.parse(await f.text());
+        if (data.type !== 'nap_plan' || !Array.isArray(data.alliances)) throw new Error('bad shape');
+        applyPlan(data);
+        selectedId = null;
+        eraser = false;
+        render();
+      } catch {
+        alert('Could not parse that file as a NAP plan JSON.');
+      }
+      (e.target as HTMLInputElement).value = '';
+    });
+
+    $('nap-export').addEventListener('click', () => {
+      const data = payload();
+      const nameBase = String((data as { season?: string }).season || 'nap-plan')
+        .toLowerCase()
+        .replace(/[^a-z0-9а-яё-]+/gi, '-')
+        .replace(/^-+|-+$/g, '') || 'nap-plan';
+      const blob = new Blob([JSON.stringify(data, null, 2) + '\n'], { type: 'application/json' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `${nameBase}.json`;
+      a.click();
+      URL.revokeObjectURL(a.href);
+    });
+
+    $('nap-copy').addEventListener('click', async () => {
+      await navigator.clipboard.writeText(JSON.stringify(payload(), null, 2));
+      const btn = $('nap-copy');
+      const old = btn.textContent;
+      btn.textContent = 'Copied!';
+      setTimeout(() => (btn.textContent = old), 1200);
+    });
+
+    $('nap-reset').addEventListener('click', () => {
+      if (!confirm('Clear the whole plan (alliances + assignments)?')) return;
+      alliances = [];
+      assignments = {};
+      selectedId = null;
+      eraser = false;
+      ($('nap-season') as HTMLInputElement).value = '';
+      render();
+    });
+
+    restore();
+    render();
+  }
+</script>
+
+{/* is:global — markers, rows, and chips are created with document.createElement
+   / innerHTML, so they never receive Astro's scoped-style attribute; all
+   selectors are namespaced with the nap- prefix instead. */}
+<style is:global>
+  #nap-planner {
+    margin: 1.5rem 0;
+    font-size: 0.9rem;
+  }
+  .nap-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+  }
+  .nap-season {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    color: var(--sl-color-gray-3);
+  }
+  .nap-season input {
+    border: 1px solid var(--sl-color-hairline-shade);
+    border-radius: 0.4rem;
+    background: var(--sl-color-bg);
+    color: var(--sl-color-white);
+    padding: 0.3rem 0.5rem;
+    width: 9rem;
+  }
+  .nap-check {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    color: var(--sl-color-gray-3);
+    cursor: pointer;
+    user-select: none;
+  }
+  .nap-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+  .nap-btn {
+    display: inline-block;
+    border: 1px solid var(--sl-color-hairline-shade);
+    border-radius: 0.5rem;
+    background: var(--sl-color-bg-nav);
+    color: var(--sl-color-white);
+    padding: 0.4rem 0.75rem;
+    cursor: pointer;
+    font-size: 0.85rem;
+  }
+  .nap-btn.primary {
+    background: var(--sl-color-text-accent);
+    color: var(--sl-color-black);
+    font-weight: 600;
+  }
+  .nap-btn.danger {
+    color: #f87171;
+  }
+  .nap-btn.small {
+    padding: 0.15rem 0.5rem;
+    font-size: 0.78rem;
+  }
+  .nap-body {
+    display: grid;
+    grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+    gap: 1rem;
+    align-items: start;
+  }
+  @media (max-width: 900px) {
+    .nap-body {
+      grid-template-columns: 1fr;
+    }
+  }
+  .nap-tip {
+    margin-bottom: 0.5rem;
+    font-size: 0.78rem;
+    color: var(--sl-color-gray-3);
+    min-height: 1.2em;
+    transition: color 0.15s;
+  }
+  .nap-tip.warn {
+    color: #f87171;
+  }
+  .nap-map {
+    border: 1px solid var(--sl-color-hairline-shade);
+    border-radius: 0.75rem;
+    background: var(--sl-color-bg-nav);
+    overflow: hidden;
+  }
+  .nap-map svg {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+  .nap-zone {
+    fill: color-mix(in srgb, var(--sl-color-text-accent) 5%, transparent);
+    stroke: var(--sl-color-hairline-shade);
+    stroke-width: 2;
+    stroke-dasharray: 10 8;
+  }
+  .nap-m {
+    cursor: pointer;
+  }
+  .nap-fort circle {
+    fill: var(--sl-color-bg);
+    stroke: var(--sl-color-gray-4);
+    stroke-width: 3;
+    transition: stroke-width 0.1s;
+  }
+  .nap-fort:hover circle {
+    stroke: var(--sl-color-text-accent);
+    stroke-width: 6;
+  }
+  .nap-fort.assigned circle {
+    stroke: rgba(0, 0, 0, 0.45);
+  }
+  .nap-m-label {
+    fill: var(--sl-color-white);
+    paint-order: stroke;
+    stroke: rgba(0, 0, 0, 0.55);
+    stroke-width: 4;
+    font-weight: 700;
+    text-anchor: middle;
+    dominant-baseline: central;
+    pointer-events: none;
+  }
+  .nap-m-tag {
+    fill: var(--sl-color-gray-2);
+    paint-order: stroke;
+    stroke: var(--sl-color-bg-nav);
+    stroke-width: 5;
+    font-weight: 600;
+    text-anchor: middle;
+    pointer-events: none;
+  }
+  .nap-tower:hover {
+    stroke-width: 6;
+  }
+  .nap-legend {
+    margin-top: 0.5rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem 0.8rem;
+    font-size: 0.75rem;
+    color: var(--sl-color-gray-3);
+  }
+  .nap-legend-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+  }
+  .nap-legend-item i {
+    width: 0.65rem;
+    height: 0.65rem;
+    border-radius: 999px;
+    display: inline-block;
+  }
+  .nap-side {
+    border: 1px solid var(--sl-color-hairline-shade);
+    border-radius: 0.75rem;
+    background: var(--sl-color-bg-nav);
+    padding-bottom: 0.5rem;
+  }
+  .nap-side-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.6rem 0.75rem;
+    border-bottom: 1px solid var(--sl-color-hairline-shade);
+    font-weight: 600;
+  }
+  .nap-alliances {
+    list-style: none;
+    margin: 0;
+    padding: 0.25rem;
+  }
+  .nap-alliances li {
+    display: grid;
+    grid-template-columns: 1.7rem minmax(0, 6.5rem) minmax(0, 1fr) 1.4rem;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.3rem 0.4rem;
+    border-radius: 0.45rem;
+    border: 1px solid transparent;
+    cursor: pointer;
+  }
+  .nap-alliances li.sel {
+    border-color: var(--sl-color-text-accent);
+    background: color-mix(in srgb, var(--sl-color-text-accent) 12%, transparent);
+  }
+  .nap-alliances input[type='color'] {
+    width: 1.6rem;
+    height: 1.6rem;
+    padding: 0;
+    border: 1px solid var(--sl-color-hairline-shade);
+    border-radius: 0.35rem;
+    background: transparent;
+    cursor: pointer;
+  }
+  .nap-alliances input[type='text'] {
+    border: 1px solid var(--sl-color-hairline-shade);
+    border-radius: 0.35rem;
+    background: var(--sl-color-bg);
+    color: var(--sl-color-white);
+    padding: 0.2rem 0.4rem;
+    min-width: 0;
+    font-weight: 600;
+  }
+  .nap-sum {
+    font-size: 0.72rem;
+    color: var(--sl-color-gray-4);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .nap-row-del {
+    border: 0;
+    background: transparent;
+    color: var(--sl-color-gray-3);
+    font-size: 0.85rem;
+    cursor: pointer;
+    line-height: 1;
+  }
+  .nap-row-del:hover {
+    color: #f87171;
+  }
+  .nap-eraser {
+    display: block;
+    margin: 0.25rem 0.5rem 0.6rem;
+    width: calc(100% - 1rem);
+    border: 1px dashed var(--sl-color-hairline-shade);
+    border-radius: 0.45rem;
+    background: transparent;
+    color: var(--sl-color-gray-3);
+    padding: 0.35rem 0.5rem;
+    font-size: 0.78rem;
+    cursor: pointer;
+  }
+  .nap-eraser.active {
+    border-color: #f87171;
+    color: #f87171;
+    border-style: solid;
+  }
+  .nap-group {
+    padding: 0.5rem 0.75rem 0.2rem;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--sl-color-gray-4);
+  }
+  .nap-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.3rem;
+    padding: 0 0.6rem;
+  }
+  .nap-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    border: 1px solid var(--sl-color-hairline-shade);
+    border-radius: 0.45rem;
+    background: var(--sl-color-bg);
+    color: var(--sl-color-gray-3);
+    padding: 0.2rem 0.45rem;
+    font-size: 0.75rem;
+    cursor: pointer;
+  }
+  .nap-chip b {
+    color: var(--sl-color-white);
+  }
+  .nap-chip.assigned {
+    border-color: var(--chip);
+    box-shadow: inset 3px 0 0 var(--chip);
+  }
+  .nap-json {
+    margin-top: 0.75rem;
+  }
+  .nap-json pre {
+    max-height: 20rem;
+    overflow: auto;
+    border: 1px solid var(--sl-color-hairline-shade);
+    border-radius: 0.5rem;
+    padding: 0.75rem;
+    background: var(--sl-color-bg-nav);
+    font-size: 0.75rem;
+  }
+</style>
