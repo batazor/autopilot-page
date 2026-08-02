@@ -29,6 +29,8 @@
       </label>
       <button type="button" id="nap-export" class="nap-btn primary">Download JSON</button>
       <button type="button" id="nap-copy" class="nap-btn">Copy JSON</button>
+      <button type="button" id="nap-share" class="nap-btn">Copy link</button>
+      <button type="button" id="nap-png" class="nap-btn">PNG</button>
       <button type="button" id="nap-reset" class="nap-btn danger">Reset</button>
     </div>
   </div>
@@ -45,7 +47,12 @@
         <button type="button" id="nap-add" class="nap-btn small">+ Add</button>
       </div>
       <ul class="nap-alliances" id="nap-alliances"></ul>
-      <button type="button" id="nap-eraser" class="nap-eraser">Eraser — click an object to unassign</button>
+      <button type="button" id="nap-eraser" class="nap-eraser">Eraser — click an object to clear it</button>
+      <div class="nap-marks" role="group" aria-label="Risk marks">
+        <button type="button" class="nap-mark-btn" data-mark="snipe">🎯 Snipe</button>
+        <button type="button" class="nap-mark-btn" data-mark="watch">👁️ Watch</button>
+        <button type="button" class="nap-mark-btn" data-mark="revenge">⚠️ Risk</button>
+      </div>
       <div class="nap-side-head">Objects</div>
       <div class="nap-objects" id="nap-objects"></div>
     </div>
@@ -208,12 +215,25 @@
 
     let alliances: Alliance[] = [];
     let assignments: Record<string, string> = {};
+    let marks: Record<string, { risk?: string; note?: string }> = {};
     let selectedId: string | null = null;
     let eraser = false;
+    let markBrush: string | null = null;
     let showTowers = true;
+    let lastClicked: string | null = null;
 
     const LS_KEY = 'autopilot-nap-planner';
     const PALETTE = ['#f59e0b', '#3b82f6', '#10b981', '#ef4444', '#a855f7', '#14b8a6', '#f97316', '#84cc16'];
+    const MARKS: Record<string, { emoji: string; label: string }> = {
+      snipe: { emoji: '🎯', label: 'Snipe target' },
+      watch: { emoji: '👁️', label: 'Watch' },
+      revenge: { emoji: '⚠️', label: 'Revenge risk' },
+    };
+    const flash = (btn: HTMLElement, text = 'Copied!') => {
+      const old = btn.textContent;
+      btn.textContent = text;
+      setTimeout(() => (btn.textContent = old), 1200);
+    };
     const esc = (s: string) =>
       s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
@@ -224,6 +244,7 @@
         season: ($('nap-season') as HTMLInputElement).value.trim(),
         alliances,
         assignments,
+        marks,
       };
     }
 
@@ -232,7 +253,7 @@
         localStorage.setItem(
           LS_KEY,
           JSON.stringify({
-            alliances, assignments, selectedId, eraser, showTowers,
+            alliances, assignments, marks, selectedId, eraser, showTowers,
             season: ($('nap-season') as HTMLInputElement).value,
           }),
         );
@@ -269,6 +290,17 @@
       for (const [k, v] of Object.entries((data.assignments as Record<string, string>) ?? {})) {
         if (BY_ID.has(k) && alliances.some((a) => a.id === String(v))) assignments[k] = String(v);
       }
+      marks = {};
+      const rawMarks = ((data as { marks?: unknown }).marks ?? {}) as Record<
+        string,
+        { risk?: string; note?: string }
+      >;
+      for (const [k, v] of Object.entries(rawMarks)) {
+        if (!BY_ID.has(k)) continue;
+        const risk = MARKS[String(v?.risk)] ? String(v.risk) : undefined;
+        const note = String(v?.note ?? '').trim();
+        if (risk || note) marks[k] = { ...(risk ? { risk } : {}), ...(note ? { note } : {}) };
+      }
       ($('nap-season') as HTMLInputElement).value = String(data.season ?? '');
     }
 
@@ -285,16 +317,25 @@
       const a = allianceById(assignments[s.id]);
       const fill = a ? a.color : '';
       const tag = a ? ` — ${a.name}` : '';
+      const m = marks[s.id];
+      const markTxt = m?.risk ? ` · ${MARKS[m.risk].label}` : '';
+      const noteTxt = m?.note ? ` · ${m.note}` : '';
       if (s.kind === 'tower') {
         const b = s.buff!;
-        const title = `<title>${esc(`${b.label} L${b.level} ${b.booster} ${b.bonus} (${s.x},${s.y})${tag}`)}</title>`;
+        const title = `<title>${esc(`${b.label} L${b.level} ${b.booster} ${b.bonus} (${s.x},${s.y})${tag}${markTxt}${noteTxt}`)}</title>`;
+        const badge = m?.risk
+          ? `<text class="nap-m-mark" x="${s.x + 12}" y="${s.y - 12}" font-size="26">${MARKS[m.risk].emoji}</text>`
+          : '';
         // Assigned tower: alliance-coloured disc with a buff-coloured ring.
-        return `<circle data-id="${s.id}" class="nap-m nap-tower" cx="${s.x}" cy="${s.y}" r="11"
-          fill="${a ? fill : b.color}" stroke="${a ? b.color : 'rgba(0,0,0,.55)'}" stroke-width="${a ? 5 : 2}">${title}</circle>`;
+        return `<g data-id="${s.id}" class="nap-m nap-tower"><circle cx="${s.x}" cy="${s.y}" r="11"
+          fill="${a ? fill : b.color}" stroke="${a ? b.color : 'rgba(0,0,0,.55)'}" stroke-width="${a ? 5 : 2}" />${title}${badge}</g>`;
       }
       const r = s.kind === 'stronghold' ? 36 : s.kind === 'fortress' ? 31 : s.kind === 'castle' ? 26 : 14;
       const cls = a ? 'nap-m nap-fort assigned' : 'nap-m nap-fort';
-      const title = `<title>${esc(`${s.label} (${Math.round(s.x)},${Math.round(s.y)})${tag}`)}</title>`;
+      const title = `<title>${esc(`${s.label} (${Math.round(s.x)},${Math.round(s.y)})${tag}${markTxt}${noteTxt}`)}</title>`;
+      const badge = m?.risk
+        ? `<text class="nap-m-mark" x="${s.x + r * 0.85}" y="${s.y - r * 0.85}" font-size="34">${MARKS[m.risk].emoji}</text>`
+        : '';
       const style = a ? ` style="fill:${fill}"` : '';
       const text =
         s.kind === 'turret'
@@ -304,7 +345,7 @@
         ? `<text class="nap-m-tag" x="${s.x}" y="${s.y + r + 26}" font-size="24">${esc(a.name)}</text>`
         : '';
       return `<g data-id="${s.id}" class="${cls}">` +
-        `<circle cx="${s.x}" cy="${s.y}" r="${r}"${style} />${title}${text}${name}</g>`;
+        `<circle cx="${s.x}" cy="${s.y}" r="${r}"${style} />${title}${text}${name}${badge}</g>`;
     }
 
     function renderMap() {
@@ -319,6 +360,11 @@
       map.innerHTML =
         `<svg viewBox="60 60 1080 1080" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Sunfire Castle territory map">` +
         zones + towers + forts + `</svg>`;
+      // One-off feedback pop on the object that was just clicked.
+      if (lastClicked) {
+        map.querySelector(`[data-id="${lastClicked}"]`)?.classList.add('pop');
+        lastClicked = null;
+      }
     }
 
     map.addEventListener('click', (e) => {
@@ -329,8 +375,19 @@
 
     function clickStructure(id: string) {
       if (!BY_ID.has(id)) return;
+      lastClicked = id;
+      if (markBrush) {
+        const m = marks[id] ?? {};
+        if (m.risk === markBrush) delete m.risk;
+        else m.risk = markBrush;
+        if (m.risk || m.note) marks[id] = m;
+        else delete marks[id];
+        render();
+        return;
+      }
       if (eraser) {
         delete assignments[id];
+        delete marks[id];
         render();
         return;
       }
@@ -342,6 +399,40 @@
       if (assignments[id] === selectedId) delete assignments[id];
       else assignments[id] = selectedId;
       render();
+    }
+
+    // Double-click attaches a free-text note (shown in the tooltip / chip title).
+    function editNote(id: string) {
+      const s = BY_ID.get(id);
+      if (!s) return;
+      const next = prompt(`Note for ${s.label}:`, marks[id]?.note ?? '');
+      if (next === null) return;
+      const m = marks[id] ?? {};
+      if (next.trim()) m.note = next.trim();
+      else delete m.note;
+      if (m.risk || m.note) marks[id] = m;
+      else delete marks[id];
+      render();
+    }
+
+    // Hover sync map ↔ object chips (both are rebuilt DOM — delegate + repaint).
+    function paintHover(id: string | null) {
+      for (const el of [...map.querySelectorAll('.hl'), ...objects.querySelectorAll('.hl')])
+        el.classList.remove('hl');
+      if (!id) return;
+      map.querySelector(`[data-id="${id}"]`)?.classList.add('hl');
+      objects.querySelector(`[data-id="${id}"]`)?.classList.add('hl');
+    }
+    for (const host of [map, objects]) {
+      host.addEventListener('pointerover', (e) => {
+        const el = (e.target as Element).closest('[data-id]');
+        paintHover(el ? ((el as HTMLElement).dataset.id ?? null) : null);
+      });
+      host.addEventListener('pointerleave', () => paintHover(null));
+      host.addEventListener('dblclick', (e) => {
+        const el = (e.target as Element).closest('[data-id]');
+        if (el) editNote((el as HTMLElement).dataset.id!);
+      });
     }
 
     // --- legend + panel ------------------------------------------------------
@@ -427,6 +518,7 @@
     function selectAlliance(id: string) {
       selectedId = id;
       eraser = false;
+      markBrush = null;
       paintSelection();
       save();
     }
@@ -434,13 +526,20 @@
     // Selection changes only toggle classes — no rebuild, keeps inputs focused.
     function paintSelection() {
       eraserBtn.classList.toggle('active', eraser);
+      root.querySelectorAll<HTMLButtonElement>('.nap-mark-btn').forEach((b) => {
+        b.classList.toggle('active', markBrush === b.dataset.mark);
+      });
       const rows = allianceList.querySelectorAll('li');
-      alliances.forEach((a, i) => rows[i]?.classList.toggle('sel', selectedId === a.id && !eraser));
+      alliances.forEach((a, i) => {
+        rows[i]?.classList.toggle('sel', selectedId === a.id && !eraser && !markBrush);
+      });
       tip.textContent = eraser
-        ? 'Eraser on — click an object to unassign it.'
-        : selectedId
-          ? `Painting as “${allianceById(selectedId)?.name}” — click objects to assign, click again to unassign.`
-          : 'Add an alliance, select it, then click objects on the map.';
+        ? 'Eraser on — click an object to clear its alliance and marks.'
+        : markBrush
+          ? `Marking “${MARKS[markBrush].emoji} ${MARKS[markBrush].label}” — click to toggle, double-click for a note.`
+          : selectedId
+            ? `Painting as “${allianceById(selectedId)?.name}” — click objects to assign, click again to unassign.`
+            : 'Add an alliance, select it, then click objects on the map.';
     }
 
     function renderAlliances() {
@@ -453,8 +552,15 @@
       const b = document.createElement('button');
       b.type = 'button';
       b.className = 'nap-chip' + (a ? ' assigned' : '');
-      b.title = s.label;
+      b.dataset.id = s.id;
+      const m = marks[s.id];
+      b.title = s.label + (m?.note ? ` — ${m.note}` : '');
       if (a) b.style.setProperty('--chip', a.color);
+      if (m?.risk) {
+        const em = document.createElement('span');
+        em.textContent = MARKS[m.risk].emoji;
+        b.appendChild(em);
+      }
       const short = document.createElement('b');
       short.textContent = s.short || s.label;
       b.appendChild(short);
@@ -508,8 +614,18 @@
 
     eraserBtn.addEventListener('click', () => {
       eraser = !eraser;
+      markBrush = null;
       paintSelection();
       save();
+    });
+
+    root.querySelectorAll<HTMLButtonElement>('.nap-mark-btn').forEach((b) => {
+      b.addEventListener('click', () => {
+        markBrush = markBrush === b.dataset.mark ? null : (b.dataset.mark ?? null);
+        eraser = false;
+        paintSelection();
+        save();
+      });
     });
 
     towersCheck.addEventListener('change', () => {
@@ -535,40 +651,171 @@
       (e.target as HTMLInputElement).value = '';
     });
 
-    $('nap-export').addEventListener('click', () => {
-      const data = payload();
-      const nameBase = String((data as { season?: string }).season || 'nap-plan')
+    const fileBase = () =>
+      (($('nap-season') as HTMLInputElement).value.trim() || 'nap-plan')
         .toLowerCase()
         .replace(/[^a-z0-9а-яё-]+/gi, '-')
         .replace(/^-+|-+$/g, '') || 'nap-plan';
-      const blob = new Blob([JSON.stringify(data, null, 2) + '\n'], { type: 'application/json' });
+
+    const download = (blob: Blob, name: string) => {
       const a = document.createElement('a');
       a.href = URL.createObjectURL(blob);
-      a.download = `${nameBase}.json`;
+      a.download = name;
       a.click();
       URL.revokeObjectURL(a.href);
+    };
+
+    $('nap-export').addEventListener('click', () => {
+      download(
+        new Blob([JSON.stringify(payload(), null, 2) + '\n'], { type: 'application/json' }),
+        `${fileBase()}.json`,
+      );
     });
 
     $('nap-copy').addEventListener('click', async () => {
       await navigator.clipboard.writeText(JSON.stringify(payload(), null, 2));
-      const btn = $('nap-copy');
-      const old = btn.textContent;
-      btn.textContent = 'Copied!';
-      setTimeout(() => (btn.textContent = old), 1200);
+      flash($('nap-copy'));
+    });
+
+    // --- share link: plan → deflate → base64url in the URL hash --------------
+
+    const b64url = (bytes: Uint8Array) => {
+      let s = '';
+      for (let i = 0; i < bytes.length; i += 0x8000)
+        s += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
+      return btoa(s).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+    };
+    const unb64url = (s: string) =>
+      Uint8Array.from(atob(s.replace(/-/g, '+').replace(/_/g, '/')), (c) => c.charCodeAt(0));
+    const pipe = async (bytes: Uint8Array, stream: ReadableWritablePair<Uint8Array, Uint8Array>) =>
+      new Uint8Array(
+        await new Response(new Blob([bytes as BlobPart]).stream().pipeThrough(stream)).arrayBuffer(),
+      );
+
+    // 'z' prefix = deflate-raw, 'r' = raw JSON (no CompressionStream fallback).
+    async function encodePlanHash(): Promise<string> {
+      const bytes = new TextEncoder().encode(JSON.stringify(payload()));
+      if (typeof CompressionStream !== 'undefined')
+        return 'z' + b64url(await pipe(bytes, new CompressionStream('deflate-raw')));
+      return 'r' + b64url(bytes);
+    }
+    async function decodePlanHash(h: string): Promise<unknown> {
+      const bytes = unb64url(h.slice(1));
+      const raw =
+        h[0] === 'z' ? await pipe(bytes, new DecompressionStream('deflate-raw')) : bytes;
+      return JSON.parse(new TextDecoder().decode(raw));
+    }
+
+    $('nap-share').addEventListener('click', async () => {
+      const url = `${location.origin}${location.pathname}#plan=${await encodePlanHash()}`;
+      await navigator.clipboard.writeText(url);
+      flash($('nap-share'), 'Link copied!');
+    });
+
+    // --- PNG export: inline computed styles, rasterize, add title + legend ---
+
+    $('nap-png').addEventListener('click', async () => {
+      const svg = map.querySelector('svg');
+      if (!svg) return;
+      const clone = svg.cloneNode(true) as SVGSVGElement;
+      // CSS classes / vars don't apply inside a standalone SVG image — inline
+      // the computed presentation props onto the clone.
+      const src = [svg as SVGElement, ...svg.querySelectorAll<SVGElement>('*')];
+      const dst = [clone as SVGElement, ...clone.querySelectorAll<SVGElement>('*')];
+      const PROPS = [
+        'fill', 'stroke', 'stroke-width', 'stroke-dasharray', 'opacity',
+        'font-size', 'font-family', 'font-weight', 'text-anchor',
+        'dominant-baseline', 'paint-order',
+      ];
+      src.forEach((el, i) => {
+        const cs = getComputedStyle(el);
+        dst[i].setAttribute('style', PROPS.map((p) => `${p}:${cs.getPropertyValue(p)}`).join(';'));
+      });
+      const SIZE = 1080;
+      clone.setAttribute('width', String(SIZE));
+      clone.setAttribute('height', String(SIZE));
+      const svgUrl = URL.createObjectURL(
+        new Blob([new XMLSerializer().serializeToString(clone)], { type: 'image/svg+xml' }),
+      );
+      try {
+        const img = new Image();
+        await new Promise((res, rej) => {
+          img.onload = res;
+          img.onerror = rej;
+          img.src = svgUrl;
+        });
+        const pad = 24;
+        const headH = 64;
+        const rowH = 40;
+        const legendH = alliances.length ? pad + alliances.length * rowH : pad;
+        const canvas = document.createElement('canvas');
+        canvas.width = SIZE;
+        canvas.height = headH + SIZE + legendH;
+        const ctx = canvas.getContext('2d')!;
+        const rootCs = getComputedStyle(document.documentElement);
+        const fg = rootCs.getPropertyValue('--sl-color-white').trim() || '#fff';
+        const dim = rootCs.getPropertyValue('--sl-color-gray-3').trim() || fg;
+        ctx.fillStyle = getComputedStyle(map).backgroundColor;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.textBaseline = 'middle';
+        ctx.fillStyle = fg;
+        ctx.font = '600 28px system-ui, sans-serif';
+        ctx.fillText(($('nap-season') as HTMLInputElement).value.trim() || 'Sunfire NAP plan', pad, headH / 2);
+        ctx.drawImage(img, 0, headH, SIZE, SIZE);
+        alliances.forEach((a, i) => {
+          const y = headH + SIZE + pad / 2 + i * rowH + rowH / 2;
+          ctx.fillStyle = a.color;
+          ctx.fillRect(pad, y - 12, 24, 24);
+          ctx.fillStyle = fg;
+          ctx.font = '600 24px system-ui, sans-serif';
+          ctx.fillText(a.name, pad + 40, y);
+          ctx.fillStyle = dim;
+          ctx.font = '400 20px system-ui, sans-serif';
+          ctx.fillText(summary(a), pad + 240, y);
+        });
+        canvas.toBlob((blob) => {
+          if (blob) download(blob, `${fileBase()}.png`);
+        }, 'image/png');
+      } finally {
+        URL.revokeObjectURL(svgUrl);
+      }
     });
 
     $('nap-reset').addEventListener('click', () => {
-      if (!confirm('Clear the whole plan (alliances + assignments)?')) return;
+      if (!confirm('Clear the whole plan (alliances + assignments + marks)?')) return;
       alliances = [];
       assignments = {};
+      marks = {};
       selectedId = null;
       eraser = false;
+      markBrush = null;
       ($('nap-season') as HTMLInputElement).value = '';
       render();
     });
 
     restore();
     render();
+
+    // A shared #plan=... link overrides the local autosave (with consent).
+    const hashPlan = location.hash.match(/^#plan=([A-Za-z0-9_-]+)$/);
+    if (hashPlan) {
+      decodePlanHash(hashPlan[1])
+        .then((data) => {
+          if ((data as { type?: string })?.type !== 'nap_plan') throw new Error('bad plan');
+          if (
+            alliances.length &&
+            !confirm('Load the plan from this link? It replaces your current plan.')
+          )
+            return;
+          applyPlan(data as Record<string, unknown>);
+          selectedId = null;
+          eraser = false;
+          markBrush = null;
+          render();
+        })
+        .catch(() => alert('Could not read the plan from this link.'))
+        .finally(() => history.replaceState(null, '', location.pathname + location.search));
+    }
   }
 </script>
 
@@ -677,19 +924,33 @@
   }
   .nap-m {
     cursor: pointer;
+    transform-box: fill-box;
+    transform-origin: center;
+  }
+  .nap-m.pop {
+    animation: nap-pop 0.3s ease;
+  }
+  @keyframes nap-pop {
+    50% {
+      transform: scale(1.18);
+    }
   }
   .nap-fort circle {
     fill: var(--sl-color-bg);
     stroke: var(--sl-color-gray-4);
     stroke-width: 3;
-    transition: stroke-width 0.1s;
+    transition: stroke-width 0.1s, stroke 0.15s;
   }
-  .nap-fort:hover circle {
+  .nap-fort:hover circle,
+  .nap-fort.hl circle {
     stroke: var(--sl-color-text-accent);
     stroke-width: 6;
   }
   .nap-fort.assigned circle {
     stroke: rgba(0, 0, 0, 0.45);
+  }
+  .nap-m-mark {
+    pointer-events: none;
   }
   .nap-m-label {
     fill: var(--sl-color-white);
@@ -710,8 +971,12 @@
     text-anchor: middle;
     pointer-events: none;
   }
-  .nap-tower:hover {
-    stroke-width: 6;
+  .nap-tower circle {
+    transition: stroke-width 0.1s;
+  }
+  .nap-tower:hover circle,
+  .nap-tower.hl circle {
+    stroke-width: 7;
   }
   .nap-legend {
     margin-top: 0.5rem;
@@ -818,6 +1083,27 @@
     color: #f87171;
     border-style: solid;
   }
+  .nap-marks {
+    display: flex;
+    gap: 0.3rem;
+    margin: 0 0.5rem 0.6rem;
+  }
+  .nap-mark-btn {
+    flex: 1;
+    border: 1px dashed var(--sl-color-hairline-shade);
+    border-radius: 0.45rem;
+    background: transparent;
+    color: var(--sl-color-gray-3);
+    padding: 0.3rem 0.2rem;
+    font-size: 0.75rem;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .nap-mark-btn.active {
+    border-style: solid;
+    border-color: var(--sl-color-text-accent);
+    color: var(--sl-color-white);
+  }
   .nap-group {
     padding: 0.5rem 0.75rem 0.2rem;
     font-size: 0.72rem;
@@ -842,6 +1128,10 @@
     padding: 0.2rem 0.45rem;
     font-size: 0.75rem;
     cursor: pointer;
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  .nap-chip.hl {
+    border-color: var(--sl-color-text-accent);
   }
   .nap-chip b {
     color: var(--sl-color-white);
