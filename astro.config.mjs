@@ -191,7 +191,7 @@ gtag('config', 'G-H94ZVP57ER');
               items: [
                 { label: 'Overview', slug: 'games/whiteout-survival' },
                 { label: 'Dreamscape Memory (module)', slug: 'games/dreamscape-memory' },
-                { label: 'Sunfire NAP planner', slug: 'games/nap-planner' },
+                { label: 'Fort & Facility planner', slug: 'games/nap-planner' },
               ],
             },
             { label: 'Kingshot', slug: 'games/kingshot' },

@@ -1,36 +1,34 @@
 ---
-title: Sunfire NAP planner
-description: Divide the Sunfire Castle territory — citadels, fortresses, turrets and buff towers — between the alliances of your non-aggression pact, right in the browser. The plan autosaves locally and exports as a small JSON to share with other leads.
+title: Fort & Facility Planner
+description: Divide the season territory — citadels, fortresses and buff facilities — between the alliances of your non-aggression pact. Map and roster-table views, handover schedule, risk marks; the plan autosaves locally and shares as a link, PNG or JSON.
 sidebar:
   order: 3
-  label: Sunfire NAP planner
+  label: Fort & Facility planner
 template: doc
 tableOfContents: false
 ---
 
 import NapPlanner from '../../../components/NapPlanner.astro';
 
-Plan your server's **NAP (non-aggression pact)** for the Sunfire Castle season
-without spreadsheets: the map below shows the real territory layout — the
-castle, 4 turrets, 4 citadels (strongholds), 12 fortresses and all 74 buff
-towers at their actual kingdom-map coordinates (identical on every server).
+Plan your server's **NAP (non-aggression pact)** without spreadsheets: divide
+the 4 citadels, 12 fortresses and all 74 buff facilities between alliances at
+their real kingdom-map coordinates (identical on every server; the castle in
+the centre is just a landmark — it is not part of the division).
 
-- **Add alliances** on the right (tag + color), select one, then **click
-  objects** on the map or in the list to assign them. Click again to unassign.
-- **Buff towers** are an optional layer — tower dots are colored by buff type
-  (see the legend); an assigned tower keeps its buff color as a ring.
-- **Risk marks**: pick the 🎯 snipe / 👁️ watch / ⚠️ risk brush and click an
-  object to flag it; **double-click** any object to attach a note (shown in
-  its tooltip).
-- **Schedule**: plan fort handovers (who takes which fort, from what date) in
-  the Schedule section; pick a date there to preview the map as of that day —
-  objects with a planned handover carry a ⟳ badge.
-- The map opens in the in-game **45° diamond view** (toggleable), the legend
-  shows division progress per buff type (click a type to highlight its
-  towers), and the UI speaks **RU/EN** — switch in the header.
-- Everything stays **in your browser** (autosaved locally). Share the plan
-  with other leads via **Copy link** (the whole plan travels inside the URL —
-  no files, no server), **PNG** (map snapshot with the alliance legend, ready
-  for Discord/Telegram), or **Download JSON** / **Import JSON** for backups.
+- **Map or Table** — paint objects on the 45° in-game-style map, or switch to
+  the roster table (object / owner / buff / mark / note / handovers) and set
+  everything with dropdowns, spreadsheet-style.
+- **Add alliances** (tag + color), select one, then click objects to assign;
+  click again to unassign. Click with no tool selected (or double-click) to
+  open the **object card** — owner, marks, note and this object's handover
+  schedule in one place.
+- **Schedule**: plan handovers (who takes which fort, from what date); pick a
+  date to preview the map as of that day — scheduled objects carry a ⟳ badge.
+- **Who gets what**: the stats block shows per-alliance counts and summed
+  facility buffs, plus an Unassigned row with what is still up for grabs; the
+  legend counts division progress per buff type.
+- Everything stays **in your browser** (autosaved locally). Share via **Copy
+  link** (the whole plan travels inside the URL), **PNG**, or **Download
+  JSON** / **Import JSON**. UI speaks **RU/EN**.
 
 <NapPlanner />

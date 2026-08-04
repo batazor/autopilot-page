@@ -45,10 +45,15 @@
 
   <div class="nap-body">
     <div>
+      <div class="nap-viewtabs" role="group" aria-label="View">
+        <button type="button" class="nap-view-btn active" data-view="map" data-i18n="viewMap">Map</button>
+        <button type="button" class="nap-view-btn" data-view="table" data-i18n="viewTable">Table</button>
+      </div>
       <div class="nap-tip" id="nap-tip">Add an alliance, select it, then click objects on the map.</div>
       <div class="nap-progress" id="nap-progress"></div>
       <div class="nap-map" id="nap-map"></div>
       <div class="nap-legend" id="nap-legend"></div>
+      <div class="nap-table" id="nap-table" hidden></div>
       <div class="nap-stats" id="nap-stats" hidden></div>
     </div>
     <div class="nap-side">
@@ -170,10 +175,6 @@
   ];
 
   const CASTLE = { x: 597, y: 597 };
-  const TURRETS: [number, number, string][] = [
-    [593, 593, 'North Turret'], [603, 593, 'East Turret'],
-    [603, 603, 'South Turret'], [593, 603, 'West Turret'],
-  ];
   const STRONGHOLDS: [number, number][] = [[394, 597], [597, 794], [794, 597], [597, 394]];
   const FORTRESSES: [number, number][] = [
     [366, 957], [588, 957], [846, 957], [957, 828], [957, 606], [957, 348],
@@ -186,16 +187,9 @@
     [552, 552, 647, 647], // castle core
   ];
 
+  // The castle itself (and its turrets) is not part of a NAP division — it is
+  // drawn as a decorative landmark only. Only forts + facilities are planned.
   const STRUCTURES: Structure[] = [];
-  STRUCTURES.push({ id: 'castle', kind: 'castle', label: 'Sunfire Castle', short: 'SC', x: CASTLE.x, y: CASTLE.y });
-  TURRETS.forEach(([x, y, label], i) => {
-    // Turrets hug the castle centre (±5 tiles) — exaggerate the display offset
-    // so they stay clickable; tooltips keep the real coordinates.
-    STRUCTURES.push({
-      id: `turret_${i + 1}`, kind: 'turret', label, short: `T${i + 1}`,
-      x: CASTLE.x + (x - CASTLE.x) * 9, y: CASTLE.y + (y - CASTLE.y) * 9,
-    });
-  });
   STRONGHOLDS.forEach(([x, y], i) => {
     STRUCTURES.push({
       id: `stronghold_${i + 1}`, kind: 'stronghold',
@@ -219,10 +213,8 @@
   const BY_ID = new Map(STRUCTURES.map((s) => [s.id, s]));
 
   const ICON_BY_KIND: Record<string, string> = {
-    castle: 'nap-ico-castle',
     stronghold: 'nap-ico-citadel',
     fortress: 'nap-ico-fort',
-    turret: 'nap-ico-turret',
   };
   // Stylized silhouettes (original vector art — the game's own sprites are
   // copyrighted, so we draw our own in a similar spirit).
@@ -277,6 +269,8 @@
     let rotated = true;
     // Object whose detail card is open.
     let detailId: string | null = null;
+    // Left column representation: map or roster table.
+    let view: 'map' | 'table' = 'map';
 
     const LS_KEY = 'autopilot-nap-planner';
     const PALETTE = ['#f59e0b', '#3b82f6', '#10b981', '#ef4444', '#a855f7', '#14b8a6', '#f97316', '#84cc16'];
@@ -292,7 +286,11 @@
     let lang: Lang = navigator.language?.toLowerCase().startsWith('ru') ? 'ru' : 'en';
     const I18N: Record<Lang, Record<string, string>> = {
       en: {
-        season: 'season / note', towers: 'Buff towers', rotate: '45° view',
+        season: 'season / note', towers: 'Facilities', rotate: '45° view',
+        viewMap: 'Map', viewTable: 'Table',
+        thObject: 'Object', thOwner: 'Owner', thBuff: 'Buff', thMark: 'Mark',
+        thNote: 'Note', thHandovers: 'Handovers',
+        facilities: 'Facilities',
         import: 'Import JSON', export: 'Download JSON', copy: 'Copy JSON',
         share: 'Copy link', reset: 'Reset', alliances: 'Alliances', add: '+ Add',
         eraser: 'Eraser — click an object to clear it',
@@ -306,8 +304,8 @@
         tipPaint: 'Painting as “{0}” — click objects to assign, click again to unassign.',
         tipView: 'Viewing the plan as of {0} — press “Now” (Schedule) to edit again.',
         divided: 'Everything is divided ✓', left: 'Left to divide:',
-        citadelW: 'citadels', fortW: 'forts', towerW: 'towers', turretW: 'turrets',
-        castleW: 'castle', nothing: 'nothing yet',
+        citadelW: 'citadels', fortW: 'forts', towerW: 'facilities',
+        nothing: 'nothing yet',
         copied: 'Copied!', linkCopied: 'Link copied!',
         noHandovers: 'No handovers yet — plan who takes which fort next.',
         confirmReset: 'Clear the whole plan (alliances + assignments + marks + schedule)?',
@@ -317,7 +315,7 @@
         addAllianceFirst: 'Add an alliance first.',
         noteFor: 'Note for {0}:', legendHint: '{0} — click to highlight these towers',
         handover: 'scheduled handover', removeAlliance: 'Remove alliance (unassigns its objects)',
-        allianceColor: 'Alliance color', planTitle: 'Sunfire NAP plan',
+        allianceColor: 'Alliance color', planTitle: 'Fort & facility plan',
         statsTitle: 'Who gets what', unassignedRow: 'Unassigned',
         owner: 'Owner', marksTitle: 'Marks', noteLabel: 'Note',
         handovers: 'Handovers', addRow: '+ Handover', buffW: 'Buff',
@@ -326,7 +324,11 @@
         descFort: 'Outer capture point.', descTurret: 'Castle turret.',
       },
       ru: {
-        season: 'сезон / заметка', towers: 'Бафф-вышки', rotate: 'Вид 45°',
+        season: 'сезон / заметка', towers: 'Комплексы', rotate: 'Вид 45°',
+        viewMap: 'Карта', viewTable: 'Таблица',
+        thObject: 'Объект', thOwner: 'Владелец', thBuff: 'Бафф', thMark: 'Метка',
+        thNote: 'Заметка', thHandovers: 'Передачи',
+        facilities: 'Комплексы',
         import: 'Импорт JSON', export: 'Скачать JSON', copy: 'Копир. JSON',
         share: 'Ссылка на план', reset: 'Сброс', alliances: 'Альянсы', add: '+ Добавить',
         eraser: 'Ластик — клик по объекту очищает его',
@@ -340,8 +342,8 @@
         tipPaint: 'Красим за «{0}» — клик назначает, повторный клик снимает.',
         tipView: 'Просмотр плана на {0} — нажми «Сейчас» (Расписание), чтобы редактировать.',
         divided: 'Всё поделено ✓', left: 'Осталось поделить:',
-        citadelW: 'цитаделей', fortW: 'фортов', towerW: 'вышек', turretW: 'турелей',
-        castleW: 'замок', nothing: 'пока пусто',
+        citadelW: 'цитаделей', fortW: 'фортов', towerW: 'комплексов',
+        nothing: 'пока пусто',
         copied: 'Скопировано!', linkCopied: 'Ссылка скопирована!',
         noHandovers: 'Передач пока нет — спланируй, кто берёт форт следующим.',
         confirmReset: 'Стереть весь план (альянсы + назначения + метки + расписание)?',
@@ -351,7 +353,7 @@
         addAllianceFirst: 'Сначала добавь альянс.',
         noteFor: 'Заметка для {0}:', legendHint: '{0} — клик подсветит эти вышки',
         handover: 'передача по расписанию', removeAlliance: 'Удалить альянс (снимет его объекты)',
-        allianceColor: 'Цвет альянса', planTitle: 'План НАП Sunfire',
+        allianceColor: 'Цвет альянса', planTitle: 'План фортов и комплексов',
         statsTitle: 'Кто что получает', unassignedRow: 'Не поделено',
         owner: 'Владелец', marksTitle: 'Метки', noteLabel: 'Заметка',
         handovers: 'Передачи', addRow: '+ Передача', buffW: 'Бафф',
@@ -370,8 +372,10 @@
     const RU_PLURALS: Record<string, [string, string, string]> = {
       citadelW: ['цитадель', 'цитадели', 'цитаделей'],
       fortW: ['форт', 'форта', 'фортов'],
-      towerW: ['вышка', 'вышки', 'вышек'],
-      turretW: ['турель', 'турели', 'турелей'],
+      towerW: ['комплекс', 'комплекса', 'комплексов'],
+    };
+    const EN_PLURALS: Record<string, [string, string]> = {
+      towerW: ['facility', 'facilities'],
     };
     const plural = (n: number, key: string): string => {
       if (lang === 'ru' && RU_PLURALS[key]) {
@@ -384,6 +388,7 @@
               : 2;
         return forms[idx];
       }
+      if (EN_PLURALS[key]) return EN_PLURALS[key][n === 1 ? 0 : 1];
       const base = I18N.en[key] ?? key;
       return n === 1 ? base.replace(/s$/, '') : base;
     };
@@ -395,14 +400,10 @@
     };
     const buffLabel = (type: string, en: string) => (lang === 'ru' ? BUFF_RU[type] : en);
     const shortOf = (s: Structure) =>
-      lang === 'ru' && (s.kind === 'stronghold' || s.kind === 'fortress')
-        ? s.short.replace(/^C/, 'Ц').replace(/^F/, 'Ф')
-        : s.short;
+      lang === 'ru' ? s.short.replace(/^C/, 'Ц').replace(/^F/, 'Ф') : s.short;
     function labelOf(s: Structure): string {
       if (lang !== 'ru') return s.label;
       const n = s.id.replace(/\D/g, '');
-      if (s.kind === 'castle') return 'Замок Солнца';
-      if (s.kind === 'turret') return `Турель ${n}`;
       if (s.kind === 'stronghold') return `Цитадель ${n}`;
       if (s.kind === 'fortress') return `Форт ${n}`;
       return `${BUFF_RU[s.buff!.type]} ур.${s.buff!.level}`;
@@ -440,7 +441,7 @@
         localStorage.setItem(
           LS_KEY,
           JSON.stringify({
-            alliances, assignments, marks, rotations, selectedId, eraser, showTowers, rotated, lang,
+            alliances, assignments, marks, rotations, selectedId, eraser, showTowers, rotated, lang, view,
             season: ($('nap-season') as HTMLInputElement).value,
           }),
         );
@@ -461,6 +462,7 @@
         if (s.showTowers === false) showTowers = false;
         if (s.rotated === false) rotated = false;
         if (s.lang === 'en' || s.lang === 'ru') lang = s.lang;
+        if (s.view === 'table') view = 'table';
         towersCheck.checked = showTowers;
         ($('nap-rotate') as HTMLInputElement).checked = rotated;
       } catch {
@@ -556,7 +558,7 @@
         return `<g ${attrs} data-t="${b.type}" class="nap-m nap-tower"><circle cx="${px}" cy="${py}" r="22" fill="transparent" /><circle class="nap-shape" cx="${px}" cy="${py}" r="11"
           fill="${a ? fill : b.color}" stroke="${a ? b.color : 'rgba(0,0,0,.55)'}" stroke-width="${a ? 5 : 2}" />${title}${badge}</g>`;
       }
-      const r = s.kind === 'stronghold' ? 36 : s.kind === 'fortress' ? 31 : s.kind === 'castle' ? 26 : 14;
+      const r = s.kind === 'stronghold' ? 36 : 31;
       const cls = a ? 'nap-m nap-fort assigned' : 'nap-m nap-fort';
       const title = `<title>${esc(`${labelOf(s)} (${Math.round(s.x)},${Math.round(s.y)})${tag}${markTxt}${noteTxt}${rotTxt}`)}</title>`;
       const badge = m?.risk
@@ -566,27 +568,17 @@
         ? `<text class="nap-m-rot" x="${px + r * 0.9}" y="${py + r * 0.9}" font-size="30">⟳</text>`
         : '';
       const style = a ? ` style="fill:${fill}"` : '';
-      // Shape codes the kind: circle = fortress, diamond = citadel, rounded
-      // square = turret, castle silhouette = castle.
+      // Shape codes the kind: circle = fortress, diamond = citadel.
       const shape =
         s.kind === 'stronghold'
           ? `<rect class="nap-shape" x="${px - r}" y="${py - r}" width="${2 * r}" height="${2 * r}" rx="9" transform="rotate(45 ${px} ${py})"${style} />`
-          : s.kind === 'turret'
-            ? `<rect class="nap-shape" x="${px - r + 2}" y="${py - r + 2}" width="${2 * r - 4}" height="${2 * r - 4}" rx="5"${style} />`
-            : `<circle class="nap-shape" cx="${px}" cy="${py}" r="${r}"${style} />`;
-      const icon =
-        s.kind === 'castle'
-          ? `<use href="#nap-ico-castle" class="nap-castle-ico" x="${px - 17}" y="${py - 17}" width="34" height="34" />`
-          : '';
-      const text =
-        s.kind === 'castle'
-          ? ''
-          : `<text class="nap-m-label" x="${px}" y="${py}" font-size="${s.kind === 'turret' ? 15 : 27}">${esc(shortOf(s))}</text>`;
+          : `<circle class="nap-shape" cx="${px}" cy="${py}" r="${r}"${style} />`;
+      const text = `<text class="nap-m-label" x="${px}" y="${py}" font-size="27">${esc(shortOf(s))}</text>`;
       const name = a
         ? `<text class="nap-m-tag" x="${px}" y="${py + r + 26}" font-size="24">${esc(a.name)}</text>`
         : '';
       return `<g ${attrs} class="${cls}">` +
-        shape + `${title}${icon}${text}${name}${badge}${rotBadge}</g>`;
+        shape + `${title}${text}${name}${badge}${rotBadge}</g>`;
     }
 
     function renderMap() {
@@ -599,12 +591,16 @@
         ? STRUCTURES.filter((s) => s.kind === 'tower').map(marker).join('')
         : '';
       const forts = STRUCTURES.filter((s) => s.kind !== 'tower').map(marker).join('');
+      const [ccx, ccy] = rot(CASTLE.x, CASTLE.y);
+      const deco =
+        `<g class="nap-castle-deco"><circle cx="${ccx}" cy="${ccy}" r="34" />` +
+        `<use href="#nap-ico-castle" x="${ccx - 22}" y="${ccy - 22}" width="44" height="44" /></g>`;
       // The diamond needs a wider viewBox: corner tiles like (138,138) land at
       // x ≈ -53 after rotation.
       const viewBox = rotated ? '-105 -115 1410 1410' : '60 60 1080 1080';
       map.innerHTML =
         `<svg viewBox="${viewBox}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Sunfire Castle territory map">` +
-        SVG_DEFS + zones + towers + forts + `</svg>`;
+        SVG_DEFS + zones + deco + towers + forts + `</svg>`;
       // One-off feedback pop on the object that was just clicked.
       if (lastClicked) {
         map.querySelector(`[data-id="${lastClicked}"]`)?.classList.add('pop');
@@ -738,10 +734,8 @@
       const ids = STRUCTURES.filter((s) => ownerId(s.id) === a.id).map((s) => s.id);
       const n = (kind: Structure['kind']) => ids.filter((id) => BY_ID.get(id)!.kind === kind).length;
       const parts: string[] = [];
-      if (n('castle')) parts.push(T('castleW'));
       if (n('stronghold')) parts.push(`${n('stronghold')} ${plural(n('stronghold'), 'citadelW')}`);
       if (n('fortress')) parts.push(`${n('fortress')} ${plural(n('fortress'), 'fortW')}`);
-      if (n('turret')) parts.push(`${n('turret')} ${plural(n('turret'), 'turretW')}`);
       if (n('tower')) parts.push(`${n('tower')} ${plural(n('tower'), 'towerW')}`);
       return parts.length ? parts.join(' · ') : T('nothing');
     }
@@ -888,7 +882,6 @@
       const groups: [string, Structure[]][] = [
         [T('citadels'), STRUCTURES.filter((s) => s.kind === 'stronghold')],
         [T('fortresses'), STRUCTURES.filter((s) => s.kind === 'fortress')],
-        [T('castleTurrets'), STRUCTURES.filter((s) => s.kind === 'castle' || s.kind === 'turret')],
       ];
       for (const [label, items] of groups) {
         const h = document.createElement('div');
@@ -1006,9 +999,8 @@
         const counts = document.createElement('span');
         counts.className = 'nap-stats-counts';
         counts.textContent =
-          `${cShort} ${n('stronghold')}/4 · ${fShort} ${n('fortress')}/12 · T ${n('turret')}/4` +
-          (n('castle') ? ' · SC' : '') +
-          ` · ${plural(5, 'towerW')} ${n('tower')}/74`;
+          `${cShort} ${n('stronghold')}/4 · ${fShort} ${n('fortress')}/12 · ` +
+          `${plural(5, 'towerW')} ${n('tower')}/74`;
         const buffs = document.createElement('span');
         buffs.className = 'nap-stats-buffs';
         const sums: Record<string, number> = {};
@@ -1088,15 +1080,7 @@
       info.textContent =
         s.kind === 'tower'
           ? `${T('buffW')}: ${s.buff!.booster} ${s.buff!.bonus} · L${s.buff!.level}`
-          : T(
-              s.kind === 'castle'
-                ? 'descCastle'
-                : s.kind === 'stronghold'
-                  ? 'descCitadel'
-                  : s.kind === 'fortress'
-                    ? 'descFort'
-                    : 'descTurret',
-            );
+          : T(s.kind === 'stronghold' ? 'descCitadel' : 'descFort');
       card.appendChild(info);
 
       // owner
@@ -1235,7 +1219,181 @@
       if (e.key === 'Escape') closeDetail();
     });
 
+    // --- roster table (Foundry-planner style) --------------------------------
+
+    function applyView() {
+      root.querySelectorAll<HTMLButtonElement>('.nap-view-btn').forEach((b) => {
+        b.classList.toggle('active', b.dataset.view === view);
+      });
+      (map as HTMLElement).hidden = view !== 'map';
+      (legend as HTMLElement).hidden = view !== 'map';
+      ($('nap-table') as HTMLElement).hidden = view !== 'table';
+    }
+
+    function renderTable() {
+      const host = $('nap-table');
+      host.innerHTML = '';
+      if (view !== 'table') return;
+      const tbl = document.createElement('table');
+      tbl.className = 'nap-tbl';
+      const thead = document.createElement('thead');
+      const trh = document.createElement('tr');
+      for (const k of ['thObject', 'thOwner', 'thBuff', 'thMark', 'thNote', 'thHandovers']) {
+        const th = document.createElement('th');
+        th.textContent = T(k);
+        trh.appendChild(th);
+      }
+      thead.appendChild(trh);
+      tbl.appendChild(thead);
+      const tbody = document.createElement('tbody');
+
+      const addSection = (label: string) => {
+        const tr = document.createElement('tr');
+        tr.className = 'nap-tbl-sec';
+        const td = document.createElement('td');
+        td.colSpan = 6;
+        td.textContent = label;
+        tr.appendChild(td);
+        tbody.appendChild(tr);
+      };
+
+      const addRow = (st: Structure) => {
+        const own = ownerId(st.id);
+        const a = allianceById(own);
+        const tr = document.createElement('tr');
+        tr.dataset.id = st.id;
+        tr.dataset.a = own ?? '';
+        if (a) tr.style.setProperty('--chip', a.color);
+
+        const tdObj = document.createElement('td');
+        tdObj.className = 'nap-tbl-obj';
+        tdObj.title = `${labelOf(st)} (${st.x}, ${st.y})`;
+        if (ICON_BY_KIND[st.kind]) {
+          const ic = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+          ic.setAttribute('class', 'nap-chip-ico');
+          ic.setAttribute('viewBox', '0 0 24 24');
+          ic.innerHTML = `<use href="#${ICON_BY_KIND[st.kind]}"></use>`;
+          tdObj.appendChild(ic);
+        } else if (st.buff) {
+          const dot = document.createElement('i');
+          dot.className = 'nap-tbl-dot';
+          dot.style.background = st.buff.color;
+          tdObj.appendChild(dot);
+        }
+        const bEl = document.createElement('b');
+        bEl.textContent = st.kind === 'tower' ? labelOf(st) : shortOf(st);
+        tdObj.appendChild(bEl);
+        tdObj.addEventListener('click', () => openDetail(st.id));
+        tr.appendChild(tdObj);
+
+        const tdOwn = document.createElement('td');
+        const ownSel = document.createElement('select');
+        const none = document.createElement('option');
+        none.value = '';
+        none.textContent = '—';
+        ownSel.appendChild(none);
+        for (const al of alliances) {
+          const o = document.createElement('option');
+          o.value = al.id;
+          o.textContent = al.name || al.id;
+          ownSel.appendChild(o);
+        }
+        ownSel.value = assignments[st.id] ?? '';
+        ownSel.disabled = !!viewDate;
+        ownSel.addEventListener('change', () => {
+          if (ownSel.value) assignments[st.id] = ownSel.value;
+          else delete assignments[st.id];
+          render();
+        });
+        tdOwn.appendChild(ownSel);
+        tr.appendChild(tdOwn);
+
+        const tdBuff = document.createElement('td');
+        tdBuff.className = 'nap-tbl-buff';
+        if (st.buff) {
+          tdBuff.textContent = `${st.buff.booster}`;
+          tdBuff.title = `${st.buff.bonus} · L${st.buff.level}`;
+        } else {
+          tdBuff.textContent = '—';
+        }
+        tr.appendChild(tdBuff);
+
+        const tdMark = document.createElement('td');
+        const markSel = document.createElement('select');
+        const mnone = document.createElement('option');
+        mnone.value = '';
+        mnone.textContent = '—';
+        markSel.appendChild(mnone);
+        for (const [key, mk] of Object.entries(MARKS)) {
+          const o = document.createElement('option');
+          o.value = key;
+          o.textContent = `${mk.emoji} ${markLabel(key)}`;
+          markSel.appendChild(o);
+        }
+        markSel.value = marks[st.id]?.risk ?? '';
+        markSel.disabled = !!viewDate;
+        markSel.addEventListener('change', () => {
+          const m = marks[st.id] ?? {};
+          if (markSel.value) m.risk = markSel.value;
+          else delete m.risk;
+          if (m.risk || m.note) marks[st.id] = m;
+          else delete marks[st.id];
+          render();
+        });
+        tdMark.appendChild(markSel);
+        tr.appendChild(tdMark);
+
+        const tdNote = document.createElement('td');
+        tdNote.className = 'nap-tbl-note';
+        const note = document.createElement('input');
+        note.type = 'text';
+        note.value = marks[st.id]?.note ?? '';
+        note.disabled = !!viewDate;
+        note.addEventListener('input', () => {
+          const m = marks[st.id] ?? {};
+          if (note.value.trim()) m.note = note.value.trim();
+          else delete m.note;
+          if (m.risk || m.note) marks[st.id] = m;
+          else delete marks[st.id];
+          save();
+        });
+        note.addEventListener('change', () => render());
+        tdNote.appendChild(note);
+        tr.appendChild(tdNote);
+
+        const tdRot = document.createElement('td');
+        tdRot.className = 'nap-tbl-rot';
+        const mine = rotations.filter((r) => r.id === st.id);
+        const txt = document.createElement('span');
+        txt.textContent = mine
+          .map((r) => `${r.date.slice(5)} → ${allianceById(r.to)?.name ?? '?'}`)
+          .join(', ');
+        const plus = document.createElement('button');
+        plus.type = 'button';
+        plus.className = 'nap-tbl-plus';
+        plus.textContent = '+';
+        plus.title = T('addRow');
+        plus.addEventListener('click', () => openDetail(st.id));
+        tdRot.append(txt, plus);
+        tr.appendChild(tdRot);
+
+        tbody.appendChild(tr);
+      };
+
+      addSection(T('citadels'));
+      STRUCTURES.filter((st) => st.kind === 'stronghold').forEach(addRow);
+      addSection(T('fortresses'));
+      STRUCTURES.filter((st) => st.kind === 'fortress').forEach(addRow);
+      addSection(T('facilities'));
+      for (const t of TOWER_TYPES)
+        STRUCTURES.filter((st) => st.kind === 'tower' && st.buff!.type === t.type).forEach(addRow);
+
+      tbl.appendChild(tbody);
+      host.appendChild(tbl);
+    }
+
     function render() {
+      applyView();
       renderMap();
       renderLegend();
       renderAlliances();
@@ -1243,6 +1401,7 @@
       renderSchedule();
       renderProgress();
       renderStats();
+      renderTable();
       paintSelection();
       if (detailId) renderDetail();
       refreshJson();
@@ -1293,6 +1452,13 @@
       b.addEventListener('click', () => {
         lang = (b.dataset.lang as Lang) ?? 'en';
         applyStaticLang();
+        render();
+      });
+    });
+
+    root.querySelectorAll<HTMLButtonElement>('.nap-view-btn').forEach((b) => {
+      b.addEventListener('click', () => {
+        view = (b.dataset.view as 'map' | 'table') ?? 'map';
         render();
       });
     });
@@ -2129,6 +2295,128 @@
   .nap-detail .nap-rot-add {
     margin: 0.3rem 0 0;
     width: 100%;
+  }
+
+  .nap-viewtabs {
+    display: inline-flex;
+    border: 1px solid var(--sl-color-hairline-shade);
+    border-radius: 0.5rem;
+    overflow: hidden;
+    margin-bottom: 0.5rem;
+  }
+  .nap-view-btn {
+    border: 0;
+    background: var(--sl-color-bg-nav);
+    color: var(--sl-color-gray-2);
+    padding: 0.35rem 0.9rem;
+    cursor: pointer;
+    font-size: 0.85rem;
+  }
+  .nap-view-btn.active {
+    background: var(--sl-color-text-accent);
+    color: var(--sl-color-black);
+    font-weight: 600;
+  }
+  .nap-table {
+    border: 1px solid var(--sl-color-hairline-shade);
+    border-radius: 0.75rem;
+    background: var(--sl-color-bg-nav);
+    overflow: auto;
+    max-height: 42rem;
+  }
+  .nap-tbl {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.8rem;
+    margin: 0;
+  }
+  .nap-tbl th {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    background: var(--sl-color-bg-nav);
+    text-align: left;
+    padding: 0.45rem 0.5rem;
+    border-bottom: 1px solid var(--sl-color-hairline-shade);
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--sl-color-gray-3);
+  }
+  .nap-tbl td {
+    padding: 0.25rem 0.5rem;
+    border-bottom: 1px solid color-mix(in srgb, var(--sl-color-hairline-shade) 55%, transparent);
+    vertical-align: middle;
+  }
+  .nap-tbl-sec td {
+    font-weight: 600;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--sl-color-gray-4);
+    background: color-mix(in srgb, var(--sl-color-bg) 55%, transparent);
+  }
+  .nap-tbl-obj {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    cursor: pointer;
+    white-space: nowrap;
+    box-shadow: inset 3px 0 0 var(--chip, transparent);
+  }
+  .nap-tbl-obj:hover b {
+    color: var(--sl-color-text-accent);
+  }
+  .nap-tbl-dot {
+    width: 0.6rem;
+    height: 0.6rem;
+    border-radius: 999px;
+    flex: none;
+  }
+  .nap-tbl select,
+  .nap-tbl input {
+    border: 1px solid var(--sl-color-hairline-shade);
+    border-radius: 0.35rem;
+    background: var(--sl-color-bg);
+    color: var(--sl-color-white);
+    padding: 0.15rem 0.3rem;
+    font-size: 0.78rem;
+    min-width: 0;
+    max-width: 9rem;
+  }
+  .nap-tbl-note input {
+    width: 100%;
+    min-width: 6rem;
+    max-width: none;
+  }
+  .nap-tbl-buff {
+    font-variant-numeric: tabular-nums;
+    color: var(--sl-color-gray-3);
+    white-space: nowrap;
+  }
+  .nap-tbl-rot {
+    white-space: nowrap;
+    font-size: 0.75rem;
+    color: var(--sl-color-gray-3);
+  }
+  .nap-tbl-plus {
+    border: 1px dashed var(--sl-color-hairline-shade);
+    border-radius: 0.3rem;
+    background: transparent;
+    color: var(--sl-color-gray-3);
+    cursor: pointer;
+    padding: 0 0.35rem;
+    margin-left: 0.3rem;
+  }
+  .nap-castle-deco circle {
+    fill: var(--sl-color-bg);
+    stroke: var(--sl-color-hairline-shade);
+    stroke-width: 2;
+  }
+  .nap-castle-deco {
+    color: var(--sl-color-gray-3);
+    opacity: 0.9;
+    pointer-events: none;
   }
 
   /* --- mobile ------------------------------------------------------------- */
