@@ -13,11 +13,29 @@
 ---
 
 <div id="nap-planner" class="not-content">
-  <div class="nap-toolbar">
+  <div class="nap-head">
     <div class="nap-lang" role="group" aria-label="Language">
       <button type="button" class="nap-lang-btn" data-lang="ru">RU</button>
       <button type="button" class="nap-lang-btn" data-lang="en">EN</button>
     </div>
+  </div>
+  <p class="nap-intro" data-lang-block="en">
+    Divide the season territory — 4 citadels, 12 fortresses and 74 buff
+    facilities — between the alliances of your NAP, at their real kingdom-map
+    coordinates (the castle in the centre is just a landmark). Paint on the 45°
+    map, work in the roster table or on the timeline; click a fort to set its
+    owner and handover schedule in one popup; share the plan via link, PNG or
+    JSON — everything stays in your browser.
+  </p>
+  <p class="nap-intro" data-lang-block="ru" hidden>
+    Дели территорию сезона — 4 цитадели, 12 фортов и 74 комплекса — между
+    альянсами НАП на реальных координатах карты королевства (замок в центре —
+    просто ориентир). Крась на карте 45°, работай в таблице или на графике
+    смен; клик по форту сразу открывает окно с владельцем и расписанием
+    передач; делись планом ссылкой, PNG или JSON — всё хранится в твоём
+    браузере.
+  </p>
+  <div class="nap-toolbar">
     <label class="nap-season">
       <span data-i18n="season">season / note</span>
       <input id="nap-season" type="text" placeholder="S2 · NAP-4" spellcheck="false" />
@@ -48,12 +66,14 @@
       <div class="nap-viewtabs" role="group" aria-label="View">
         <button type="button" class="nap-view-btn active" data-view="map" data-i18n="viewMap">Map</button>
         <button type="button" class="nap-view-btn" data-view="table" data-i18n="viewTable">Table</button>
+        <button type="button" class="nap-view-btn" data-view="gantt" data-i18n="viewGantt">Timeline</button>
       </div>
       <div class="nap-tip" id="nap-tip">Add an alliance, select it, then click objects on the map.</div>
       <div class="nap-progress" id="nap-progress"></div>
       <div class="nap-map" id="nap-map"></div>
       <div class="nap-legend" id="nap-legend"></div>
       <div class="nap-table" id="nap-table" hidden></div>
+      <div class="nap-gantt" id="nap-gantt" hidden></div>
       <div class="nap-stats" id="nap-stats" hidden></div>
     </div>
     <div class="nap-side">
@@ -86,6 +106,8 @@
     <summary data-i18n="jsonPreview">JSON preview</summary>
     <pre><code id="nap-json-out">{}</code></pre>
   </details>
+
+  <div class="nap-tt" id="nap-tt" hidden></div>
 
   <div class="nap-detail-overlay" id="nap-detail" hidden>
     <div class="nap-detail" role="dialog" aria-modal="true"></div>
@@ -270,7 +292,7 @@
     // Object whose detail card is open.
     let detailId: string | null = null;
     // Left column representation: map or roster table.
-    let view: 'map' | 'table' = 'map';
+    let view: 'map' | 'table' | 'gantt' = 'map';
 
     const LS_KEY = 'autopilot-nap-planner';
     const PALETTE = ['#f59e0b', '#3b82f6', '#10b981', '#ef4444', '#a855f7', '#14b8a6', '#f97316', '#84cc16'];
@@ -287,7 +309,7 @@
     const I18N: Record<Lang, Record<string, string>> = {
       en: {
         season: 'season / note', towers: 'Facilities', rotate: '45° view',
-        viewMap: 'Map', viewTable: 'Table',
+        viewMap: 'Map', viewTable: 'Table', viewGantt: 'Timeline',
         thObject: 'Object', thOwner: 'Owner', thBuff: 'Buff', thMark: 'Mark',
         thNote: 'Note', thHandovers: 'Handovers',
         facilities: 'Facilities',
@@ -298,10 +320,10 @@
         objects: 'Objects', schedule: 'Schedule', now: 'Now',
         addHandover: '+ Add handover', jsonPreview: 'JSON preview',
         citadels: 'Citadels', fortresses: 'Fortresses', castleTurrets: 'Castle & turrets',
-        tipDefault: 'Add an alliance, select it, then click objects on the map.',
+        tipDefault: 'Click a fort to open its card; add alliances to paint facilities.',
         tipEraser: 'Eraser on — click an object to clear its alliance and marks.',
         tipMark: 'Marking “{0}” — click to toggle, double-click for a note.',
-        tipPaint: 'Painting as “{0}” — click objects to assign, click again to unassign.',
+        tipPaint: 'Painting as “{0}” — click facilities to assign; a fort opens its card.',
         tipView: 'Viewing the plan as of {0} — press “Now” (Schedule) to edit again.',
         divided: 'Everything is divided ✓', left: 'Left to divide:',
         citadelW: 'citadels', fortW: 'forts', towerW: 'facilities',
@@ -325,7 +347,7 @@
       },
       ru: {
         season: 'сезон / заметка', towers: 'Комплексы', rotate: 'Вид 45°',
-        viewMap: 'Карта', viewTable: 'Таблица',
+        viewMap: 'Карта', viewTable: 'Таблица', viewGantt: 'График',
         thObject: 'Объект', thOwner: 'Владелец', thBuff: 'Бафф', thMark: 'Метка',
         thNote: 'Заметка', thHandovers: 'Передачи',
         facilities: 'Комплексы',
@@ -336,10 +358,10 @@
         objects: 'Объекты', schedule: 'Расписание', now: 'Сейчас',
         addHandover: '+ Добавить передачу', jsonPreview: 'JSON-превью',
         citadels: 'Цитадели', fortresses: 'Форты', castleTurrets: 'Замок и турели',
-        tipDefault: 'Добавь альянс, выбери его и кликай объекты на карте.',
+        tipDefault: 'Клик по форту откроет его карточку; для покраски комплексов добавь альянс.',
         tipEraser: 'Ластик — клик по объекту снимает альянс и метки.',
         tipMark: 'Метка «{0}» — клик ставит/снимает, даблклик — заметка.',
-        tipPaint: 'Красим за «{0}» — клик назначает, повторный клик снимает.',
+        tipPaint: 'Красим за «{0}» — клик по комплексу назначает; форт открывает карточку.',
         tipView: 'Просмотр плана на {0} — нажми «Сейчас» (Расписание), чтобы редактировать.',
         divided: 'Всё поделено ✓', left: 'Осталось поделить:',
         citadelW: 'цитаделей', fortW: 'фортов', towerW: 'комплексов',
@@ -412,6 +434,9 @@
       root.querySelectorAll<HTMLElement>('[data-i18n]').forEach((el) => {
         el.textContent = T(el.dataset.i18n!);
       });
+      root.querySelectorAll<HTMLElement>('[data-lang-block]').forEach((el) => {
+        el.hidden = el.dataset.langBlock !== lang;
+      });
       root.querySelectorAll<HTMLButtonElement>('.nap-lang-btn').forEach((b) => {
         b.classList.toggle('active', b.dataset.lang === lang);
       });
@@ -462,7 +487,7 @@
         if (s.showTowers === false) showTowers = false;
         if (s.rotated === false) rotated = false;
         if (s.lang === 'en' || s.lang === 'ru') lang = s.lang;
-        if (s.view === 'table') view = 'table';
+        if (s.view === 'table' || s.view === 'gantt') view = s.view;
         towersCheck.checked = showTowers;
         ($('nap-rotate') as HTMLInputElement).checked = rotated;
       } catch {
@@ -539,17 +564,13 @@
       const own = ownerId(s.id);
       const a = allianceById(own);
       const fill = a ? a.color : '';
-      const tag = a ? ` — ${a.name}` : '';
       const m = marks[s.id];
-      const markTxt = m?.risk ? ` · ${markLabel(m.risk)}` : '';
-      const noteTxt = m?.note ? ` · ${m.note}` : '';
       const scheduled = rotations.some((r) => r.id === s.id);
-      const rotTxt = scheduled ? ` · ${T('handover')}` : '';
       const attrs = `data-id="${s.id}" data-a="${own ?? ''}"`;
       const [px, py] = rot(s.x, s.y);
       if (s.kind === 'tower') {
         const b = s.buff!;
-        const title = `<title>${esc(`${buffLabel(b.type, b.label)} L${b.level} ${b.booster} ${b.bonus} (${s.x},${s.y})${tag}${markTxt}${noteTxt}${rotTxt}`)}</title>`;
+        const title = '';
         const badge = m?.risk
           ? `<text class="nap-m-mark" x="${px + 12}" y="${py - 12}" font-size="26">${MARKS[m.risk].emoji}</text>`
           : '';
@@ -560,7 +581,7 @@
       }
       const r = s.kind === 'stronghold' ? 36 : 31;
       const cls = a ? 'nap-m nap-fort assigned' : 'nap-m nap-fort';
-      const title = `<title>${esc(`${labelOf(s)} (${Math.round(s.x)},${Math.round(s.y)})${tag}${markTxt}${noteTxt}${rotTxt}`)}</title>`;
+      const title = '';
       const badge = m?.risk
         ? `<text class="nap-m-mark" x="${px + r * 0.85}" y="${py - r * 0.85}" font-size="34">${MARKS[m.risk].emoji}</text>`
         : '';
@@ -638,8 +659,13 @@
         render();
         return;
       }
+      // Forts open their card right away — owner and handover schedule live
+      // there. Painting via a selected alliance applies to facilities.
+      if (BY_ID.get(id)!.kind !== 'tower') {
+        openDetail(id);
+        return;
+      }
       if (!selectedId) {
-        // No tool active — open the object card instead.
         openDetail(id);
         return;
       }
@@ -657,12 +683,51 @@
       map.querySelector(`[data-id="${id}"]`)?.classList.add('hl');
       objects.querySelector(`[data-id="${id}"]`)?.classList.add('hl');
     }
+    // Rich tooltip shared by map markers and object chips.
+    const tt = $('nap-tt');
+    function ttContent(st: Structure): string {
+      const own = ownerId(st.id);
+      const a = allianceById(own);
+      const m = marks[st.id];
+      const mine = rotations.filter((r) => r.id === st.id);
+      let html = `<b>${esc(labelOf(st))}</b> <span class="nap-tt-dim">(${Math.round(st.x)}, ${Math.round(st.y)})</span>`;
+      if (st.buff)
+        html += `<div class="nap-tt-line">${esc(buffLabel(st.buff.type, st.buff.label))} L${st.buff.level} · ${esc(st.buff.booster)} ${esc(st.buff.bonus)}</div>`;
+      html += `<div class="nap-tt-line">${esc(T('owner'))}: ${
+        a ? `<i class="nap-tt-sw" style="background:${a.color}"></i>${esc(a.name)}` : '—'
+      }</div>`;
+      if (m?.risk) html += `<div class="nap-tt-line">${MARKS[m.risk].emoji} ${esc(markLabel(m.risk))}</div>`;
+      if (m?.note) html += `<div class="nap-tt-line nap-tt-dim">${esc(m.note)}</div>`;
+      for (const r of mine)
+        html += `<div class="nap-tt-line">⟳ ${r.date} → ${esc(allianceById(r.to)?.name ?? '?')}</div>`;
+      return html;
+    }
+    function moveTt(e: PointerEvent) {
+      const pad = 14;
+      tt.style.left = `${Math.min(e.clientX + pad, window.innerWidth - tt.offsetWidth - 8)}px`;
+      tt.style.top = `${Math.min(e.clientY + pad, window.innerHeight - tt.offsetHeight - 8)}px`;
+    }
     for (const host of [map, objects]) {
       host.addEventListener('pointerover', (e) => {
         const el = (e.target as Element).closest('[data-id]');
-        paintHover(el ? ((el as HTMLElement).dataset.id ?? null) : null);
+        const id = el ? ((el as HTMLElement).dataset.id ?? null) : null;
+        paintHover(id);
+        if (id && BY_ID.has(id)) {
+          tt.innerHTML = ttContent(BY_ID.get(id)!);
+          tt.hidden = false;
+          moveTt(e as PointerEvent);
+        } else {
+          tt.hidden = true;
+        }
       });
-      host.addEventListener('pointerleave', () => paintHover(null));
+      host.addEventListener('pointermove', (e) => {
+        if (!tt.hidden) moveTt(e as PointerEvent);
+      });
+      host.addEventListener('pointerleave', () => {
+        paintHover(null);
+        tt.hidden = true;
+      });
+      host.addEventListener('pointerdown', () => (tt.hidden = true));
       host.addEventListener('dblclick', (e) => {
         const el = (e.target as Element).closest('[data-id]');
         if (el) openDetail((el as HTMLElement).dataset.id!);
@@ -847,7 +912,6 @@
       b.dataset.id = s.id;
       b.dataset.a = own ?? '';
       const m = marks[s.id];
-      b.title = labelOf(s) + (m?.note ? ` — ${m.note}` : '');
       if (a) b.style.setProperty('--chip', a.color);
       if (ICON_BY_KIND[s.kind]) {
         const ic = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
@@ -1228,6 +1292,79 @@
       (map as HTMLElement).hidden = view !== 'map';
       (legend as HTMLElement).hidden = view !== 'map';
       ($('nap-table') as HTMLElement).hidden = view !== 'table';
+      ($('nap-gantt') as HTMLElement).hidden = view !== 'gantt';
+    }
+
+    // --- ownership timeline (gantt) ------------------------------------------
+
+    function renderGantt() {
+      const host = $('nap-gantt');
+      host.innerHTML = '';
+      if (view !== 'gantt') return;
+      const today = new Date().toISOString().slice(0, 10);
+      const dates = rotations.map((r) => r.date);
+      const DAY = 86400000;
+      const minD = [today, ...dates].reduce((x, y) => (x < y ? x : y));
+      const maxD = [today, ...dates].reduce((x, y) => (x > y ? x : y));
+      const t0 = Date.parse(minD) - 2 * DAY;
+      const t1 = Math.max(Date.parse(maxD) + 10 * DAY, t0 + 28 * DAY);
+      const pct = (ms: number) => ((ms - t0) / (t1 - t0)) * 100;
+      const fmt = (ms: number) => new Date(ms).toISOString().slice(5, 10);
+
+      // axis: start, every handover date, today, end
+      const axis = document.createElement('div');
+      axis.className = 'nap-g-axis';
+      const tickSet = [...new Set([t0, ...dates.map((d) => Date.parse(d)), Date.parse(today), t1])].sort(
+        (x, y) => x - y,
+      );
+      for (const ms of tickSet) {
+        const tick = document.createElement('span');
+        tick.className = 'nap-g-tick';
+        tick.style.left = `${pct(ms)}%`;
+        tick.textContent = fmt(ms);
+        axis.appendChild(tick);
+      }
+      host.appendChild(axis);
+
+      const rows = [
+        ...STRUCTURES.filter((st) => st.kind !== 'tower'),
+        ...STRUCTURES.filter((st) => st.kind === 'tower' && rotations.some((r) => r.id === st.id)),
+      ];
+      for (const st of rows) {
+        const row = document.createElement('div');
+        row.className = 'nap-g-row';
+        const label = document.createElement('button');
+        label.type = 'button';
+        label.className = 'nap-g-label';
+        label.textContent = st.kind === 'tower' ? labelOf(st) : shortOf(st);
+        label.title = labelOf(st);
+        label.addEventListener('click', () => openDetail(st.id));
+        const track = document.createElement('div');
+        track.className = 'nap-g-track';
+        // segments: base owner until first handover, then each handover's owner
+        const mine = rotations.filter((r) => r.id === st.id);
+        const bounds = [t0, ...mine.map((r) => Date.parse(r.date)), t1];
+        let owner: string | undefined = assignments[st.id];
+        for (let i = 0; i < bounds.length - 1; i++) {
+          if (i > 0) owner = mine[i - 1].to;
+          const a = allianceById(owner);
+          const seg = document.createElement('div');
+          seg.className = 'nap-g-seg' + (a ? '' : ' free');
+          seg.style.left = `${pct(bounds[i])}%`;
+          seg.style.width = `${pct(bounds[i + 1]) - pct(bounds[i])}%`;
+          if (a) {
+            seg.style.background = a.color;
+            if (pct(bounds[i + 1]) - pct(bounds[i]) > 9) seg.textContent = a.name;
+          }
+          track.appendChild(seg);
+        }
+        const now = document.createElement('i');
+        now.className = 'nap-g-now';
+        now.style.left = `${pct(Date.parse(today))}%`;
+        track.appendChild(now);
+        row.append(label, track);
+        host.appendChild(row);
+      }
     }
 
     function renderTable() {
@@ -1402,6 +1539,7 @@
       renderProgress();
       renderStats();
       renderTable();
+      renderGantt();
       paintSelection();
       if (detailId) renderDetail();
       refreshJson();
@@ -1458,7 +1596,7 @@
 
     root.querySelectorAll<HTMLButtonElement>('.nap-view-btn').forEach((b) => {
       b.addEventListener('click', () => {
-        view = (b.dataset.view as 'map' | 'table') ?? 'map';
+        view = (b.dataset.view as 'map' | 'table' | 'gantt') ?? 'map';
         render();
       });
     });
@@ -2417,6 +2555,129 @@
     color: var(--sl-color-gray-3);
     opacity: 0.9;
     pointer-events: none;
+  }
+
+  /* The planner needs the full page width — lift Starlight's narrow content
+     column cap on this page only. */
+  main:has(#nap-planner) {
+    --sl-content-width: 100%;
+  }
+  .nap-head {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 0.25rem;
+  }
+  .nap-intro {
+    font-size: 0.92rem;
+    color: var(--sl-color-gray-2);
+    max-width: 60rem;
+    margin: 0 0 1rem;
+  }
+  .nap-tt {
+    position: fixed;
+    z-index: 60;
+    max-width: 20rem;
+    pointer-events: none;
+    border: 1px solid var(--sl-color-hairline-shade);
+    border-radius: 0.5rem;
+    background: var(--sl-color-bg-nav);
+    box-shadow: 0 8px 28px rgba(0, 0, 0, 0.35);
+    padding: 0.5rem 0.65rem;
+    font-size: 0.78rem;
+    line-height: 1.35;
+  }
+  .nap-tt-dim {
+    color: var(--sl-color-gray-4);
+  }
+  .nap-tt-line {
+    margin-top: 0.15rem;
+  }
+  .nap-tt-sw {
+    display: inline-block;
+    width: 0.6rem;
+    height: 0.6rem;
+    border-radius: 0.2rem;
+    margin-right: 0.3rem;
+    vertical-align: -0.05em;
+  }
+  .nap-gantt {
+    border: 1px solid var(--sl-color-hairline-shade);
+    border-radius: 0.75rem;
+    background: var(--sl-color-bg-nav);
+    padding: 0.6rem 0.75rem 0.75rem;
+    overflow-x: auto;
+  }
+  .nap-g-axis {
+    position: relative;
+    height: 1.3rem;
+    margin-left: 6rem;
+    border-bottom: 1px solid var(--sl-color-hairline-shade);
+  }
+  .nap-g-tick {
+    position: absolute;
+    transform: translateX(-50%);
+    font-size: 0.65rem;
+    color: var(--sl-color-gray-4);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+  .nap-g-row {
+    display: grid;
+    grid-template-columns: 6rem minmax(0, 1fr);
+    align-items: center;
+    gap: 0;
+    margin-top: 0.3rem;
+  }
+  .nap-g-label {
+    border: 0;
+    background: transparent;
+    color: var(--sl-color-white);
+    font-weight: 600;
+    font-size: 0.78rem;
+    text-align: left;
+    cursor: pointer;
+    padding: 0 0.4rem 0 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .nap-g-label:hover {
+    color: var(--sl-color-text-accent);
+  }
+  .nap-g-track {
+    position: relative;
+    height: 1.35rem;
+    border-radius: 0.35rem;
+    background: color-mix(in srgb, var(--sl-color-bg) 70%, transparent);
+    overflow: hidden;
+  }
+  .nap-g-seg {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.68rem;
+    font-weight: 700;
+    color: rgba(0, 0, 0, 0.75);
+    border-right: 2px solid var(--sl-color-bg-nav);
+    overflow: hidden;
+    white-space: nowrap;
+  }
+  .nap-g-seg.free {
+    background: repeating-linear-gradient(
+      -45deg,
+      transparent 0 6px,
+      color-mix(in srgb, var(--sl-color-hairline-shade) 55%, transparent) 6px 8px
+    );
+  }
+  .nap-g-now {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: var(--sl-color-text-accent);
   }
 
   /* --- mobile ------------------------------------------------------------- */
