@@ -60,7 +60,6 @@
       <button type="button" id="nap-csv" class="nap-btn">CSV</button>
       <button type="button" id="nap-xls" class="nap-btn">Excel</button>
       <button type="button" id="nap-ics" class="nap-btn">ICS</button>
-      <button type="button" id="nap-notify" class="nap-btn" data-i18n="notify">🔔 Reminders</button>
       <button type="button" id="nap-reset" class="nap-btn danger" data-i18n="reset">Reset</button>
     </div>
   </div>
@@ -334,7 +333,6 @@
     // collapsed; any active search/filter expands everything).
     let tblQuery = '';
     let tblOwner = ''; // '' = all, '__free' = unassigned, else alliance id
-    let notifyOn = false;
     const tblCollapsed = new Set<string>(TOWER_TYPES.map((t) => `fac:${t.type}`));
 
     const LS_KEY = 'autopilot-nap-planner';
@@ -357,10 +355,6 @@
         thNote: 'Note', thHandovers: 'Handovers',
         facilities: 'Facilities', thType: 'Type',
         kindC: 'Citadel', kindF: 'Fortress', kindT: 'Facility',
-        notify: '🔔 Reminders', notifyOnLbl: '🔔 On',
-        notifyDenied: 'Notifications are blocked in the browser settings.',
-        notifyHint: 'Fires 1h and 10m before a handover while this page is open (times are UTC). For push anywhere, export ICS into your calendar.',
-        notifMsg: 'Handover {0} → {1} in {2} min',
         rewardsTitle: 'Castle rewards — president & ministries',
         rewardsNote: 'The alliance holding the castle appoints the President and all ministers. Facility buffs are shown on the map and in the stats. Source: community data (wostools).',
         searchPh: 'Search: object, owner, note…',
@@ -405,10 +399,6 @@
         thNote: 'Заметка', thHandovers: 'Передачи',
         facilities: 'Комплексы', thType: 'Тип',
         kindC: 'Цитадель', kindF: 'Форт', kindT: 'Комплекс',
-        notify: '🔔 Напоминания', notifyOnLbl: '🔔 Вкл',
-        notifyDenied: 'Уведомления запрещены в настройках браузера.',
-        notifyHint: 'Сработает за 1ч и за 10мин до передачи, пока страница открыта (время в UTC). Для пушей где угодно — экспортируй ICS в календарь.',
-        notifMsg: 'Передача {0} → {1} через {2} мин',
         rewardsTitle: 'Награды замка — президент и министерства',
         rewardsNote: 'Альянс, держащий замок, назначает президента и всех министров. Баффы комплексов видны на карте и в статистике. Источник: данные комьюнити (wostools).',
         searchPh: 'Поиск: объект, владелец, заметка…',
@@ -532,7 +522,7 @@
         localStorage.setItem(
           LS_KEY,
           JSON.stringify({
-            alliances, assignments, marks, rotations, selectedId, eraser, showTowers, rotated, lang, view, notifyOn,
+            alliances, assignments, marks, rotations, selectedId, eraser, showTowers, rotated, lang, view,
             season: ($('nap-season') as HTMLInputElement).value,
           }),
         );
@@ -554,8 +544,6 @@
         if (s.rotated === false) rotated = false;
         if (s.lang === 'en' || s.lang === 'ru') lang = s.lang;
         if (s.view === 'table' || s.view === 'gantt') view = s.view;
-        if (s.notifyOn === true && typeof Notification !== 'undefined' && Notification.permission === 'granted')
-          notifyOn = true;
         towersCheck.checked = showTowers;
         ($('nap-rotate') as HTMLInputElement).checked = rotated;
       } catch {
@@ -1684,7 +1672,6 @@
       renderTable();
       renderGantt();
       renderRewards();
-      paintNotify();
       paintSelection();
       if (detailId) renderDetail();
       refreshJson();
@@ -2012,80 +1999,6 @@
       download(new Blob([lines.join('\r\n')], { type: 'text/calendar;charset=utf-8' }), `${fileBase()}.ics`);
     });
 
-    // --- in-page reminders (fires while the tab is open; times are UTC) ------
-
-    const NOTIFIED_KEY = 'autopilot-nap-planner-notified';
-    let notified: Record<string, number> = {};
-    try {
-      notified = JSON.parse(localStorage.getItem(NOTIFIED_KEY) ?? '{}');
-    } catch {
-      /* corrupt — start clean */
-    }
-
-    function paintNotify() {
-      const btn = $('nap-notify');
-      btn.classList.toggle('primary', notifyOn);
-      btn.textContent = notifyOn ? T('notifyOnLbl') : T('notify');
-      btn.title = T('notifyHint');
-    }
-
-    function checkReminders() {
-      if (!notifyOn || typeof Notification === 'undefined' || Notification.permission !== 'granted') return;
-      const now = Date.now();
-      let dirty = false;
-      for (const r of rotations) {
-        const st = BY_ID.get(r.id);
-        if (!st) continue;
-        const ts = Date.parse(`${r.date}T${r.time ?? '12:00'}:00Z`);
-        if (Number.isNaN(ts) || ts < now) continue;
-        for (const [thr, mins] of [
-          ['h', 60],
-          ['m', 10],
-        ] as const) {
-          const key = `${r.id}|${r.date}|${r.time ?? ''}|${thr}`;
-          if (ts - now <= mins * 60000 && !notified[key]) {
-            notified[key] = 1;
-            dirty = true;
-            try {
-              new Notification(
-                T(
-                  'notifMsg',
-                  shortOf(st),
-                  allianceById(r.to)?.name ?? '?',
-                  String(Math.max(1, Math.round((ts - now) / 60000))),
-                ),
-              );
-            } catch {
-              /* Notification constructor unavailable (e.g. Android) */
-            }
-          }
-        }
-      }
-      if (dirty) {
-        try {
-          localStorage.setItem(NOTIFIED_KEY, JSON.stringify(notified));
-        } catch {
-          /* best-effort */
-        }
-      }
-    }
-
-    $('nap-notify').addEventListener('click', async () => {
-      if (typeof Notification === 'undefined') return;
-      if (Notification.permission === 'denied') {
-        alert(T('notifyDenied'));
-        return;
-      }
-      if (Notification.permission !== 'granted') {
-        if ((await Notification.requestPermission()) !== 'granted') return;
-      }
-      notifyOn = !notifyOn;
-      paintNotify();
-      save();
-      checkReminders();
-    });
-    setInterval(checkReminders, 60000);
-
     // --- rewards reference ----------------------------------------------------
 
     function renderRewards() {
@@ -2130,7 +2043,6 @@
     restore();
     applyStaticLang();
     render();
-    checkReminders();
 
     // A shared #plan=... link overrides the local autosave (with consent).
     const hashPlan = location.hash.match(/^#plan=([A-Za-z0-9_-]+)$/);
