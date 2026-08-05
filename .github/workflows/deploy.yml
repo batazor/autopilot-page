@@ -20,6 +20,9 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v6
+        with:
+          # Full history + tags: the build generates changelog.md from git tags.
+          fetch-depth: 0
 
       - name: Setup Node
         uses: actions/setup-node@v6

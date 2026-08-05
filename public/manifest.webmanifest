@@ -1,0 +1,15 @@
+{
+  "name": "Autopilot — Fort & Facility Planner",
+  "short_name": "Fort Planner",
+  "description": "Divide the season territory between your NAP alliances — works offline, data stays on your device.",
+  "id": "/autopilot-page/",
+  "scope": "/autopilot-page/",
+  "start_url": "/autopilot-page/games/nap-planner/",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#0f172a",
+  "icons": [
+    { "src": "/autopilot-page/icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/autopilot-page/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}

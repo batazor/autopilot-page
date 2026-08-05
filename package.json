@@ -6,17 +6,17 @@
   "scripts": {
     "dev": "astro dev",
     "start": "astro dev",
-    "build": "astro build",
+    "build": "node scripts/gen-changelog.mjs && astro build",
     "preview": "astro preview",
     "astro": "astro"
   },
   "dependencies": {
     "@astrojs/sitemap": "^3.7.3",
-    "@astrojs/starlight": "^0.39.2",
+    "@astrojs/starlight": "^0.41.7",
     "@astrojs/starlight-tailwind": "^5.0.0",
     "@tailwindcss/vite": "^4.3.0",
-    "astro": "^6.3.8",
-    "sharp": "^0.34.5",
+    "astro": "^7.1.6",
+    "sharp": "^0.35.3",
     "tailwindcss": "^4.3.0"
   }
 }

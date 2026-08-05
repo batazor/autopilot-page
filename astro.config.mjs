@@ -72,6 +72,30 @@ export default defineConfig({
       favicon: '/favicon.png',
       customCss: ['./src/styles/tailwind.css', './src/styles/wos.css'],
       head: [
+        // PWA: manifest + offline service worker (registered on production
+        // hosts only, so localhost dev servers never fight a stale cache).
+        {
+          tag: 'link',
+          attrs: {
+            rel: 'manifest',
+            href: '/autopilot-page/manifest.webmanifest',
+          },
+        },
+        {
+          tag: 'meta',
+          attrs: { name: 'theme-color', content: '#0f172a' },
+        },
+        {
+          tag: 'script',
+          content: `
+if ('serviceWorker' in navigator
+    && location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') {
+  window.addEventListener('load', function () {
+    navigator.serviceWorker.register('/autopilot-page/sw.js', { scope: '/autopilot-page/' }).catch(function () {});
+  });
+}
+`,
+        },
         // Google Analytics 4.
         {
           tag: 'script',
@@ -180,6 +204,14 @@ gtag('config', 'G-H94ZVP57ER');
           label: 'Start here',
           items: [
             { label: 'Overview', slug: 'index' },
+            { label: 'Changelog', slug: 'changelog' },
+          ],
+        },
+        {
+          label: 'Tools (in browser)',
+          items: [
+            { label: 'Fort & Facility planner', slug: 'games/nap-planner' },
+            { label: 'Online label editor', slug: 'authoring/label-editor' },
           ],
         },
         {
@@ -191,7 +223,6 @@ gtag('config', 'G-H94ZVP57ER');
               items: [
                 { label: 'Overview', slug: 'games/whiteout-survival' },
                 { label: 'Dreamscape Memory (module)', slug: 'games/dreamscape-memory' },
-                { label: 'Fort & Facility planner', slug: 'games/nap-planner' },
               ],
             },
             { label: 'Kingshot', slug: 'games/kingshot' },
