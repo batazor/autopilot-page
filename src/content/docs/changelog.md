@@ -13,6 +13,10 @@ Every release below is a `vX.Y.Z` git tag in the
 trigger the deploy, so this list is exactly what went live. The bot itself
 lives in [autopilot](https://github.com/batazor/autopilot).
 
+## v0.29.0 — 2026-08-06
+
+Site quality: zero vulns (astro 7), Tools section, changelog page, PWA offline
+
 ## v0.28.1 — 2026-08-05
 
 Drop in-page reminders; ICS stays

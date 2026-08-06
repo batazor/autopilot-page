@@ -625,6 +625,11 @@
    them entirely (pins then pile up unpositioned in the top-left corner). All
    selectors are namespaced with the lbl- prefix instead. */}
 <style is:global>
+  /* The editor needs the full page width — lift Starlight's narrow content
+     column cap on this page only (same trick as the NAP planner). */
+  main:has(#lbl-editor) {
+    --sl-content-width: 100%;
+  }
   #lbl-editor {
     margin: 1.5rem 0;
     font-size: 0.9rem;
